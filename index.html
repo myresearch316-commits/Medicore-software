@@ -1,0 +1,2146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediCore HMS — Hospital Management System</title>
+<style>
+  :root{
+    --bg:#f4f7fb; --panel:#ffffff; --ink:#0f2033; --muted:#5b6b7f;
+    --line:#e4ebf3; --brand:#1f6feb; --brand-2:#0ea5a4; --brand-deep:#134e9e;
+    --ring:rgba(31,111,235,.16); --shadow:0 18px 50px -22px rgba(15,42,72,.35);
+    --shadow-sm:0 6px 20px -10px rgba(15,42,72,.28);
+    --ok:#16a34a; --warn:#d97706; --danger:#dc2626;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink); background:var(--bg); -webkit-font-smoothing:antialiased;
+  }
+  button{font-family:inherit; cursor:pointer}
+  input,select{font-family:inherit}
+  .hidden{display:none !important}
+
+  /* ---------- AUTH ---------- */
+  #auth{
+    min-height:100vh; display:grid; grid-template-columns:1.05fr .95fr;
+  }
+  .auth-brandside{
+    position:relative; overflow:hidden; color:#fff;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,.16), transparent 60%),
+      linear-gradient(150deg,#134e9e 0%,#1f6feb 45%,#0ea5a4 120%);
+    padding:56px 60px; display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .auth-brandside::after{
+    content:""; position:absolute; inset:0;
+    background:
+      radial-gradient(500px 500px at 85% 20%, rgba(255,255,255,.10), transparent 60%),
+      radial-gradient(400px 400px at 70% 100%, rgba(14,165,164,.35), transparent 60%);
+    pointer-events:none;
+  }
+  .brand-lockup{display:flex; align-items:center; gap:14px; position:relative; z-index:2}
+  .brand-mark{
+    width:52px; height:52px; border-radius:15px; display:grid; place-items:center;
+    background:rgba(255,255,255,.14); backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.30);
+  }
+  .brand-mark svg{width:28px;height:28px}
+  .brand-name{font-size:22px; font-weight:800; letter-spacing:.3px}
+  .brand-name span{font-weight:500; opacity:.85}
+  .brand-hero{position:relative; z-index:2; max-width:460px}
+  .brand-hero h1{font-size:40px; line-height:1.12; margin:0 0 16px; font-weight:800; letter-spacing:-.5px}
+  .brand-hero p{font-size:16.5px; line-height:1.6; opacity:.92; margin:0}
+  .brand-stats{display:flex; gap:34px; position:relative; z-index:2}
+  .brand-stats .st b{display:block; font-size:26px; font-weight:800}
+  .brand-stats .st span{font-size:12.5px; opacity:.85; letter-spacing:.4px; text-transform:uppercase}
+  .brand-badge{
+    position:relative; z-index:2; display:inline-flex; align-items:center; gap:8px;
+    background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.28);
+    padding:7px 13px; border-radius:999px; font-size:12.5px; width:max-content; font-weight:600;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:#7CFFB2;box-shadow:0 0 0 4px rgba(124,255,178,.25)}
+
+  .auth-formside{display:flex; align-items:center; justify-content:center; padding:40px}
+  .auth-card{width:100%; max-width:410px}
+  .auth-card h2{font-size:27px; margin:0 0 6px; font-weight:800; letter-spacing:-.3px}
+  .auth-sub{color:var(--muted); margin:0 0 26px; font-size:14.5px}
+
+  .roles{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:22px}
+  .role{
+    border:1px solid var(--line); background:#fff; border-radius:12px; padding:11px 6px;
+    display:flex; flex-direction:column; align-items:center; gap:6px; transition:.16s;
+    color:var(--muted); font-size:11.5px; font-weight:600;
+  }
+  .role svg{width:19px;height:19px}
+  .role:hover{border-color:var(--brand); color:var(--brand)}
+  .role.active{border-color:var(--brand); background:linear-gradient(180deg,#f2f7ff,#eaf1ff); color:var(--brand-deep); box-shadow:0 0 0 3px var(--ring)}
+
+  .field{margin-bottom:15px}
+  .field label{display:block; font-size:12.5px; font-weight:700; color:#33465c; margin-bottom:7px; letter-spacing:.2px}
+  .inp{
+    display:flex; align-items:center; gap:10px; border:1px solid var(--line);
+    background:#fbfdff; border-radius:11px; padding:0 13px; transition:.16s;
+  }
+  .inp:focus-within{border-color:var(--brand); box-shadow:0 0 0 4px var(--ring); background:#fff}
+  .inp svg{width:17px;height:17px;color:#8194a8;flex:none}
+  .inp input{border:0; background:transparent; outline:0; padding:13px 0; width:100%; font-size:14.5px; color:var(--ink)}
+  .inp .eye{background:transparent;border:0;padding:4px;color:#8194a8;display:grid;place-items:center}
+
+  .row-between{display:flex; align-items:center; justify-content:space-between; margin:4px 0 20px}
+  .check{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); user-select:none; cursor:pointer}
+  .check input{width:16px;height:16px;accent-color:var(--brand)}
+  .link{color:var(--brand); font-size:13px; font-weight:600; text-decoration:none}
+  .link:hover{text-decoration:underline}
+
+  .btn{
+    width:100%; border:0; border-radius:12px; padding:14px; font-size:15px; font-weight:700; color:#fff;
+    background:linear-gradient(180deg,var(--brand),var(--brand-deep));
+    box-shadow:0 12px 26px -12px rgba(31,111,235,.75); transition:.16s; letter-spacing:.2px;
+    display:flex; align-items:center; justify-content:center; gap:9px;
+  }
+  .btn:hover{filter:brightness(1.05); transform:translateY(-1px)}
+  .btn:active{transform:translateY(0)}
+  .err{color:var(--danger); font-size:12.5px; margin-top:10px; min-height:16px; font-weight:600}
+  .auth-foot{margin-top:24px; font-size:12.5px; color:#93a2b5; text-align:center}
+  .divider{display:flex; align-items:center; gap:12px; color:#9fb0c2; font-size:12px; margin:20px 0}
+  .divider::before,.divider::after{content:"";height:1px;background:var(--line);flex:1}
+
+  /* ---------- ROLE SELECT PAGE ---------- */
+  #rolePage{min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:44px 24px 60px}
+  .rp-top{width:100%; max-width:1080px; display:flex; align-items:center; justify-content:space-between; margin-bottom:38px}
+  .rp-brand{display:flex; align-items:center; gap:12px}
+  .rp-brand .brand-mark{width:44px;height:44px;border-radius:12px;background:linear-gradient(150deg,#1f6feb,#0ea5a4);border:0}
+  .rp-brand .brand-mark svg{width:24px;height:24px;color:#fff}
+  .rp-brand b{font-size:18px;font-weight:800;letter-spacing:-.2px}
+  .rp-brand b span{color:var(--muted);font-weight:500}
+  .rp-back{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 15px;font-size:13px;font-weight:600;color:#5b6b7f;display:flex;align-items:center;gap:7px}
+  .rp-back:hover{border-color:var(--danger);color:var(--danger)}
+  .rp-back svg{width:15px;height:15px}
+  .rp-head{text-align:center; margin-bottom:34px; max-width:640px}
+  .rp-head .badge2{display:inline-flex;align-items:center;gap:7px;background:#eaf1ff;color:var(--brand-deep);font-size:12px;font-weight:700;padding:6px 13px;border-radius:999px;margin-bottom:14px}
+  .rp-head .badge2 .dot{background:var(--brand)}
+  .rp-head h1{font-size:30px;margin:0 0 8px;font-weight:800;letter-spacing:-.5px}
+  .rp-head p{margin:0;color:var(--muted);font-size:15px}
+  .rp-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:20px; width:100%; max-width:760px}
+  @media(max-width:560px){.rp-grid{grid-template-columns:1fr}}
+  .rcard{
+    position:relative; background:#fff; border:1px solid var(--line); border-radius:18px; padding:24px;
+    text-align:left; transition:.18s; overflow:hidden; box-shadow:var(--shadow-sm);
+  }
+  .rcard::before{content:"";position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(140deg,var(--rc,#1f6feb),transparent 55%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:.18s}
+  .rcard:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:transparent}
+  .rcard:hover::before{opacity:1}
+  .rc-top{display:flex; align-items:center; gap:14px; margin-bottom:16px}
+  .rc-ico{width:54px;height:54px;border-radius:15px;display:grid;place-items:center;background:var(--rcbg,#eaf1ff);color:var(--rc,#1f6feb);flex:none}
+  .rc-ico svg{width:27px;height:27px}
+  .rcard h3{margin:0;font-size:18px;font-weight:800;letter-spacing:-.2px}
+  .rcard .rc-sub{font-size:12px;color:var(--muted);font-weight:600}
+  .rcard p{margin:0 0 18px;font-size:13px;color:var(--muted);line-height:1.55}
+  .rc-enter{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:var(--rc,#1f6feb)}
+  .rc-enter .arr{transition:.18s}
+  .rcard:hover .rc-enter .arr{transform:translateX(4px)}
+  .rc-users{position:absolute;top:22px;right:22px;font-size:11.5px;font-weight:700;color:var(--muted);background:var(--bg);padding:4px 9px;border-radius:8px}
+
+  /* ---------- APP SHELL ---------- */
+  #app{min-height:100vh; display:flex; flex-direction:column}
+  .topbar{
+    height:64px; background:#fff; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; gap:18px; padding:0 26px; position:sticky; top:0; z-index:20;
+  }
+  .topbar .brand-mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#1f6feb,#0ea5a4);border:0}
+  .topbar .brand-mark svg{width:21px;height:21px;color:#fff}
+  .topbar .tb-name{font-weight:800; font-size:16.5px; letter-spacing:-.2px}
+  .topbar .tb-name span{color:var(--muted); font-weight:500; font-size:12.5px; margin-left:6px}
+  .tb-search{
+    margin-left:14px; flex:1; max-width:420px; display:flex; align-items:center; gap:9px;
+    background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:9px 13px; color:var(--muted);
+  }
+  .tb-search svg{width:16px;height:16px;flex:none}
+  .tb-search input{border:0;background:transparent;outline:0;width:100%;font-size:13.5px;color:var(--ink)}
+  .tb-right{margin-left:auto; display:flex; align-items:center; gap:14px}
+  .tb-ico{position:relative; width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;color:#5b6b7f}
+  .tb-ico:hover{border-color:var(--brand);color:var(--brand)}
+  .tb-ico svg{width:18px;height:18px}
+  .tb-ico .badge{position:absolute;top:-5px;right:-5px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;min-width:17px;height:17px;border-radius:9px;display:grid;place-items:center;padding:0 4px;border:2px solid #fff}
+  .avatar{display:flex;align-items:center;gap:10px;padding-left:6px;border-left:1px solid var(--line)}
+  .avatar .pic{width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#1f6feb,#134e9e);color:#fff;display:grid;place-items:center;font-weight:800;font-size:14px}
+  .avatar .who{line-height:1.25}
+  .avatar .who b{font-size:13.5px}
+  .avatar .who span{display:block;font-size:11.5px;color:var(--muted)}
+  .logout{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 12px;font-size:12.5px;font-weight:600;color:#5b6b7f}
+  .logout:hover{border-color:var(--danger);color:var(--danger)}
+
+  .hub{max-width:1240px; width:100%; margin:0 auto; padding:30px 26px 60px}
+  .hub-head{display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:24px}
+  .hub-head h1{font-size:25px; margin:0 0 5px; font-weight:800; letter-spacing:-.4px}
+  .hub-head p{margin:0; color:var(--muted); font-size:14px}
+  .hub-kpis{display:flex; gap:12px; flex-wrap:wrap}
+  .kpi{background:#fff; border:1px solid var(--line); border-radius:13px; padding:12px 16px; min-width:120px; box-shadow:var(--shadow-sm)}
+  .kpi b{font-size:20px; display:block}
+  .kpi span{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; font-weight:600}
+  .kpi .up{color:var(--ok); font-size:11.5px; font-weight:700}
+
+  .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:18px}
+  @media(max-width:980px){.grid{grid-template-columns:repeat(2,1fr)}}
+  .module{
+    position:relative; background:#fff; border:1px solid var(--line); border-radius:18px;
+    padding:22px; text-align:left; transition:.18s; overflow:hidden; box-shadow:var(--shadow-sm);
+  }
+  .module::before{
+    content:""; position:absolute; left:0; top:0; height:100%; width:5px; background:var(--mc,#1f6feb); opacity:.9;
+  }
+  .module:hover{transform:translateY(-4px); box-shadow:var(--shadow); border-color:transparent}
+  .m-ico{
+    width:52px;height:52px;border-radius:14px; display:grid; place-items:center; margin-bottom:16px;
+    background:var(--mcbg,#eaf1ff); color:var(--mc,#1f6feb);
+  }
+  .m-ico svg{width:26px;height:26px}
+  .module h3{margin:0 0 5px; font-size:16.5px; font-weight:800; letter-spacing:-.2px}
+  .module p{margin:0; font-size:12.8px; color:var(--muted); line-height:1.5}
+  .m-foot{display:flex; align-items:center; justify-content:space-between; margin-top:16px}
+  .m-count{font-size:12px; font-weight:700; color:var(--mc,#1f6feb); background:var(--mcbg,#eaf1ff); padding:4px 10px; border-radius:8px}
+  .m-arrow{color:#c0ccdb; transition:.18s}
+  .module:hover .m-arrow{color:var(--mc,#1f6feb); transform:translateX(3px)}
+
+  .module.add{
+    border:2px dashed #c7d6e6; background:linear-gradient(180deg,#fbfdff,#f5f9ff); display:flex;
+    flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:190px; color:var(--muted);
+  }
+  .module.add::before{display:none}
+  .module.add:hover{border-color:var(--brand); color:var(--brand-deep)}
+  .add-plus{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:#eaf1ff;color:var(--brand);margin-bottom:12px;transition:.18s}
+  .module.add:hover .add-plus{background:var(--brand);color:#fff;transform:rotate(90deg)}
+  .add-plus svg{width:28px;height:28px}
+  .module.add h3{font-size:15px;color:inherit}
+  .module.add p{font-size:12px}
+
+  /* modal */
+  .overlay{position:fixed; inset:0; background:rgba(15,33,51,.45); backdrop-filter:blur(3px); display:grid; place-items:center; z-index:60; padding:20px}
+  .modal{background:#fff; border-radius:20px; width:100%; max-width:440px; box-shadow:var(--shadow); overflow:hidden; animation:pop .18s ease}
+  @keyframes pop{from{transform:translateY(10px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+  .modal-head{padding:22px 24px 6px; display:flex; align-items:center; justify-content:space-between}
+  .modal-head h3{margin:0; font-size:18px; font-weight:800}
+  .modal-x{border:0;background:var(--bg);width:32px;height:32px;border-radius:9px;color:#5b6b7f;font-size:16px;display:grid;place-items:center}
+  .modal-x:hover{background:#ffe8e8;color:var(--danger)}
+  .modal-body{padding:16px 24px 8px}
+  .modal-body .auth-sub{margin-bottom:18px}
+  .swatches{display:flex; gap:9px; margin:6px 0 4px; flex-wrap:wrap}
+  .sw{width:30px;height:30px;border-radius:9px;border:2px solid transparent;cursor:pointer;position:relative}
+  .sw.active{border-color:#0f2033}
+  .icon-picker{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:4px}
+  .ip{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px;display:grid;place-items:center;color:#5b6b7f}
+  .ip svg{width:20px;height:20px}
+  .ip.active{border-color:var(--brand);background:#eaf1ff;color:var(--brand)}
+  .modal-foot{padding:14px 24px 22px; display:flex; gap:10px}
+  .btn.ghost{background:#fff;color:#5b6b7f;border:1px solid var(--line);box-shadow:none}
+  .btn.ghost:hover{border-color:#c7d6e6}
+
+  /* ---------- MODULE / OPD PAGE ---------- */
+  #opdPage{min-height:100vh; display:flex; flex-direction:column}
+  .mod-bar{
+    background:#fff; border-bottom:1px solid var(--line); padding:14px 26px;
+    display:flex; align-items:center; gap:16px; position:sticky; top:0; z-index:20;
+  }
+  .mod-back{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;color:#5b6b7f;display:flex;align-items:center;gap:7px}
+  .mod-back:hover{border-color:var(--brand);color:var(--brand)}
+  .mod-back svg{width:15px;height:15px}
+  .mod-title{display:flex;align-items:center;gap:12px}
+  .mod-title .m-ico{width:42px;height:42px;border-radius:12px;margin:0;background:#eaf1ff;color:var(--brand)}
+  .mod-title .m-ico svg{width:22px;height:22px}
+  .mod-title h2{margin:0;font-size:17px;font-weight:800;letter-spacing:-.2px}
+  .mod-title .crumb{font-size:12px;color:var(--muted);font-weight:600}
+  .mod-stats{margin-left:auto;display:flex;gap:10px}
+  .mstat{background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:8px 14px;text-align:center;min-width:78px}
+  .mstat b{display:block;font-size:17px;font-weight:800;line-height:1.1}
+  .mstat span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+
+  .opd-wrap{flex:1; display:grid; grid-template-columns:352px 1fr; gap:0; align-items:stretch}
+  @media(max-width:900px){.opd-wrap{grid-template-columns:1fr}}
+  /* queue column */
+  .queue-col{background:#fff; border-right:1px solid var(--line); display:flex; flex-direction:column; min-height:calc(100vh - 71px)}
+  .queue-head{padding:18px 18px 12px; border-bottom:1px solid var(--line)}
+  .queue-head .qh-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .queue-head h3{margin:0;font-size:15px;font-weight:800}
+  .qh-live{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--ok)}
+  .qh-live .dot{background:var(--ok);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .btn.sm{padding:10px 12px;font-size:13px;border-radius:10px}
+  .qsearch{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:8px 11px;color:var(--muted);margin-top:10px}
+  .qsearch svg{width:15px;height:15px}
+  .qsearch input{border:0;background:transparent;outline:0;width:100%;font-size:13px;color:var(--ink)}
+  .queue-list{overflow-y:auto; padding:10px; flex:1}
+  .qitem{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:13px;margin-bottom:9px;cursor:pointer;transition:.14s;background:#fff}
+  .qitem:hover{border-color:var(--brand);box-shadow:var(--shadow-sm)}
+  .qitem.active{border-color:var(--brand);background:#f4f9ff;box-shadow:0 0 0 3px var(--ring)}
+  .qtok{width:44px;height:44px;border-radius:12px;background:#eaf1ff;color:var(--brand-deep);display:grid;place-items:center;font-weight:800;font-size:15px;flex:none}
+  .qtok.serving{background:#fff4e6;color:#b45309}
+  .qtok.done{background:#e9f7ee;color:var(--ok)}
+  .qmeta{flex:1;min-width:0}
+  .qmeta b{font-size:14px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .qmeta span{font-size:11.5px;color:var(--muted)}
+  .qstat{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:3px 8px;border-radius:7px;flex:none}
+  .qstat.wait{background:#eef2f7;color:#5b6b7f}
+  .qstat.serving{background:#fff4e6;color:#b45309}
+  .qstat.done{background:#e9f7ee;color:var(--ok)}
+  .queue-foot{padding:12px 14px;border-top:1px solid var(--line)}
+  .qempty{text-align:center;color:var(--muted);font-size:13px;padding:30px 12px}
+
+  /* main panel */
+  .opd-main{padding:22px 26px; overflow-y:auto; min-height:calc(100vh - 71px)}
+  .seg{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:20px;gap:3px}
+  .seg button{border:0;background:transparent;padding:9px 16px;border-radius:9px;font-size:13px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .seg button svg{width:15px;height:15px}
+  .seg button.active{background:linear-gradient(180deg,var(--brand),var(--brand-deep));color:#fff;box-shadow:0 8px 18px -10px rgba(31,111,235,.7)}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:var(--shadow-sm);max-width:840px}
+  .panel h3{margin:0 0 4px;font-size:17px;font-weight:800}
+  .panel .psub{margin:0 0 20px;color:var(--muted);font-size:13px}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:620px){.form-grid{grid-template-columns:1fr}}
+  .form-grid .full{grid-column:1/-1}
+  .fld label{display:block;font-size:12px;font-weight:700;color:#33465c;margin-bottom:6px}
+  .fld .inp{background:#fbfdff}
+  .fld input,.fld select,.fld textarea{border:1px solid var(--line);background:#fbfdff;border-radius:11px;padding:12px 13px;width:100%;font-size:14px;color:var(--ink);outline:0}
+  .fld textarea{resize:vertical;min-height:74px}
+  .fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--ring);background:#fff}
+  .form-actions{display:flex;gap:10px;margin-top:20px}
+  .form-actions .btn{width:auto;padding:13px 22px}
+
+  .vitals{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+  @media(max-width:620px){.vitals{grid-template-columns:repeat(2,1fr)}}
+  .vital{background:var(--bg);border:1px solid var(--line);border-radius:13px;padding:12px}
+  .vital span{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+  .vital input{border:0;background:transparent;font-size:17px;font-weight:800;width:100%;outline:0;color:var(--ink);padding:4px 0 0}
+
+  .pt-banner{display:flex;align-items:center;gap:14px;background:linear-gradient(120deg,#f2f7ff,#eef7f6);border:1px solid #dbe8f5;border-radius:15px;padding:16px 18px;margin-bottom:20px}
+  .pt-banner .pic{width:48px;height:48px;border-radius:13px;background:linear-gradient(150deg,#1f6feb,#0ea5a4);color:#fff;display:grid;place-items:center;font-weight:800;font-size:17px}
+  .pt-banner b{font-size:16px}
+  .pt-banner .tag{font-size:12px;color:var(--muted);font-weight:600}
+  .pt-banner .tok{margin-left:auto;text-align:center}
+  .pt-banner .tok b{display:block;font-size:22px;color:var(--brand-deep)}
+  .pt-banner .tok span{font-size:10.5px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.4px}
+  .placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:60px 20px;background:#fff;border:1px dashed var(--line);border-radius:18px;max-width:840px}
+  .placeholder svg{width:46px;height:46px;color:#c0ccdb;margin-bottom:14px}
+  .placeholder b{color:var(--ink);font-size:16px;margin-bottom:4px}
+  .placeholder p{margin:0;font-size:13.5px}
+
+  /* ---------- IPD PAGE ---------- */
+  #ipdPage{min-height:100vh; display:flex; flex-direction:column}
+  .ipd-main{max-width:1200px;width:100%;margin:0 auto;padding:22px 26px 60px}
+  .bedboard{display:flex;flex-direction:column;gap:16px}
+  .ward{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 18px 16px;box-shadow:var(--shadow-sm)}
+  .ward-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .ward-badge{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;flex:none}
+  .ward-head h3{margin:0;font-size:15.5px;font-weight:800}
+  .ward-head .wsub{font-size:12px;color:var(--muted);font-weight:600}
+  .ward-occ{margin-left:auto;text-align:right}
+  .ward-occ b{font-size:15px}
+  .ward-occ span{font-size:11px;color:var(--muted);display:block;text-transform:uppercase;letter-spacing:.3px;font-weight:700}
+  .beds{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}
+  .bed{border:1px solid var(--line);border-radius:12px;padding:11px 12px;cursor:pointer;transition:.14s;background:#fff;position:relative;overflow:hidden}
+  .bed:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+  .bedx{position:absolute;top:6px;right:6px;width:19px;height:19px;border-radius:6px;border:0;background:rgba(15,33,51,.07);color:#5b6b7f;font-size:14px;line-height:1;display:grid;place-items:center;cursor:pointer;opacity:0;transition:.14s}
+  .bed:hover .bedx{opacity:1}
+  .bedx:hover{background:#fdeaea;color:#dc2626}
+  .bed .bno{font-size:12px;font-weight:800;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .bed .bno svg{width:14px;height:14px}
+  .bed .bpat{font-size:12.5px;font-weight:700;margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bed .bstat{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;margin-top:3px}
+  .bed.vacant{background:#f0fbf4;border-color:#c7ecd4}
+  .bed.vacant .bstat{color:var(--ok)} .bed.vacant .bno{color:#16a34a}
+  .bed.occupied{background:#eef5ff;border-color:#cfe0f7}
+  .bed.occupied .bstat{color:var(--brand-deep)} .bed.occupied .bno{color:var(--brand)}
+  .bed.cleaning{background:#fff7ec;border-color:#f3e0bf}
+  .bed.cleaning .bstat{color:#b45309} .bed.cleaning .bno{color:#b45309}
+  .bedlegend{display:flex;gap:16px;flex-wrap:wrap;margin:2px 0 18px}
+  .lg{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);font-weight:600}
+  .lg i{width:13px;height:13px;border-radius:4px;display:inline-block}
+  .adm-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+  .adm{background:#fff;border:1px solid var(--line);border-radius:15px;padding:16px;box-shadow:var(--shadow-sm)}
+  .adm-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .adm-top .pic{width:44px;height:44px;border-radius:12px;background:linear-gradient(150deg,#1f6feb,#0ea5a4);color:#fff;display:grid;place-items:center;font-weight:800;font-size:15px}
+  .adm-top b{font-size:14.5px} .adm-top span{font-size:11.5px;color:var(--muted);display:block}
+  .adm-row{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-top:1px dashed var(--line)}
+  .adm-row span{color:var(--muted)} .adm-row b{font-weight:700}
+  .adm-foot{display:flex;gap:8px;margin-top:12px}
+  .btn.tiny{width:auto;padding:9px 14px;font-size:12.5px;border-radius:9px}
+  .btn.danger{background:linear-gradient(180deg,#ef4444,#c81e1e);box-shadow:0 10px 22px -12px rgba(220,38,38,.7)}
+
+  /* ---------- generic module page ---------- */
+  #genPage{min-height:100vh;display:flex;flex-direction:column}
+  .gen-main{max-width:1200px;width:100%;margin:0 auto;padding:22px 26px 60px}
+  .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap}
+  .sec-head h3{margin:0;font-size:16px;font-weight:800}
+  .sec-head p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+  .tablewrap{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);overflow:hidden}
+  .dtable{width:100%;border-collapse:collapse;font-size:13px}
+  .dtable th{text-align:left;padding:12px 14px;background:#f7fafd;color:#5b6b7f;font-size:11px;text-transform:uppercase;letter-spacing:.4px;font-weight:800;border-bottom:1px solid var(--line);white-space:nowrap}
+  .dtable td{padding:12px 14px;border-bottom:1px solid var(--line);color:var(--ink)}
+  .dtable tr:last-child td{border-bottom:0}
+  .dtable tbody tr:hover{background:#f9fbfe}
+  .dtable td .money{font-weight:800;color:var(--ink)}
+  .dtable .sno{color:var(--muted);font-weight:700;width:44px}
+  .pill{display:inline-block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;padding:4px 9px;border-radius:7px;background:#eef2f7;color:#5b6b7f;white-space:nowrap}
+  .pill.g{background:#e9f7ee;color:#16a34a}.pill.a{background:#fff4e6;color:#b45309}.pill.r{background:#fdeaea;color:#dc2626}.pill.b{background:#eaf1ff;color:var(--brand-deep)}
+  .pay{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:12.5px}
+  .pay::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--brand)}
+  .tempty{text-align:center;color:var(--muted);padding:30px;font-size:13px}
+  .addcard{background:#fff;border:1px solid var(--brand);border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 0 0 3px var(--ring)}
+  .addcard h4{margin:0 0 14px;font-size:14.5px;font-weight:800}
+  .addgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:760px){.addgrid{grid-template-columns:1fr 1fr}}
+  @media(max-width:520px){.addgrid{grid-template-columns:1fr}}
+  .addgrid .fld input,.addgrid .fld select{padding:10px 12px;font-size:13.5px}
+
+  /* ---------- admin dashboard ---------- */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+  @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:520px){.kpi-grid{grid-template-columns:1fr}}
+  .kbig{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+  .kbig .kt{font-size:11.5px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:8px}
+  .kbig .kt .ci{width:30px;height:30px;border-radius:9px;display:grid;place-items:center}
+  .kbig .kt .ci svg{width:16px;height:16px}
+  .kbig b{display:block;font-size:26px;font-weight:800;margin-top:12px;letter-spacing:-.5px}
+  .kbig .ks{font-size:12px;color:var(--muted);font-weight:600;margin-top:3px}
+  .kbig .ks.up{color:var(--ok)}.kbig .ks.dn{color:var(--danger)}
+  .dash-2{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:16px}
+  @media(max-width:900px){.dash-2{grid-template-columns:1fr}}
+  .chartcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow-sm)}
+  .chartcard h3{margin:0 0 3px;font-size:15px;font-weight:800}
+  .chartcard .psub{margin:0 0 18px}
+  .bars{display:flex;align-items:flex-end;gap:14px;height:180px;padding-top:10px}
+  .barcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}
+  .barpair{display:flex;gap:4px;align-items:flex-end;height:100%;width:100%;justify-content:center}
+  .bar{width:14px;border-radius:5px 5px 0 0;transition:.3s}
+  .bar.inc{background:linear-gradient(180deg,#3b8bf0,#1f6feb)}
+  .bar.exp{background:linear-gradient(180deg,#f0a35b,#d97706)}
+  .barlbl{font-size:11px;color:var(--muted);font-weight:700}
+  .legend2{display:flex;gap:16px;margin-top:14px;font-size:12px;color:var(--muted);font-weight:600}
+  .legend2 i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:5px}
+  .breakdown{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow-sm)}
+  .breakdown h3{margin:0 0 14px;font-size:15px;font-weight:800}
+  .brow{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font-size:13px}
+  .brow:first-of-type{border-top:0}
+  .brow .bn{display:flex;align-items:center;gap:9px;font-weight:600}
+  .brow .bn i{width:9px;height:9px;border-radius:50%}
+  .brow b{font-weight:800}
+  .amod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  @media(max-width:900px){.amod-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:520px){.amod-grid{grid-template-columns:1fr}}
+  .amod{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;text-align:left;box-shadow:var(--shadow-sm);transition:.16s;display:flex;align-items:center;gap:12px}
+  .amod:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:transparent}
+  .amod .ai{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;flex:none}
+  .amod .ai svg{width:22px;height:22px}
+  .amod b{font-size:14.5px;display:block}.amod span{font-size:11.5px;color:var(--muted)}
+
+  /* ---------- danger zone ---------- */
+  .danger{border:1.5px solid #f3c9c9;background:linear-gradient(180deg,#fff7f7,#fff);border-radius:18px;padding:24px;max-width:640px}
+  .danger .dhead{display:flex;align-items:center;gap:11px;margin-bottom:6px}
+  .danger .dhead .di{width:40px;height:40px;border-radius:11px;background:#fdeaea;color:#dc2626;display:grid;place-items:center;flex:none}
+  .danger .dhead .di svg{width:22px;height:22px}
+  .danger h3{margin:0;font-size:17px;font-weight:800;color:#b91c1c}
+  .danger .psub{color:#8a5b5b}
+  .danger .warn{background:#fdeaea;border:1px solid #f3c9c9;border-radius:12px;padding:12px 14px;font-size:13px;color:#8a3b3b;margin:8px 0 18px;line-height:1.5}
+  .codebox{text-align:center;margin-bottom:14px}
+  .codebox .clbl{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+  .codeval{display:inline-block;font-family:'Courier New',monospace;font-size:24px;font-weight:800;letter-spacing:6px;color:#b91c1c;background:#fff;border:2px dashed #e39a9a;border-radius:12px;padding:12px 22px;user-select:all}
+  .danger .codeinp{border:1px solid #e0a3a3;background:#fff;border-radius:11px;padding:13px;width:100%;font-size:15px;text-align:center;letter-spacing:3px;font-weight:700;text-transform:uppercase;outline:0;margin-bottom:14px}
+  .danger .codeinp:focus{border-color:#dc2626;box-shadow:0 0 0 4px rgba(220,38,38,.14)}
+  .btn.dngr{background:linear-gradient(180deg,#ef4444,#b91c1c);box-shadow:0 12px 26px -12px rgba(220,38,38,.75)}
+  .btn.dngr:disabled{opacity:.5;cursor:not-allowed;filter:grayscale(.3)}
+
+  /* ---------- admin credentials ---------- */
+  .cred-row{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+  .cred-row:first-child{border-top:0}
+  .cred-mod{display:flex;align-items:center;gap:11px;font-weight:800;font-size:14px}
+  .cred-mod .ci{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:none}
+  .cred-mod .ci svg{width:19px;height:19px}
+  .cred-row .lbl{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:4px}
+  .cred-row input{border:1px solid var(--line);background:#fbfdff;border-radius:10px;padding:10px 12px;width:100%;font-size:13.5px;color:var(--ink);outline:0}
+  .cred-row input:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--ring);background:#fff}
+  .cred-head{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:12px;padding-bottom:6px;font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  @media(max-width:640px){.cred-row,.cred-head{grid-template-columns:1fr}.cred-head{display:none}}
+
+  .toast{
+    position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:#0f2033; color:#fff; padding:12px 20px; border-radius:12px; font-size:13.5px; font-weight:600;
+    box-shadow:var(--shadow); opacity:0; transition:.25s; z-index:80; display:flex; align-items:center; gap:9px;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+  .toast svg{width:17px;height:17px;color:#7CFFB2}
+
+  @media(max-width:860px){
+    #auth{grid-template-columns:1fr}
+    .auth-brandside{display:none}
+    .hub-head{align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+
+<!-- ========================= AUTH PAGE ========================= -->
+<section id="auth">
+  <div class="auth-brandside">
+    <div class="brand-lockup">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 5 4-14 2 9h6"/></svg>
+      </div>
+      <div class="brand-name">MediCore <span>HMS</span></div>
+    </div>
+
+    <div class="brand-hero">
+      <div class="brand-badge"><span class="dot"></span> Next-generation hospital platform</div>
+      <h1 style="margin-top:20px">One platform to run the entire hospital.</h1>
+      <p>MediCore unifies OPD, IPD, diagnostics, pharmacy, accounting and records into a single, secure, intelligent workspace — built to outpace legacy systems.</p>
+    </div>
+
+    <div class="brand-stats">
+      <div class="st"><b>12+</b><span>Departments</span></div>
+      <div class="st"><b>99.98%</b><span>Uptime</span></div>
+      <div class="st"><b>HIPAA</b><span>Compliant</span></div>
+    </div>
+  </div>
+
+  <div class="auth-formside">
+    <div class="auth-card">
+      <h2>Sign in</h2>
+      <p class="auth-sub">Enter your administrator credentials to access MediCore.</p>
+
+      <form id="loginForm" autocomplete="off">
+        <div class="field">
+          <label>User ID / Email</label>
+          <div class="inp">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m4 7 8 6 8-6"/></svg>
+            <input type="text" id="uid" placeholder="you@hospital.org" value="admin">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Password</label>
+          <div class="inp">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            <input type="password" id="pwd" placeholder="••••••••" value="medicore">
+            <button type="button" class="eye" id="eye" aria-label="Show password">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="row-between">
+          <label class="check"><input type="checkbox" id="remember" checked> Keep me signed in</label>
+          <a class="link" href="#" onclick="return false">Forgot password?</a>
+        </div>
+
+        <button class="btn" type="submit">
+          Sign in securely
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+        <div class="err" id="err"></div>
+      </form>
+
+      <div class="divider">Protected by MediCore Secure</div>
+      <p class="auth-foot">Demo credentials pre-filled. Access is monitored & encrypted end-to-end.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= ROLE SELECT PAGE ========================= -->
+<section id="rolePage" class="hidden">
+  <div class="rp-top">
+    <div class="rp-brand">
+      <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 5 4-14 2 9h6"/></svg></div>
+      <b>MediCore <span>HMS</span></b>
+    </div>
+    <button class="rp-back" id="rpBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      Sign out
+    </button>
+  </div>
+
+  <div class="rp-head">
+    <div class="badge2"><span class="dot" style="width:8px;height:8px;border-radius:50%"></span> Authenticated as <b id="rpWho" style="margin-left:2px">admin</b></div>
+    <h1>Choose your portal</h1>
+    <p>Select the role you want to work as. Your dashboard, permissions and modules adapt to the portal you enter.</p>
+  </div>
+
+  <div class="rp-grid" id="roleGrid"><!-- roles injected --></div>
+</section>
+
+<!-- ========================= MAIN APP ========================= -->
+<section id="app" class="hidden">
+  <header class="topbar">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 5 4-14 2 9h6"/></svg>
+    </div>
+    <div class="tb-name">MediCore<span>HMS</span></div>
+    <div class="tb-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input placeholder="Search patients, modules, records…">
+    </div>
+    <div class="tb-right">
+      <button class="tb-ico" title="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <span class="badge">5</span>
+      </button>
+      <button class="tb-ico" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.2A1.6 1.6 0 0 0 6.6 19l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 4 13.6H4a2 2 0 1 1 0-4h.2A1.6 1.6 0 0 0 5 6.6l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 10.4 4V4a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8"/></svg>
+      </button>
+      <div class="avatar">
+        <div class="pic" id="avInit">AD</div>
+        <div class="who"><b id="avName">Admin User</b><span id="avRole">Administrator</span></div>
+      </div>
+      <button class="logout" id="logout">Sign out</button>
+    </div>
+  </header>
+
+  <main class="hub">
+    <div class="hub-head">
+      <div>
+        <h1 id="greeting">Good morning, Admin 👋</h1>
+        <p>Select a department to get started. Today is <span id="today"></span>.</p>
+      </div>
+      <div class="hub-kpis">
+        <div class="kpi"><span>OPD Patients</span><b id="kHubPatients">0</b><span class="up" id="kHubPatientsS">today</span></div>
+        <div class="kpi"><span>Beds Occupied</span><b id="kHubBeds">0%</b><span class="up" id="kHubBedsS">0 / 0</span></div>
+        <div class="kpi"><span>Module Revenue</span><b id="kHubRev">₹0</b><span class="up" id="kHubRevS">today</span></div>
+      </div>
+    </div>
+
+    <div class="grid" id="moduleGrid"><!-- modules injected --></div>
+  </main>
+</section>
+
+<!-- ========================= OPD MODULE PAGE ========================= -->
+<section id="opdPage" class="hidden">
+  <div class="mod-bar">
+    <button class="mod-back" id="opdBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      Modules
+    </button>
+    <div class="mod-title">
+      <div class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V8l6-4 6 4v13"/><path d="M12 9v4M10 11h4"/></svg></div>
+      <div><h2>OPD — Out-Patient Department</h2><div class="crumb">Patient consultancy · Registration · Queue · Consultation flow</div></div>
+    </div>
+    <div class="mod-stats">
+      <div class="mstat"><b id="stWait">0</b><span>Waiting</span></div>
+      <div class="mstat"><b id="stServ">0</b><span>In Room</span></div>
+      <div class="mstat"><b id="stDone">0</b><span>Seen</span></div>
+    </div>
+  </div>
+
+  <div class="opd-wrap">
+    <!-- QUEUE COLUMN -->
+    <aside class="queue-col">
+      <div class="queue-head">
+        <div class="qh-top">
+          <h3>Live Queue</h3>
+          <span class="qh-live"><span class="dot" style="width:8px;height:8px;border-radius:50%"></span> LIVE</span>
+        </div>
+        <button class="btn sm" id="btnNewReg">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M12 5v14M5 12h14"/></svg>
+          Register patient
+        </button>
+        <div class="qsearch">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="qSearch" placeholder="Search token or name…">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn ghost" id="opdCSV" style="flex:1;padding:8px">Export CSV</button>
+          <button class="btn ghost" id="opdPDF" style="flex:1;padding:8px">Export PDF</button>
+        </div>
+      </div>
+      <div class="queue-list" id="queueList"></div>
+      <div class="queue-foot">
+        <button class="btn sm" id="btnCallNext" style="background:linear-gradient(180deg,#0ea5a4,#0b7d7c)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.5-1.2a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2z"/></svg>
+          Call next patient
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN PANEL -->
+    <div class="opd-main">
+      <div class="seg" id="opdSeg">
+        <button data-tab="reg" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>Registration</button>
+        <button data-tab="con"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13l2 2 4-4"/></svg>Consultation</button>
+      </div>
+
+      <!-- REGISTRATION TAB -->
+      <div id="tabReg">
+        <div class="panel">
+          <h3>Out-patient registration</h3>
+          <p class="psub">Register a new walk-in patient and issue a queue token.</p>
+          <form id="regForm">
+            <div class="form-grid">
+              <div class="fld"><label>Full name *</label><input id="rName" placeholder="e.g. Ramesh Kumar"></div>
+              <div class="fld"><label>Phone</label><input id="rPhone" placeholder="10-digit mobile"></div>
+              <div class="fld"><label>Age</label><input id="rAge" type="number" min="0" placeholder="Years"></div>
+              <div class="fld"><label>Gender</label><select id="rGender"><option>Male</option><option>Female</option><option>Other</option></select></div>
+              <div class="fld"><label>Department</label>
+                <select id="rDept"><option>General Medicine</option><option>Cardiology</option><option>Orthopedics</option><option>Pediatrics</option><option>ENT</option><option>Dermatology</option><option>Gynecology</option></select></div>
+              <div class="fld"><label>Consulting doctor</label>
+                <select id="rDoc"><option>Dr. A. Sharma</option><option>Dr. P. Mehta</option><option>Dr. S. Iyer</option><option>Dr. R. Nair</option></select></div>
+              <div class="fld full"><label>Chief complaint</label><textarea id="rComplaint" placeholder="Reason for visit / symptoms…"></textarea></div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn">Register & issue token</button>
+              <button type="button" class="btn ghost" id="regClear" style="width:auto;padding:13px 22px">Clear</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- CONSULTATION TAB -->
+      <div id="tabCon" class="hidden">
+        <div id="conEmpty" class="placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          <b>No patient selected</b>
+          <p>Pick a patient from the queue or press “Call next patient” to begin a consultation.</p>
+        </div>
+        <div id="conCard" class="hidden">
+          <div class="pt-banner">
+            <div class="pic" id="cInit">--</div>
+            <div><b id="cName">—</b><div class="tag" id="cTag">—</div></div>
+            <div class="tok"><b id="cTok">—</b><span>Token</span></div>
+          </div>
+          <div class="panel">
+            <h3>Vitals</h3>
+            <p class="psub">Recorded at intake — edit as needed.</p>
+            <div class="vitals">
+              <div class="vital"><span>Temp (°F)</span><input id="vTemp" value="98.6"></div>
+              <div class="vital"><span>BP (mmHg)</span><input id="vBP" value="120/80"></div>
+              <div class="vital"><span>Pulse (bpm)</span><input id="vPulse" value="76"></div>
+              <div class="vital"><span>SpO₂ (%)</span><input id="vSpo2" value="98"></div>
+            </div>
+            <h3 style="margin-top:8px">Consultation</h3>
+            <p class="psub">Chief complaint, examination, diagnosis and prescription.</p>
+            <div class="form-grid">
+              <div class="fld full"><label>Chief complaint</label><textarea id="cComplaint"></textarea></div>
+              <div class="fld full"><label>Diagnosis</label><textarea id="cDiag" placeholder="Provisional / final diagnosis…"></textarea></div>
+              <div class="fld full"><label>Prescription (Rx)</label><textarea id="cRx" placeholder="Medicine · dose · frequency · duration"></textarea></div>
+              <div class="fld"><label>Follow-up date</label><input id="cFollow" type="date"></div>
+              <div class="fld"><label>Advice</label><input id="cAdvice" placeholder="e.g. Rest, fluids, review in 5 days"></div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn" id="btnComplete">Complete consultation</button>
+              <button type="button" class="btn ghost" id="btnHold" style="width:auto;padding:13px 22px">Save & keep in queue</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= IPD MODULE PAGE ========================= -->
+<section id="ipdPage" class="hidden">
+  <div class="mod-bar">
+    <button class="mod-back" id="ipdBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      Modules
+    </button>
+    <div class="mod-title">
+      <div class="m-ico" style="background:#e6faf8;color:#0ea5a4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6M3 14h18M6 10V7a2 2 0 0 1 2-2h2"/><path d="M3 21v-3M21 21v-3"/></svg></div>
+      <div><h2>IPD — In-Patient Department</h2><div class="crumb">In-patient admission · Bed &amp; ward management</div></div>
+    </div>
+    <div class="mod-stats">
+      <div class="mstat"><b id="ipTotal">0</b><span>Beds</span></div>
+      <div class="mstat"><b id="ipOcc">0</b><span>Occupied</span></div>
+      <div class="mstat"><b id="ipVac">0</b><span>Vacant</span></div>
+    </div>
+  </div>
+
+  <div class="ipd-main">
+    <div class="seg" id="ipdSeg">
+      <button data-tab="board" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Bed board</button>
+      <button data-tab="admit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>Admit patient</button>
+      <button data-tab="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Admitted <span id="admCount" style="margin-left:2px"></span></button>
+    </div>
+
+    <!-- BED BOARD -->
+    <div id="ipTabBoard">
+      <div class="bedlegend">
+        <span class="lg"><i style="background:#8fe0aa"></i>Vacant</span>
+        <span class="lg"><i style="background:#8fb8f0"></i>Occupied</span>
+        <span class="lg"><i style="background:#f0cf8f"></i>Cleaning</span>
+        <button class="btn sm" id="btnAddWard" style="margin-left:auto;width:auto;padding:9px 15px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M12 5v14M5 12h14"/></svg>
+          Add ward
+        </button>
+      </div>
+      <div class="bedboard" id="bedBoard"></div>
+    </div>
+
+    <!-- ADMIT -->
+    <div id="ipTabAdmit" class="hidden">
+      <div class="panel">
+        <h3>New in-patient admission</h3>
+        <p class="psub">Admit a patient and allocate a bed. Vacant beds are listed for the chosen ward.</p>
+        <form id="admForm">
+          <div class="form-grid">
+            <div class="fld"><label>Patient name *</label><input id="aName" placeholder="e.g. Meena Joshi"></div>
+            <div class="fld"><label>Phone</label><input id="aPhone" placeholder="10-digit mobile"></div>
+            <div class="fld"><label>Age</label><input id="aAge" type="number" min="0" placeholder="Years"></div>
+            <div class="fld"><label>Gender</label><select id="aGender"><option>Male</option><option>Female</option><option>Other</option></select></div>
+            <div class="fld"><label>Ward</label><select id="aWard"></select></div>
+            <div class="fld"><label>Bed</label><select id="aBed"></select></div>
+            <div class="fld"><label>Admitting doctor</label><select id="aDoc"><option>Dr. A. Sharma</option><option>Dr. P. Mehta</option><option>Dr. S. Iyer</option><option>Dr. R. Nair</option></select></div>
+            <div class="fld"><label>Admission date</label><input id="aDate" type="date"></div>
+            <div class="fld full"><label>Provisional diagnosis</label><textarea id="aDiag" placeholder="Reason for admission…"></textarea></div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn">Admit &amp; allocate bed</button>
+            <button type="button" class="btn ghost" id="admClear" style="width:auto;padding:13px 22px">Clear</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ADMITTED LIST -->
+    <div id="ipTabList" class="hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <h3 style="margin:0;font-size:16px;font-weight:800">Currently admitted</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn ghost" id="ipdCSV" style="width:auto;padding:9px 13px">CSV</button>
+          <button class="btn ghost" id="ipdPDF" style="width:auto;padding:9px 13px">PDF</button>
+          <button class="btn sm" id="btnAddAdmitted" style="width:auto;padding:10px 15px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M12 5v14M5 12h14"/></svg>
+            Add admitted patient
+          </button>
+        </div>
+      </div>
+      <div class="adm-list" id="admList"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= GENERIC MODULE PAGE ========================= -->
+<section id="genPage" class="hidden">
+  <div class="mod-bar">
+    <button class="mod-back" id="genBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      <span id="genBackLbl">Modules</span>
+    </button>
+    <div class="mod-title">
+      <div class="m-ico" id="genIco"></div>
+      <div><h2 id="genTitle">Module</h2><div class="crumb" id="genCrumb"></div></div>
+    </div>
+    <div class="mod-stats" id="genStats"></div>
+  </div>
+  <div class="gen-main">
+    <div class="seg" id="genSeg"></div>
+    <div id="genBody"></div>
+  </div>
+</section>
+
+<!-- ========================= ADMIN PORTAL PAGE ========================= -->
+<section id="adminPage" class="hidden">
+  <div class="mod-bar">
+    <button class="mod-back" id="adminBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      Sign out
+    </button>
+    <div class="mod-title">
+      <div class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/></svg></div>
+      <div><h2>Admin — Management Portal</h2><div class="crumb">Analytics · Staff · Master data · Module credentials</div></div>
+    </div>
+    <button class="btn ghost" id="adminRefresh" style="width:auto;padding:9px 14px;margin-left:auto">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;margin-right:2px"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></svg>
+      Sync <span class="qh-live" style="margin-left:6px"><span class="dot" style="width:7px;height:7px;border-radius:50%;background:var(--ok)"></span></span>
+    </button>
+    <div class="mod-stats"><div class="mstat"><b id="adRoles">2</b><span>Portals</span></div><div class="mstat"><b id="adMods">12</b><span>Modules</span></div></div>
+  </div>
+
+  <div class="ipd-main">
+    <div class="seg" id="adminSeg">
+      <button data-tab="dash" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h8V3H3zM13 21h8V3h-8zM3 21h8v-6H3z"/></svg>Dashboard</button>
+      <button data-tab="mods"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>All modules</button>
+      <button data-tab="cred"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Credentials</button>
+      <button data-tab="danger" style="color:#dc2626"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>Danger zone</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="adTabDash">
+      <div class="kpi-grid">
+        <div class="kbig"><div class="kt"><span class="ci" style="background:#e9f7ee;color:#16a34a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Revenue today</div><b id="adRev">₹0</b><div class="ks up" id="adRevD">▲ collections</div></div>
+        <div class="kbig"><div class="kt"><span class="ci" style="background:#fdeaea;color:#dc2626"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Expenses today</div><b id="adExp">₹0</b><div class="ks dn" id="adExpD">▼ spend</div></div>
+        <div class="kbig"><div class="kt"><span class="ci" style="background:#eaf1ff;color:#1f6feb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 5 4-14 2 9h6"/></svg></span>Net today</div><b id="adNet">₹0</b><div class="ks" id="adNetD">Profit</div></div>
+        <div class="kbig"><div class="kt"><span class="ci" style="background:#e6faf8;color:#0ea5a4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6M3 14h18M6 10V7"/></svg></span>Beds in use</div><b id="adBeds">0 / 0</b><div class="ks" id="adBedsD">occupancy</div></div>
+      </div>
+      <div class="dash-2">
+        <div class="chartcard">
+          <h3>Income vs Expenses</h3><p class="psub">Daily collections against spend — this week</p>
+          <div class="bars" id="adBars"></div>
+          <div class="legend2"><span><i style="background:#1f6feb"></i>Income</span><span><i style="background:#d97706"></i>Expenses</span></div>
+        </div>
+        <div class="breakdown">
+          <h3>Today at a glance</h3>
+          <div class="brow"><span class="bn"><i style="background:#16a34a"></i>Amount collected</span><b id="gRev">₹0</b></div>
+          <div class="brow"><span class="bn"><i style="background:#dc2626"></i>Amount spent</span><b id="gExp">₹0</b></div>
+          <div class="brow"><span class="bn"><i style="background:#b45309"></i>Equipment spend</span><b id="gEquip">₹0</b></div>
+          <div class="brow"><span class="bn"><i style="background:#7c3aed"></i>Purchases made</span><b id="gBuy">0</b></div>
+          <div class="brow"><span class="bn"><i style="background:#0ea5a4"></i>Beds occupied</span><b id="gBeds">0</b></div>
+          <div class="brow"><span class="bn"><i style="background:#1f6feb"></i>Staff vacancies</span><b id="gVac">0</b></div>
+        </div>
+      </div>
+      <div class="breakdown">
+        <h3>Revenue by department (today)</h3>
+        <div id="adDeptRev"></div>
+      </div>
+
+      <div class="breakdown" style="margin-top:16px">
+        <div class="sec-head"><div><h3>Live payments feed</h3><p style="margin:2px 0 0;color:var(--muted);font-size:12.5px">Every amount entered in any department appears here within seconds</p></div>
+          <span class="qh-live"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></span> LIVE</span></div>
+        <div class="tablewrap" style="margin-top:8px"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Source</th><th>Detail</th><th>Amount</th><th>Mode</th></tr></thead><tbody id="adPayments"></tbody></table></div>
+      </div>
+
+      <div class="dash-2" style="grid-template-columns:1.4fr 1fr;margin-top:16px">
+        <div class="chartcard">
+          <div class="sec-head"><div><h3>Income &amp; Expenses</h3><p style="margin:2px 0 0;color:var(--muted);font-size:12.5px">Record money that came in and money spent (equipment, purchases…)</p></div>
+            <button class="btn sm" id="ledgerBtn" style="width:auto;padding:9px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M12 5v14M5 12h14"/></svg>Add entry</button>
+          </div>
+          <div class="addcard hidden" id="ledgerCard" style="margin-top:4px">
+            <div class="addgrid">
+              <div class="fld"><label>Type</label><select id="ledgerType"><option>Income</option><option>Expense</option></select></div>
+              <div class="fld"><label>Category</label><select id="ledgerCat"><option value="">General</option><option>Equipment</option><option>Consumables</option><option>Pharmacy</option><option>Salaries</option><option>Utilities</option><option>Services</option></select></div>
+              <div class="fld"><label>Amount (₹)</label><input id="ledgerAmt" type="number" min="0" placeholder="0"></div>
+              <div class="fld" style="grid-column:1/-1"><label>Description</label><input id="ledgerDesc" placeholder="e.g. ECG machine purchase"></div>
+            </div>
+            <div class="form-actions"><button class="btn" id="ledgerSave" style="width:auto;padding:11px 20px">Save entry</button><button class="btn ghost" id="ledgerCancel" style="width:auto;padding:11px 20px">Cancel</button></div>
+          </div>
+          <div class="tablewrap" style="margin-top:8px"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Type</th><th>Category</th><th>Description</th><th>Amount</th><th>Date</th></tr></thead><tbody id="ledgerBody"></tbody></table></div>
+        </div>
+
+        <div class="breakdown">
+          <div class="sec-head"><div><h3>Staff vacancies</h3><p style="margin:2px 0 0;color:var(--muted);font-size:12.5px">Open positions across the hospital</p></div>
+            <button class="btn sm" id="vacBtn" style="width:auto;padding:9px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M12 5v14M5 12h14"/></svg>Add vacancy</button>
+          </div>
+          <div class="addcard hidden" id="vacCard" style="margin-top:4px">
+            <div class="addgrid" style="grid-template-columns:1fr 1fr">
+              <div class="fld"><label>Role</label><input id="vacRole" placeholder="e.g. Staff Nurse"></div>
+              <div class="fld"><label>Department</label><input id="vacDept" placeholder="e.g. ICU"></div>
+              <div class="fld"><label>Openings</label><input id="vacOpen" type="number" min="1" placeholder="1"></div>
+            </div>
+            <div class="form-actions"><button class="btn" id="vacSave" style="width:auto;padding:11px 20px">Save</button><button class="btn ghost" id="vacCancel" style="width:auto;padding:11px 20px">Cancel</button></div>
+          </div>
+          <div class="tablewrap" style="margin-top:8px"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Role</th><th>Department</th><th>Open</th></tr></thead><tbody id="vacBody"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALL MODULES -->
+    <div id="adTabMods" class="hidden">
+      <p class="psub" style="margin-bottom:16px">As admin you can open any module directly — no per-module password required.</p>
+      <div class="amod-grid" id="adminModGrid"></div>
+    </div>
+
+    <!-- CREDENTIALS -->
+    <div id="adTabCred" class="hidden">
+      <div class="panel" style="max-width:none">
+        <h3>Module access credentials</h3>
+        <p class="psub">Set the username &amp; password each department person must enter to open their module. Changes apply immediately.</p>
+        <div id="adminCredList"></div>
+        <div class="form-actions">
+          <button type="button" class="btn" id="saveAllCreds">Save all changes</button>
+          <button type="button" class="btn ghost" id="resetCreds" style="width:auto;padding:13px 22px">Reset to defaults</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DANGER ZONE -->
+    <div id="adTabDanger" class="hidden">
+      <div class="danger">
+        <div class="dhead">
+          <div class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+          <div><h3>Danger zone</h3><p class="psub" style="margin:0">Admin-only. Irreversible actions.</p></div>
+        </div>
+        <div class="warn"><b>Delete all &amp; reset everything.</b> This permanently erases every OPD, IPD, department record, payment, ledger entry, vacancy and custom module across all tabs, and restores the system to a clean state. This cannot be undone.</div>
+        <div class="codebox">
+          <div class="clbl">Type this confirmation code to enable the button</div>
+          <div class="codeval" id="dangerCode">------</div>
+        </div>
+        <input class="codeinp" id="dangerInput" placeholder="Type the code above" maxlength="6" autocomplete="off">
+        <button class="btn dngr" id="dangerBtn" disabled style="width:100%">Delete all &amp; reset system</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Module login modal -->
+<div class="overlay hidden" id="modLoginOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="m-ico" id="mlIco" style="width:40px;height:40px;border-radius:11px;margin:0"></div>
+        <div><h3 id="mlTitle" style="font-size:17px">Module</h3><div class="crumb" style="font-size:12px;color:var(--muted)">Enter module credentials</div></div>
+      </div>
+      <button class="modal-x" id="mlClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Username</label>
+        <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 12 0v1" transform="translate(2,0)"/></svg><input id="mlUser" placeholder="Module username"></div>
+      </div>
+      <div class="field"><label>Password</label>
+        <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><input id="mlPass" type="password" placeholder="Module password"></div>
+      </div>
+      <div class="err" id="mlErr"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="mlCancel">Cancel</button>
+      <button class="btn" id="mlEnter">Unlock module</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add-ward modal -->
+<div class="overlay hidden" id="wardOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Add new ward</h3>
+      <button class="modal-x" id="closeWard">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="auth-sub">Create a ward and generate its beds on the board.</p>
+      <div class="fld" style="margin-bottom:14px"><label>Ward name *</label><input id="wName" placeholder="e.g. Surgical Ward"></div>
+      <div class="form-grid">
+        <div class="fld"><label>Short code</label><input id="wCode" placeholder="e.g. SUR" maxlength="4"></div>
+        <div class="fld"><label>Number of beds</label><input id="wBeds" type="number" min="1" max="40" value="6"></div>
+      </div>
+      <div class="fld" style="margin-top:14px"><label>Ward color</label><div class="swatches" id="wSwatches"></div></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="cancelWard">Cancel</button>
+      <button class="btn" id="saveWard">Create ward</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add-module modal -->
+<div class="overlay hidden" id="addOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Add new module</h3>
+      <button class="modal-x" id="closeAdd">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="auth-sub">Create a custom department tile for your hospital workspace.</p>
+      <div class="field">
+        <label>Module name</label>
+        <div class="inp"><input type="text" id="modName" placeholder="e.g. Physiotherapy"></div>
+      </div>
+      <div class="field">
+        <label>Short description</label>
+        <div class="inp"><input type="text" id="modDesc" placeholder="e.g. Rehab & therapy scheduling"></div>
+      </div>
+      <div class="field">
+        <label>Accent color</label>
+        <div class="swatches" id="swatches"></div>
+      </div>
+      <div class="field">
+        <label>Icon</label>
+        <div class="icon-picker" id="iconPicker"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="cancelAdd">Cancel</button>
+      <button class="btn" id="saveMod">Add module</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span id="toastMsg">Done</span></div>
+
+<script>
+/* ---------- icon library ---------- */
+const ICONS = {
+  opd:'<path d="M3 21h18M6 21V8l6-4 6 4v13"/><path d="M12 9v4M10 11h4"/>',
+  ipd:'<path d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6M3 14h18M6 10V7a2 2 0 0 1 2-2h2"/><path d="M3 21v-3M21 21v-3"/>',
+  doctor:'<path d="M6 3v6a6 6 0 0 0 12 0V3"/><circle cx="19" cy="16" r="3"/><path d="M12 15v2a4 4 0 0 0 4 4"/>',
+  nurse:'<path d="M9 3h6v4h4v6h-4v8H9v-8H5V7h4z"/>',
+  patho:'<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M7 15h10"/>',
+  sono:'<path d="M2 12a10 10 0 0 1 20 0"/><path d="M5 12a7 7 0 0 1 14 0"/><path d="M8 12a4 4 0 0 1 8 0"/><circle cx="12" cy="12" r="1.3"/>',
+  radio:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18"/><path d="M12 8a4 4 0 0 1 0 8"/><circle cx="12" cy="12" r="1.4"/>',
+  cardio:'<path d="M3 12h4l2 5 4-14 2 9h6"/>',
+  account:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h4M7 12h4M7 16h4M15 8v8"/><circle cx="15" cy="8" r="0"/>',
+  admin:'<path d="M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/>',
+  mrd:'<path d="M4 4h11l5 5v11H4z"/><path d="M15 4v5h5M8 13h8M8 17h5"/>',
+  help:'<circle cx="12" cy="12" r="9"/><path d="M9.2 9a3 3 0 0 1 5.6 1c0 2-3 2.5-3 4"/><path d="M12 17h.01"/>',
+  reception:'<path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-3"/><path d="M9 9h.01M9 13h.01"/>',
+  dept:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  pharma:'<rect x="4" y="9" width="16" height="12" rx="2"/><path d="M8 9V6a4 4 0 0 1 8 0v3M12 13v4M10 15h4"/>',
+  physio:'<circle cx="12" cy="5" r="2"/><path d="M12 7v6l-3 8M12 13l3 8M7 11l5-1 5 1"/>',
+  ot:'<path d="M12 3v6M9 6h6"/><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11v9M16 11v9"/>',
+  bank:'<path d="M12 2 2 8h20zM4 10v8M9 10v8M15 10v8M20 10v8M2 21h20"/>',
+  bed:'<path d="M3 8v12M3 12h18a0 0 0 0 1 0 0v8M21 20V13a3 3 0 0 0-3-3H8"/><circle cx="7" cy="9" r="2"/>'
+};
+function svg(p,cls){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';}
+
+/* ---------- default modules ---------- */
+const MODULES = [
+  {name:'OPD', desc:'Out-patient registration, queue & consultation flow', icon:'opd', color:'#1f6feb', count:'128 today'},
+  {name:'IPD', desc:'In-patient admissions, bed & ward management', icon:'ipd', color:'#0ea5a4', count:'142 admitted'},
+  {name:'Doctor', desc:'Rosters, e-prescriptions & clinical notes', icon:'doctor', color:'#7c3aed', count:'36 on duty'},
+  {name:'Nursing', desc:'Vitals, medication rounds & shift handover', icon:'nurse', color:'#e11d8f', count:'54 active'},
+  {name:'Pathology', desc:'Lab orders, sample tracking & results', icon:'patho', color:'#059669', count:'73 pending'},
+  {name:'Sonography', desc:'Ultrasound scheduling & report capture', icon:'sono', color:'#0284c7', count:'12 today'},
+  {name:'Radiology', desc:'X-ray, CT & MRI imaging workflow', icon:'radio', color:'#4f46e5', count:'28 scans'},
+  {name:'Cardiology', desc:'ECG, ECHO & cardiac diagnostics', icon:'cardio', color:'#dc2626', count:'9 today'},
+  {name:'Accounting', desc:'Billing, invoices, insurance & payments', icon:'account', color:'#16a34a', count:'₹4.2L today'},
+  {name:'Admin', desc:'Staff, roles, master data & configuration', icon:'admin', color:'#0f766e', count:'Control'},
+  {name:'MRD', desc:'Medical records, archives & discharge files', icon:'mrd', color:'#b45309', count:'11.2k files'},
+  {name:'Help', desc:'Support desk, guides & system assistance', icon:'help', color:'#475569', count:'24/7'}
+];
+
+function shade(hex){ // light bg from accent
+  const n=parseInt(hex.slice(1),16), r=n>>16,g=(n>>8)&255,b=n&255;
+  return `rgba(${r},${g},${b},.12)`;
+}
+
+const grid = document.getElementById('moduleGrid');
+function renderModules(){
+  grid.innerHTML='';
+  MODULES.forEach(m=>{
+    const el=document.createElement('button');
+    el.className='module';
+    el.style.setProperty('--mc',m.color);
+    el.style.setProperty('--mcbg',shade(m.color));
+    el.innerHTML=`
+      <div class="m-ico">${svg(ICONS[m.icon]||ICONS.help)}</div>
+      <h3>${m.name}</h3>
+      <p>${m.desc}</p>
+      <div class="m-foot">
+        <span class="m-count">${m.count||'Open'}</span>
+        <span class="m-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>`;
+    el.onclick=()=>requestModuleAccess(m);
+    grid.appendChild(el);
+  });
+  // add tile
+  const add=document.createElement('button');
+  add.className='module add';
+  add.innerHTML=`<div class="add-plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div><h3>Add module</h3><p>Create a new department tile</p>`;
+  add.onclick=openAdd;
+  grid.appendChild(add);
+}
+
+/* ---------- roles (page 2) ---------- */
+const ROLES=[
+  {name:'Admin', sub:'Management portal', icon:'admin', color:'#1f6feb', desc:'Manage departments, staff and the username & password for every module. Full hospital control.', users:'Full control'},
+  {name:'Departments', sub:'Clinical modules', icon:'dept', color:'#0ea5a4', desc:'Access OPD, IPD, Pathology, Radiology, Cardiology, Accounting and every department module.', users:'12 modules'}
+];
+const roleGrid=document.getElementById('roleGrid');
+function renderRoles(){
+  roleGrid.innerHTML='';
+  ROLES.forEach(r=>{
+    const el=document.createElement('button');
+    el.className='rcard';
+    el.style.setProperty('--rc',r.color);
+    el.style.setProperty('--rcbg',shade(r.color));
+    el.innerHTML=`
+      <span class="rc-users">${r.users}</span>
+      <div class="rc-top">
+        <div class="rc-ico">${svg(ICONS[r.icon]||ICONS.help)}</div>
+        <div><h3>${r.name}</h3><div class="rc-sub">${r.sub}</div></div>
+      </div>
+      <p>${r.desc}</p>
+      <div class="rc-enter">Enter portal <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>`;
+    el.onclick=()=>enterApp(r);
+    roleGrid.appendChild(el);
+  });
+}
+
+/* ---------- auth (page 1) ---------- */
+let userName='admin';
+document.getElementById('eye').onclick=()=>{
+  const p=document.getElementById('pwd'); p.type=p.type==='password'?'text':'password';
+};
+document.getElementById('loginForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const uid=document.getElementById('uid').value.trim();
+  const pwd=document.getElementById('pwd').value.trim();
+  const err=document.getElementById('err');
+  if(!uid||!pwd){err.textContent='Please enter your credentials.';return;}
+  if(pwd.length<4){err.textContent='Password is too short.';return;}
+  err.textContent='';
+  userName = uid.includes('@')? uid.split('@')[0] : uid;
+  document.getElementById('rpWho').textContent = userName;
+  renderRoles();
+  document.getElementById('auth').classList.add('hidden');
+  document.getElementById('rolePage').classList.remove('hidden');
+});
+document.getElementById('rpBack').onclick=()=>{
+  document.getElementById('rolePage').classList.add('hidden');
+  document.getElementById('auth').classList.remove('hidden');
+};
+
+/* ---------- enter hub / admin (page 3) ---------- */
+function enterApp(r){
+  const disp=userName.charAt(0).toUpperCase()+userName.slice(1);
+  document.getElementById('rolePage').classList.add('hidden');
+  if(r.name==='Admin'){
+    moduleReturn='rolePage';
+    openAdmin();
+    return;
+  }
+  document.getElementById('avName').textContent = disp+' · Departments';
+  document.getElementById('avRole').textContent = r.sub;
+  document.getElementById('avInit').textContent = (disp[0]||'D').toUpperCase()+'D';
+  document.getElementById('greeting').textContent = `${greet()}, ${disp} 👋`;
+  renderHub();
+  document.getElementById('app').classList.remove('hidden');
+}
+function renderHub(){
+  if(typeof QUEUE==='undefined')return;
+  const occ=(typeof BEDS!=='undefined')?BEDS.filter(b=>b.status==='occupied').length:0;
+  const total=(typeof BEDS!=='undefined')?BEDS.length:0;
+  let rev=0; if(typeof MODULE_DEFS!=='undefined'){Object.values(MODULE_DEFS).forEach(d=>d.sections.forEach(s=>s.rows.forEach(r=>{if(typeof r.fee==='number')rev+=r.fee;})));}
+  document.getElementById('kHubPatients').textContent=QUEUE.length;
+  document.getElementById('kHubBeds').textContent=(total?Math.round(occ/total*100):0)+'%';
+  document.getElementById('kHubBedsS').textContent=occ+' / '+total;
+  document.getElementById('kHubRev').textContent='₹'+rev.toLocaleString('en-IN');
+}
+document.getElementById('logout').onclick=()=>{
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('rolePage').classList.remove('hidden');
+};
+function greet(){const h=new Date().getHours();return h<12?'Good morning':h<17?'Good afternoon':'Good evening';}
+document.getElementById('today').textContent = new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+
+/* ---------- add-module modal ---------- */
+const SWATCHES=['#1f6feb','#0ea5a4','#7c3aed','#e11d8f','#059669','#dc2626','#b45309','#475569'];
+const PICKICONS=['pharma','physio','ot','bank','bed','ipd','patho','radio','cardio','sono','mrd','help'];
+let pickColor=SWATCHES[0], pickIcon=PICKICONS[0];
+const swWrap=document.getElementById('swatches'), ipWrap=document.getElementById('iconPicker');
+SWATCHES.forEach((c,i)=>{const s=document.createElement('div');s.className='sw'+(i===0?' active':'');s.style.background=c;s.onclick=()=>{pickColor=c;document.querySelectorAll('.sw').forEach(x=>x.classList.remove('active'));s.classList.add('active');};swWrap.appendChild(s);});
+PICKICONS.forEach((ic,i)=>{const b=document.createElement('button');b.className='ip'+(i===0?' active':'');b.innerHTML=svg(ICONS[ic]);b.onclick=()=>{pickIcon=ic;document.querySelectorAll('.ip').forEach(x=>x.classList.remove('active'));b.classList.add('active');};ipWrap.appendChild(b);});
+
+function openAdd(){document.getElementById('addOverlay').classList.remove('hidden');}
+function closeAdd(){document.getElementById('addOverlay').classList.add('hidden');document.getElementById('modName').value='';document.getElementById('modDesc').value='';}
+document.getElementById('closeAdd').onclick=closeAdd;
+document.getElementById('cancelAdd').onclick=closeAdd;
+document.getElementById('addOverlay').addEventListener('click',e=>{if(e.target.id==='addOverlay')closeAdd();});
+document.getElementById('saveMod').onclick=()=>{
+  const name=document.getElementById('modName').value.trim();
+  if(!name){document.getElementById('modName').focus();return;}
+  const desc=document.getElementById('modDesc').value.trim()||'Custom department module';
+  MODULES.push({name,desc,icon:pickIcon,color:pickColor,count:'New'});
+  ensureCreds(); persist();
+  renderModules(); closeAdd(); toast(`"${name}" module added · default login: ${credKey(name)} / ${credKey(name)}123`);
+};
+
+/* ---------- module routing ---------- */
+function openModule(m){
+  if(m.name==='OPD'){ openOPD(); }
+  else if(m.name==='IPD'){ openIPD(); }
+  else if(MODULE_DEFS[m.name]){ openGeneric(m); }
+  else { toast(`${m.name} module — coming in the next build`); }
+}
+
+/* ---------- per-module credentials ---------- */
+const MODCREDS={};
+function credKey(name){return name.toLowerCase().replace(/[^a-z0-9]/g,'')||'mod';}
+function ensureCreds(){
+  MODULES.forEach(m=>{ if(!MODCREDS[m.name]){ const k=credKey(m.name); MODCREDS[m.name]={user:k, pass:k+'123'}; } });
+}
+ensureCreds();
+
+let pendingModule=null;
+function requestModuleAccess(m){
+  ensureCreds();
+  moduleReturn='app';
+  pendingModule=m;
+  document.getElementById('mlTitle').textContent=m.name;
+  const ico=document.getElementById('mlIco');
+  ico.style.background=shade(m.color); ico.style.color=m.color;
+  ico.innerHTML=svg(ICONS[m.icon]||ICONS.help);
+  document.getElementById('mlUser').value='';
+  document.getElementById('mlPass').value='';
+  document.getElementById('mlErr').textContent='';
+  document.getElementById('modLoginOverlay').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('mlUser').focus(),50);
+}
+function closeModLogin(){document.getElementById('modLoginOverlay').classList.add('hidden');pendingModule=null;}
+document.getElementById('mlClose').onclick=closeModLogin;
+document.getElementById('mlCancel').onclick=closeModLogin;
+document.getElementById('modLoginOverlay').addEventListener('click',e=>{if(e.target.id==='modLoginOverlay')closeModLogin();});
+function tryModLogin(){
+  if(!pendingModule)return;
+  const c=MODCREDS[pendingModule.name];
+  const u=document.getElementById('mlUser').value.trim();
+  const p=document.getElementById('mlPass').value.trim();
+  if(u===c.user && p===c.pass){ const m=pendingModule; closeModLogin(); openInNewTab(m.name); }
+  else { document.getElementById('mlErr').textContent='Incorrect username or password for this module.'; }
+}
+document.getElementById('mlEnter').onclick=tryModLogin;
+document.getElementById('mlPass').addEventListener('keydown',e=>{if(e.key==='Enter')tryModLogin();});
+
+/* ---------- admin: manage credentials ---------- */
+function renderAdminCreds(){
+  ensureCreds();
+  const wrap=document.getElementById('adminCredList'); wrap.innerHTML='';
+  const head=document.createElement('div'); head.className='cred-head';
+  head.innerHTML='<div>Module</div><div>Username</div><div>Password</div>'; wrap.appendChild(head);
+  MODULES.forEach(m=>{
+    const c=MODCREDS[m.name];
+    const row=document.createElement('div'); row.className='cred-row';
+    row.innerHTML=`
+      <div class="cred-mod"><div class="ci" style="background:${shade(m.color)};color:${m.color}">${svg(ICONS[m.icon]||ICONS.help)}</div>${m.name}</div>
+      <div><span class="lbl">Username</span><input data-cu="${m.name}" value="${c.user}"></div>
+      <div><span class="lbl">Password</span><input data-cp="${m.name}" value="${c.pass}"></div>`;
+    wrap.appendChild(row);
+  });
+}
+document.getElementById('saveAllCreds').onclick=()=>{
+  document.querySelectorAll('#adminCredList [data-cu]').forEach(inp=>{
+    const n=inp.dataset.cu; MODCREDS[n].user=inp.value.trim()||credKey(n);
+  });
+  document.querySelectorAll('#adminCredList [data-cp]').forEach(inp=>{
+    const n=inp.dataset.cp; MODCREDS[n].pass=inp.value.trim()||'0000';
+  });
+  persist(); toast('Module credentials updated');
+};
+document.getElementById('resetCreds').onclick=()=>{
+  MODULES.forEach(m=>{const k=credKey(m.name);MODCREDS[m.name]={user:k,pass:k+'123'};});
+  persist(); renderAdminCreds(); toast('Credentials reset to defaults');
+};
+document.getElementById('adminBack').onclick=()=>{
+  document.getElementById('adminPage').classList.add('hidden');
+  document.getElementById('rolePage').classList.remove('hidden');
+};
+
+/* ===================== OPD MODULE ===================== */
+let TOKEN=100;
+let QUEUE=[];
+let activeTok=null;
+
+function openOPD(){
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('adminPage').classList.add('hidden');
+  document.getElementById('opdPage').classList.remove('hidden');
+  activeTok = QUEUE.find(p=>p.status==='serving')?.tok || null;
+  renderQueue(); showConsult();
+  window.scrollTo(0,0);
+}
+document.getElementById('opdBack').onclick=()=>backFromModule();
+document.getElementById('opdCSV').onclick=()=>opdExport('csv');
+document.getElementById('opdPDF').onclick=()=>opdExport('pdf');
+
+/* tabs */
+document.getElementById('opdSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#opdSeg button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  const t=b.dataset.tab;
+  document.getElementById('tabReg').classList.toggle('hidden',t!=='reg');
+  document.getElementById('tabCon').classList.toggle('hidden',t!=='con');
+});
+function goTab(t){document.querySelector(`#opdSeg [data-tab="${t}"]`).click();}
+
+/* queue rendering */
+function statusLabel(s){return s==='serving'?'In Room':s==='done'?'Seen':'Waiting';}
+function renderQueue(){
+  const q=(document.getElementById('qSearch').value||'').toLowerCase();
+  const list=document.getElementById('queueList'); list.innerHTML='';
+  const shown=QUEUE.filter(p=>!q || p.name.toLowerCase().includes(q) || String(p.tok).includes(q));
+  if(!shown.length){list.innerHTML='<div class="qempty">No patients in queue.<br>Register a patient to begin.</div>';}
+  shown.forEach(p=>{
+    const el=document.createElement('div');
+    el.className='qitem'+(p.tok===activeTok?' active':'');
+    const cls=p.status;
+    el.innerHTML=`
+      <div class="qtok ${cls}">${p.tok}</div>
+      <div class="qmeta"><b>${p.name}</b><span>${p.age}y · ${p.gender} · ${p.dept}</span></div>
+      <div class="qstat ${cls}">${statusLabel(p.status)}</div>`;
+    el.onclick=()=>{selectPatient(p.tok);};
+    list.appendChild(el);
+  });
+  // stats
+  document.getElementById('stWait').textContent=QUEUE.filter(p=>p.status==='wait').length;
+  document.getElementById('stServ').textContent=QUEUE.filter(p=>p.status==='serving').length;
+  document.getElementById('stDone').textContent=QUEUE.filter(p=>p.status==='done').length;
+}
+document.getElementById('qSearch').addEventListener('input',renderQueue);
+
+function selectPatient(tok){
+  activeTok=tok;
+  const p=QUEUE.find(x=>x.tok===tok);
+  if(p && p.status==='wait'){ QUEUE.forEach(x=>{if(x.status==='serving')x.status='done';}); p.status='serving'; }
+  persist(); renderQueue(); showConsult(); goTab('con');
+}
+
+/* consultation panel */
+function showConsult(){
+  const p=QUEUE.find(x=>x.tok===activeTok);
+  const empty=document.getElementById('conEmpty'), card=document.getElementById('conCard');
+  if(!p){empty.classList.remove('hidden');card.classList.add('hidden');return;}
+  empty.classList.add('hidden');card.classList.remove('hidden');
+  document.getElementById('cInit').textContent=p.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  document.getElementById('cName').textContent=p.name;
+  document.getElementById('cTag').textContent=`${p.age}y · ${p.gender} · ${p.dept} · ${p.doc}`;
+  document.getElementById('cTok').textContent=p.tok;
+  document.getElementById('cComplaint').value=p.complaint||'';
+  document.getElementById('cDiag').value=p.diag||'';
+  document.getElementById('cRx').value=p.rx||'';
+}
+document.getElementById('btnComplete').onclick=()=>{
+  const p=QUEUE.find(x=>x.tok===activeTok); if(!p)return;
+  p.diag=document.getElementById('cDiag').value; p.rx=document.getElementById('cRx').value;
+  p.status='done';
+  const next=QUEUE.find(x=>x.status==='wait');
+  activeTok=next?next.tok:null;
+  if(next)next.status='serving';
+  persist(); renderQueue(); showConsult();
+  toast(`Consultation completed for ${p.name}`);
+};
+document.getElementById('btnHold').onclick=()=>{
+  const p=QUEUE.find(x=>x.tok===activeTok); if(!p)return;
+  p.diag=document.getElementById('cDiag').value; p.rx=document.getElementById('cRx').value;
+  persist();
+  toast('Notes saved · patient kept in queue');
+};
+document.getElementById('btnCallNext').onclick=()=>{
+  const next=QUEUE.find(x=>x.status==='wait');
+  if(!next){toast('Queue is clear — no one waiting');return;}
+  selectPatient(next.tok);
+  toast(`Now serving token ${next.tok} · ${next.name}`);
+};
+
+/* registration */
+document.getElementById('btnNewReg').onclick=()=>{goTab('reg');document.getElementById('rName').focus();};
+document.getElementById('regClear').onclick=()=>document.getElementById('regForm').reset();
+document.getElementById('regForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const name=document.getElementById('rName').value.trim();
+  if(!name){document.getElementById('rName').focus();toast('Enter patient name');return;}
+  const p={
+    tok:++TOKEN, name,
+    age:document.getElementById('rAge').value||'—',
+    gender:document.getElementById('rGender').value,
+    dept:document.getElementById('rDept').value,
+    doc:document.getElementById('rDoc').value,
+    complaint:document.getElementById('rComplaint').value.trim(),
+    phone:document.getElementById('rPhone').value.trim(),
+    status:'wait'
+  };
+  QUEUE.push(p); persist();
+  document.getElementById('regForm').reset();
+  renderQueue();
+  toast(`Registered ${name} · Token ${p.tok}`);
+});
+
+/* ===================== IPD MODULE ===================== */
+let WARDS=[
+  {code:'GEN', name:'General Ward', color:'#1f6feb', beds:10},
+  {code:'ICU', name:'Intensive Care Unit', color:'#dc2626', beds:6},
+  {code:'PVT', name:'Private Rooms', color:'#7c3aed', beds:6},
+  {code:'MAT', name:'Maternity Ward', color:'#e11d8f', beds:6},
+  {code:'PED', name:'Pediatric Ward', color:'#0ea5a4', beds:6}
+];
+let BEDS=[];
+WARDS.forEach(w=>{ for(let i=1;i<=w.beds;i++){ BEDS.push({id:`${w.code}-${String(i).padStart(2,'0')}`,ward:w.code,status:'vacant',patient:null}); } });
+
+function openIPD(){
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('adminPage').classList.add('hidden');
+  document.getElementById('ipdPage').classList.remove('hidden');
+  fillWardSelects(); renderBoard(); renderAdmitted();
+  window.scrollTo(0,0);
+}
+document.getElementById('ipdBack').onclick=()=>backFromModule();
+document.getElementById('ipdSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  document.querySelectorAll('#ipdSeg button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  const t=b.dataset.tab;
+  document.getElementById('ipTabBoard').classList.toggle('hidden',t!=='board');
+  document.getElementById('ipTabAdmit').classList.toggle('hidden',t!=='admit');
+  document.getElementById('ipTabList').classList.toggle('hidden',t!=='list');
+});
+function ipdGoTab(t){document.querySelector(`#ipdSeg [data-tab="${t}"]`).click();}
+
+const wardName=c=>WARDS.find(w=>w.code===c)?.name||c;
+const wardColor=c=>WARDS.find(w=>w.code===c)?.color||'#1f6feb';
+
+function renderBoard(){
+  const wrap=document.getElementById('bedBoard'); wrap.innerHTML='';
+  WARDS.forEach(w=>{
+    const wb=BEDS.filter(b=>b.ward===w.code);
+    const occ=wb.filter(b=>b.status==='occupied').length;
+    const ward=document.createElement('div'); ward.className='ward';
+    ward.innerHTML=`
+      <div class="ward-head">
+        <div class="ward-badge" style="background:${w.color}">${w.code}</div>
+        <div><h3>${w.name}</h3><div class="wsub">${w.beds} beds</div></div>
+        <div class="ward-occ"><b>${occ}/${w.beds}</b><span>Occupied</span></div>
+        <button class="btn ghost tiny" data-addbed="${w.code}" style="margin-left:14px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;margin-right:2px"><path d="M12 5v14M5 12h14"/></svg>Add bed
+        </button>
+        <button class="btn ghost tiny" data-delward="${w.code}" style="margin-left:8px;color:#dc2626;border-color:#f1cccc">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;margin-right:2px"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>Remove ward
+        </button>
+      </div>
+      <div class="beds"></div>`;
+    const bedsWrap=ward.querySelector('.beds');
+    wb.forEach(b=>{
+      const el=document.createElement('div'); el.className='bed '+b.status;
+      const icon=b.status==='occupied'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/><path d="M6 21v-1a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v1"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8v11M3 12h14a4 4 0 0 1 4 4v3M21 19v-3"/><circle cx="7" cy="10" r="1.6"/></svg>';
+      el.innerHTML=`<button class="bedx" title="Remove bed">×</button>
+        <div class="bno">${icon}${b.id}</div>
+        <div class="bpat">${b.patient?b.patient.name:(b.status==='cleaning'?'Sanitizing':'Available')}</div>
+        <div class="bstat">${b.status}</div>`;
+      el.onclick=()=>bedClick(b);
+      el.querySelector('.bedx').onclick=(e)=>{e.stopPropagation();removeBed(b.id);};
+      bedsWrap.appendChild(el);
+    });
+    wrap.appendChild(ward);
+  });
+  wrap.querySelectorAll('[data-addbed]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();addBed(btn.dataset.addbed);});
+  wrap.querySelectorAll('[data-delward]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();removeWard(btn.dataset.delward);});
+  const total=BEDS.length, occ=BEDS.filter(b=>b.status==='occupied').length;
+  document.getElementById('ipTotal').textContent=total;
+  document.getElementById('ipOcc').textContent=occ;
+  document.getElementById('ipVac').textContent=BEDS.filter(b=>b.status==='vacant').length;
+  document.getElementById('admCount').textContent='('+occ+')';
+}
+
+/* add a bed to a ward */
+function addBed(code){
+  const w=WARDS.find(x=>x.code===code); if(!w)return;
+  const nums=BEDS.filter(b=>b.ward===code).map(b=>parseInt(b.id.split('-')[1])||0);
+  const next=(nums.length?Math.max(...nums):0)+1;
+  const id=`${code}-${String(next).padStart(2,'0')}`;
+  BEDS.push({id,ward:code,status:'vacant',patient:null});
+  w.beds++; persist();
+  renderBoard();
+  toast(`Bed ${id} added to ${w.name}`);
+}
+
+/* remove a single bed */
+function removeBed(id){
+  const b=BEDS.find(x=>x.id===id); if(!b)return;
+  if(b.status==='occupied'){toast('Discharge the patient before removing this bed');return;}
+  BEDS=BEDS.filter(x=>x.id!==id);
+  const w=WARDS.find(x=>x.code===b.ward); if(w)w.beds=BEDS.filter(x=>x.ward===w.code).length;
+  persist(); renderBoard(); fillBedSelect(); toast(`Bed ${id} removed`);
+}
+/* remove a whole ward with its beds */
+function removeWard(code){
+  const w=WARDS.find(x=>x.code===code); if(!w)return;
+  if(BEDS.some(b=>b.ward===code && b.status==='occupied')){toast('Ward has admitted patients — discharge them first');return;}
+  BEDS=BEDS.filter(b=>b.ward!==code);
+  WARDS=WARDS.filter(x=>x.code!==code);
+  persist(); fillWardSelects(); renderBoard(); renderAdmitted();
+  toast(`Ward "${w.name}" removed`);
+}
+
+/* add-ward modal */
+let wardColorPick='#0f766e';
+(function initWardSwatches(){
+  const wrap=document.getElementById('wSwatches');
+  ['#0f766e','#1f6feb','#dc2626','#7c3aed','#e11d8f','#0ea5a4','#b45309','#475569'].forEach((c,i)=>{
+    const s=document.createElement('div');s.className='sw'+(i===0?' active':'');s.style.background=c;
+    s.onclick=()=>{wardColorPick=c;wrap.querySelectorAll('.sw').forEach(x=>x.classList.remove('active'));s.classList.add('active');};
+    wrap.appendChild(s);
+  });
+})();
+function openWardModal(){document.getElementById('wardOverlay').classList.remove('hidden');document.getElementById('wName').focus();}
+function closeWardModal(){document.getElementById('wardOverlay').classList.add('hidden');document.getElementById('wName').value='';document.getElementById('wCode').value='';document.getElementById('wBeds').value=6;}
+document.getElementById('btnAddWard').onclick=openWardModal;
+document.getElementById('closeWard').onclick=closeWardModal;
+document.getElementById('cancelWard').onclick=closeWardModal;
+document.getElementById('wardOverlay').addEventListener('click',e=>{if(e.target.id==='wardOverlay')closeWardModal();});
+document.getElementById('saveWard').onclick=()=>{
+  const name=document.getElementById('wName').value.trim();
+  if(!name){document.getElementById('wName').focus();return;}
+  let code=(document.getElementById('wCode').value.trim()||name.replace(/[^a-zA-Z]/g,'').slice(0,3)).toUpperCase();
+  if(WARDS.some(w=>w.code===code)) code=code+(WARDS.length+1);
+  let n=parseInt(document.getElementById('wBeds').value)||1; n=Math.max(1,Math.min(40,n));
+  WARDS.push({code,name,color:wardColorPick,beds:n});
+  for(let i=1;i<=n;i++){ BEDS.push({id:`${code}-${String(i).padStart(2,'0')}`,ward:code,status:'vacant',patient:null}); }
+  persist(); fillWardSelects(); renderBoard();
+  closeWardModal();
+  toast(`Ward "${name}" added with ${n} beds`);
+};
+
+function bedClick(b){
+  if(b.status==='vacant'){
+    ipdGoTab('admit');
+    document.getElementById('aWard').value=b.ward; fillBedSelect();
+    document.getElementById('aBed').value=b.id;
+    document.getElementById('aName').focus();
+    toast(`Bed ${b.id} selected — fill admission details`);
+  } else if(b.status==='occupied'){
+    ipdGoTab('list'); renderAdmitted();
+    toast(`${b.patient.name} · Bed ${b.id}`);
+  } else {
+    b.status='vacant'; persist(); renderBoard(); toast(`Bed ${b.id} marked ready`);
+  }
+}
+
+function fillWardSelects(){
+  const ws=document.getElementById('aWard');
+  ws.innerHTML=WARDS.map(w=>`<option value="${w.code}">${w.name}</option>`).join('');
+  document.getElementById('aDate').value=new Date().toISOString().slice(0,10);
+  fillBedSelect();
+}
+function fillBedSelect(){
+  const ward=document.getElementById('aWard').value;
+  const vac=BEDS.filter(b=>b.ward===ward && b.status==='vacant');
+  const bs=document.getElementById('aBed');
+  bs.innerHTML=vac.length?vac.map(b=>`<option value="${b.id}">${b.id}</option>`).join(''):'<option value="">No vacant beds</option>';
+}
+document.getElementById('aWard').addEventListener('change',fillBedSelect);
+document.getElementById('admClear').onclick=()=>{document.getElementById('admForm').reset();fillWardSelects();};
+document.getElementById('ipdCSV').onclick=()=>ipdExport('csv');
+document.getElementById('ipdPDF').onclick=()=>ipdExport('pdf');
+document.getElementById('btnAddAdmitted').onclick=()=>{
+  if(!BEDS.some(b=>b.status==='vacant')){toast('No vacant beds — add a bed or ward first');return;}
+  ipdGoTab('admit'); fillWardSelects(); document.getElementById('aName').focus();
+};
+
+document.getElementById('admForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const name=document.getElementById('aName').value.trim();
+  const bedId=document.getElementById('aBed').value;
+  if(!name){document.getElementById('aName').focus();toast('Enter patient name');return;}
+  if(!bedId){toast('No vacant bed in this ward');return;}
+  const b=BEDS.find(x=>x.id===bedId); if(!b||b.status!=='vacant'){toast('Bed no longer available');fillBedSelect();return;}
+  b.status='occupied';
+  b.patient={
+    name, age:document.getElementById('aAge').value||'—',
+    gender:document.getElementById('aGender').value,
+    doc:document.getElementById('aDoc').value,
+    diag:document.getElementById('aDiag').value.trim(),
+    date:document.getElementById('aDate').value||new Date().toISOString().slice(0,10)
+  };
+  persist();
+  document.getElementById('admForm').reset(); fillWardSelects();
+  renderBoard(); renderAdmitted();
+  toast(`${name} admitted to bed ${bedId}`);
+  ipdGoTab('board');
+});
+
+function daysSince(d){const ms=Date.now()-new Date(d).getTime();return Math.max(0,Math.floor(ms/86400000));}
+function renderAdmitted(){
+  const wrap=document.getElementById('admList'); wrap.innerHTML='';
+  const occ=BEDS.filter(b=>b.status==='occupied');
+  if(!occ.length){wrap.innerHTML='<div class="qempty">No patients currently admitted.</div>';}
+  occ.forEach(b=>{
+    const p=b.patient;
+    const el=document.createElement('div'); el.className='adm';
+    el.innerHTML=`
+      <div class="adm-top">
+        <div class="pic">${p.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</div>
+        <div><b>${p.name}</b><span>${p.age}y · ${p.gender}</span></div>
+      </div>
+      <div class="adm-row"><span>Bed / Ward</span><b>${b.id} · ${wardName(b.ward)}</b></div>
+      <div class="adm-row"><span>Doctor</span><b>${p.doc}</b></div>
+      <div class="adm-row"><span>Admitted</span><b>${p.date} (${daysSince(p.date)}d)</b></div>
+      <div class="adm-row"><span>Diagnosis</span><b style="max-width:150px;text-align:right">${p.diag||'—'}</b></div>
+      <div class="adm-foot">
+        <button class="btn danger tiny" data-dis="${b.id}">Discharge</button>
+        <button class="btn ghost tiny" data-mov="${b.id}">Transfer</button>
+      </div>`;
+    wrap.appendChild(el);
+  });
+  wrap.querySelectorAll('[data-dis]').forEach(btn=>btn.onclick=()=>{
+    const b=BEDS.find(x=>x.id===btn.dataset.dis); const nm=b.patient.name;
+    b.status='cleaning'; b.patient=null; persist(); renderBoard(); renderAdmitted();
+    toast(`${nm} discharged · bed ${b.id} in cleaning`);
+  });
+  wrap.querySelectorAll('[data-mov]').forEach(btn=>btn.onclick=()=>{
+    const vac=BEDS.find(x=>x.status==='vacant');
+    if(!vac){toast('No vacant bed to transfer to');return;}
+    const b=BEDS.find(x=>x.id===btn.dataset.mov);
+    vac.status='occupied'; vac.patient=b.patient; b.status='cleaning'; b.patient=null;
+    persist(); renderBoard(); renderAdmitted();
+    toast(`Transferred to bed ${vac.id}`);
+  });
+}
+
+/* ===================== GENERIC MODULE ENGINE ===================== */
+const PAYS=['Cash','Card','UPI','Insurance'];
+const money=v=>(typeof v==='number'||/^\d+$/.test(v))?'₹'+Number(v).toLocaleString('en-IN'):v;
+const TAGMAP={g:['On-duty','Given','Reported','Paid','Approved','Done','Resolved','Ready','Active','Collected'],
+  a:['Pending','In-progress','Partial','Scheduled','In-lab','Medium','Evening','Off'],
+  r:['Missed','Rejected','High','Leave','Night']};
+function tagClass(v){for(const k in TAGMAP){if(TAGMAP[k].includes(v))return k;}return 'b';}
+const today=new Date().toISOString().slice(0,10);
+
+const MODULE_DEFS={
+  'Doctor':{crumb:'Rosters · e-Prescriptions · Clinical notes',sections:[
+    {key:'roster',label:'Rosters',noun:'roster entry',cols:[{k:'doctor',t:'Doctor'},{k:'dept',t:'Department'},{k:'day',t:'Day'},{k:'shift',t:'Shift',type:'tag',opts:['Morning','Evening','Night']},{k:'status',t:'Status',type:'tag',opts:['On-duty','Off','Leave']},{k:'fee',t:'Consult Fee',type:'fee'},{k:'pay',t:'Fee Mode',type:'pay'}],
+      rows:[{doctor:'Dr. A. Sharma',dept:'General Medicine',day:'Mon',shift:'Morning',status:'On-duty',fee:500,pay:'Cash'},{doctor:'Dr. P. Mehta',dept:'Orthopedics',day:'Mon',shift:'Evening',status:'On-duty',fee:700,pay:'Card'}]},
+    {key:'rx',label:'e-Prescriptions',noun:'prescription',cols:[{k:'token',t:'Token'},{k:'patient',t:'Patient'},{k:'doctor',t:'Doctor'},{k:'medicine',t:'Medicine'},{k:'dose',t:'Dose'},{k:'date',t:'Date',type:'date'}],
+      rows:[{token:'101',patient:'Ramesh Kumar',doctor:'Dr. A. Sharma',medicine:'Paracetamol 650mg',dose:'1-0-1 x5d',date:today}]},
+    {key:'notes',label:'Clinical notes',noun:'note',cols:[{k:'patient',t:'Patient'},{k:'doctor',t:'Doctor'},{k:'note',t:'Note'},{k:'date',t:'Date',type:'date'}],
+      rows:[{patient:'Sunita Patel',doctor:'Dr. R. Nair',note:'Stable, review in 1 week',date:today}]}
+  ]},
+  'Nursing':{crumb:'Vitals · Medication rounds · Handover',sections:[
+    {key:'vitals',label:'Vitals',noun:'vitals record',cols:[{k:'patient',t:'Patient'},{k:'bed',t:'Bed'},{k:'temp',t:'Temp °F'},{k:'bp',t:'BP'},{k:'pulse',t:'Pulse'},{k:'spo2',t:'SpO₂'},{k:'nurse',t:'Nurse'},{k:'fee',t:'Service Fee',type:'fee'},{k:'pay',t:'Fee Mode',type:'pay'}],
+      rows:[{patient:'Ramesh Kumar',bed:'GEN-01',temp:'99.2',bp:'120/80',pulse:'82',spo2:'97',nurse:'N. Roy',fee:100,pay:'Cash'}]},
+    {key:'meds',label:'Medication rounds',noun:'medication',cols:[{k:'patient',t:'Patient'},{k:'medicine',t:'Medicine'},{k:'dose',t:'Dose'},{k:'time',t:'Time'},{k:'status',t:'Status',type:'tag',opts:['Given','Pending','Missed']},{k:'nurse',t:'Nurse'}],
+      rows:[{patient:'Ramesh Kumar',medicine:'Ceftriaxone',dose:'1g IV',time:'08:00',status:'Given',nurse:'N. Roy'},{patient:'Anita Desai',medicine:'Azithromycin',dose:'500mg',time:'09:00',status:'Pending',nurse:'S. Das'}]},
+    {key:'handover',label:'Handover',noun:'handover',cols:[{k:'shift',t:'Shift'},{k:'from',t:'From nurse'},{k:'to',t:'To nurse'},{k:'notes',t:'Notes'},{k:'date',t:'Date',type:'date'}],
+      rows:[{shift:'Night→Day',from:'S. Das',to:'N. Roy',notes:'Bed GEN-03 needs dressing',date:today}]}
+  ]},
+  'Pathology':{crumb:'Lab orders · Sample tracking · Results',sections:[
+    {key:'results',label:'Lab orders & results',noun:'lab record',cols:[{k:'token',t:'Token No.'},{k:'doctor',t:'Doctor Name'},{k:'patient',t:'Patient Name'},{k:'report',t:'Report Type'},{k:'result',t:'Result'},{k:'fee',t:'Fee',type:'fee'},{k:'pay',t:'Payment Mode',type:'pay'}],
+      rows:[{token:'L-201',doctor:'Dr. A. Sharma',patient:'Ramesh Kumar',report:'CBC',result:'Normal',fee:350,pay:'Cash'},{token:'L-202',doctor:'Dr. P. Mehta',patient:'Arjun Mehta',report:'Lipid Profile',result:'High LDL',fee:600,pay:'UPI'},{token:'L-203',doctor:'Dr. R. Nair',patient:'Sunita Patel',report:'Thyroid (T3 T4 TSH)',result:'Normal',fee:800,pay:'Card'}]},
+    {key:'samples',label:'Sample tracking',noun:'sample',cols:[{k:'token',t:'Token'},{k:'patient',t:'Patient'},{k:'sample',t:'Sample'},{k:'collected',t:'Collected'},{k:'status',t:'Status',type:'tag',opts:['Collected','In-lab','Reported']}],
+      rows:[{token:'L-201',patient:'Ramesh Kumar',sample:'Blood',collected:'08:15',status:'Reported'},{token:'L-203',patient:'Sunita Patel',sample:'Blood',collected:'08:40',status:'In-lab'}]}
+  ]},
+  'Sonography':{crumb:'Ultrasound scheduling · Report capture',sections:[
+    {key:'sched',label:'Ultrasound scheduling',noun:'scan',cols:[{k:'token',t:'Token'},{k:'patient',t:'Patient'},{k:'doctor',t:'Referred by'},{k:'scan',t:'Scan Type',type:'tag',opts:['Abdomen','Pelvis','Obstetric','Doppler']},{k:'date',t:'Date',type:'date'},{k:'time',t:'Time'},{k:'fee',t:'Fee',type:'fee'},{k:'pay',t:'Fee Mode',type:'pay'}],
+      rows:[{token:'S-11',patient:'Sunita Patel',doctor:'Dr. R. Nair',scan:'Obstetric',date:today,time:'10:30',fee:1200,pay:'Card'}]},
+    {key:'report',label:'Report capture',noun:'report',cols:[{k:'token',t:'Token'},{k:'patient',t:'Patient'},{k:'findings',t:'Findings'},{k:'impression',t:'Impression'},{k:'by',t:'Radiologist'}],
+      rows:[{token:'S-11',patient:'Sunita Patel',findings:'Single live fetus',impression:'20 weeks, normal',by:'Dr. Rao'}]}
+  ]},
+  'Radiology':{crumb:'X-ray · CT · MRI imaging workflow',sections:[
+    {key:'work',label:'Imaging workflow',noun:'imaging order',cols:[{k:'token',t:'Token'},{k:'patient',t:'Patient'},{k:'doctor',t:'Referred by'},{k:'modality',t:'Modality',type:'tag',opts:['X-ray','CT','MRI']},{k:'part',t:'Body Part'},{k:'status',t:'Status',type:'tag',opts:['Scheduled','Done','Reported']},{k:'fee',t:'Fee',type:'fee'},{k:'pay',t:'Fee Mode',type:'pay'}],
+      rows:[{token:'R-31',patient:'Arjun Mehta',doctor:'Dr. P. Mehta',modality:'X-ray',part:'Left knee',status:'Reported',fee:400,pay:'Cash'},{token:'R-32',patient:'Suresh Rao',doctor:'Dr. S. Iyer',modality:'CT',part:'Brain',status:'Done',fee:3500,pay:'Insurance'}]},
+    {key:'reports',label:'Reports',noun:'report',cols:[{k:'token',t:'Token'},{k:'patient',t:'Patient'},{k:'modality',t:'Modality'},{k:'findings',t:'Findings'},{k:'by',t:'Radiologist'}],
+      rows:[{token:'R-31',patient:'Arjun Mehta',modality:'X-ray',findings:'No fracture seen',by:'Dr. Rao'}]}
+  ]},
+  'Cardiology':{crumb:'ECG · ECHO · Cardiac diagnostics',sections:[
+    {key:'diag',label:'Cardiac diagnostics',noun:'test',cols:[{k:'token',t:'Token'},{k:'patient',t:'Patient'},{k:'doctor',t:'Referred by'},{k:'test',t:'Test',type:'tag',opts:['ECG','ECHO','TMT','Holter']},{k:'result',t:'Result'},{k:'status',t:'Status',type:'tag',opts:['Scheduled','Done','Reported']},{k:'fee',t:'Fee',type:'fee'},{k:'pay',t:'Fee Mode',type:'pay'}],
+      rows:[{token:'C-05',patient:'Suresh Rao',doctor:'Dr. S. Iyer',test:'ECHO',result:'EF 45%',status:'Reported',fee:1500,pay:'Insurance'},{token:'C-06',patient:'Ramesh Kumar',doctor:'Dr. A. Sharma',test:'ECG',result:'Normal sinus',status:'Done',fee:300,pay:'Cash'}]},
+    {key:'reports',label:'Reports',noun:'report',cols:[{k:'token',t:'Token'},{k:'patient',t:'Patient'},{k:'test',t:'Test'},{k:'findings',t:'Findings'},{k:'by',t:'Cardiologist'}],
+      rows:[{token:'C-05',patient:'Suresh Rao',test:'ECHO',findings:'Mild LV dysfunction',by:'Dr. Menon'}]}
+  ]},
+  'Accounting':{crumb:'Billing · Invoice · Insurance · Payment',sections:[
+    {key:'bill',label:'Billing & invoices',noun:'invoice',cols:[{k:'invoice',t:'Invoice'},{k:'patient',t:'Patient'},{k:'dept',t:'Department'},{k:'fee',t:'Amount',type:'fee'},{k:'pay',t:'Payment Mode',type:'pay'},{k:'status',t:'Status',type:'tag',opts:['Paid','Pending','Partial']},{k:'date',t:'Date',type:'date'}],
+      rows:[{invoice:'INV-1001',patient:'Ramesh Kumar',dept:'OPD',fee:850,pay:'Cash',status:'Paid',date:today},{invoice:'INV-1002',patient:'Suresh Rao',dept:'Radiology',fee:3500,pay:'Insurance',status:'Pending',date:today}]},
+    {key:'ins',label:'Insurance',noun:'claim',cols:[{k:'claim',t:'Claim'},{k:'patient',t:'Patient'},{k:'insurer',t:'Insurer'},{k:'fee',t:'Amount',type:'fee'},{k:'status',t:'Status',type:'tag',opts:['Approved','Pending','Rejected']},{k:'date',t:'Date',type:'date'}],
+      rows:[{claim:'CLM-77',patient:'Suresh Rao',insurer:'Star Health',fee:3500,status:'Pending',date:today}]}
+  ]},
+  'MRD':{crumb:'Medical records · Archive · Discharge files',sections:[
+    {key:'records',label:'Medical records',noun:'record',cols:[{k:'mrn',t:'MRN'},{k:'patient',t:'Patient'},{k:'dept',t:'Department'},{k:'doctor',t:'Doctor'},{k:'date',t:'Date',type:'date'},{k:'status',t:'Status',type:'tag',opts:['Active','Archived']},{k:'fee',t:'File Fee',type:'fee'},{k:'pay',t:'Fee Mode',type:'pay'}],
+      rows:[{mrn:'MRN-5501',patient:'Ramesh Kumar',dept:'General Medicine',doctor:'Dr. A. Sharma',date:today,status:'Active',fee:50,pay:'Cash'}]},
+    {key:'disc',label:'Discharge files',noun:'discharge file',cols:[{k:'patient',t:'Patient'},{k:'dept',t:'Department'},{k:'date',t:'Discharge date',type:'date'},{k:'summary',t:'Summary'},{k:'status',t:'Status',type:'tag',opts:['Ready','Pending']}],
+      rows:[{patient:'Lata Verma',dept:'Surgery',date:today,summary:'Post-op, stable',status:'Ready'}]}
+  ]},
+  'Help':{crumb:'Support desk · Guidance · System assistance',sections:[
+    {key:'desk',label:'Support desk',noun:'ticket',cols:[{k:'ticket',t:'Ticket'},{k:'by',t:'Raised by'},{k:'dept',t:'Department'},{k:'issue',t:'Issue'},{k:'priority',t:'Priority',type:'tag',opts:['Low','Medium','High']},{k:'status',t:'Status',type:'tag',opts:['Open','In-progress','Resolved']},{k:'fee',t:'Charge',type:'fee'},{k:'pay',t:'Mode',type:'pay'}],
+      rows:[{ticket:'HD-12',by:'Reception',dept:'OPD',issue:'Printer not working',priority:'Medium',status:'Open',fee:0,pay:'Cash'}]},
+    {key:'guide',label:'Guides',noun:'guide',cols:[{k:'topic',t:'Topic'},{k:'cat',t:'Category'},{k:'desc',t:'Description'}],
+      rows:[{topic:'How to register an OPD patient',cat:'OPD',desc:'Step-by-step registration & token issue'}]}
+  ]}
+};
+
+/* start fresh — no demo records in any module */
+Object.values(MODULE_DEFS).forEach(d=>d.sections.forEach(s=>{s.rows=[];}));
+
+let genDef=null, genSec=0, genMeta=null, moduleReturn='app';
+function openGeneric(m){
+  genMeta=m; genDef=MODULE_DEFS[m.name]; genSec=0;
+  if(!genDef){toast(`${m.name} — coming soon`);return;}
+  const ico=document.getElementById('genIco');
+  ico.style.background=shade(m.color); ico.style.color=m.color;
+  ico.innerHTML=svg(ICONS[m.icon]||ICONS.help);
+  document.getElementById('genTitle').textContent=m.name;
+  document.getElementById('genCrumb').textContent=genDef.crumb;
+  document.getElementById('genBackLbl').textContent = moduleReturn==='close'?'Close tab':(moduleReturn==='admin'?'Admin':'Modules');
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('adminPage').classList.add('hidden');
+  document.getElementById('genPage').classList.remove('hidden');
+  renderGenSeg(); renderGenBody(); window.scrollTo(0,0);
+}
+function renderGenSeg(){
+  const seg=document.getElementById('genSeg'); seg.innerHTML='';
+  genDef.sections.forEach((s,i)=>{
+    const b=document.createElement('button'); b.className=(i===genSec?'active':'');
+    b.textContent=s.label; b.onclick=()=>{genSec=i;renderGenSeg();renderGenBody();};
+    seg.appendChild(b);
+  });
+}
+function cellHTML(col,row){
+  const v=row[col.k]??'';
+  if(col.type==='tag') return `<span class="pill ${tagClass(v)}">${v}</span>`;
+  if(col.type==='pay') return `<span class="pay">${v}</span>`;
+  if(col.type==='fee') return `<span class="money">${money(v||0)}</span>`;
+  return v===''?'—':v;
+}
+function renderGenBody(){
+  const s=genDef.sections[genSec];
+  const body=document.getElementById('genBody');
+  let ths='<th class="sno">S.No</th>'+s.cols.map(c=>`<th>${c.t}</th>`).join('');
+  let rows=s.rows.map((r,i)=>`<tr><td class="sno">${i+1}</td>${s.cols.map(c=>`<td>${cellHTML(c,r)}</td>`).join('')}</tr>`).join('');
+  if(!s.rows.length) rows=`<tr><td class="tempty" colspan="${s.cols.length+1}">No ${s.noun}s yet. Click “Add ${s.noun}”.</td></tr>`;
+  body.innerHTML=`
+    <div class="sec-head">
+      <div><h3>${s.label}</h3><p>${s.rows.length} ${s.noun}${s.rows.length===1?'':'s'}</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn ghost" id="genCSV" style="width:auto;padding:9px 13px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h1M8 17h1M15 13h1M15 17h1M11.5 13h1M11.5 17h1"/></svg>CSV</button>
+        <button class="btn ghost" id="genPDF" style="width:auto;padding:9px 13px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15h6M9 18h4"/></svg>PDF</button>
+        <button class="btn sm" id="genAddBtn" style="width:auto;padding:10px 15px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M12 5v14M5 12h14"/></svg>Add ${s.noun}
+        </button>
+      </div>
+    </div>
+    <div class="addcard hidden" id="genAddCard">
+      <h4>Add ${s.noun}</h4>
+      <div class="addgrid">${s.cols.map(c=>fieldHTML(c)).join('')}</div>
+      <div class="form-actions"><button class="btn" id="genSave" style="width:auto;padding:12px 20px">Save</button><button class="btn ghost" id="genCancel" style="width:auto;padding:12px 20px">Cancel</button></div>
+    </div>
+    <div class="tablewrap"><table class="dtable"><thead><tr>${ths}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  // stats
+  const recs=genDef.sections.reduce((a,x)=>a+x.rows.length,0);
+  const rev=genRevenue(genDef);
+  document.getElementById('genStats').innerHTML=`<div class="mstat"><b>${recs}</b><span>Records</span></div><div class="mstat"><b>${money(rev)}</b><span>Revenue</span></div>`;
+  document.getElementById('genAddBtn').onclick=()=>document.getElementById('genAddCard').classList.toggle('hidden');
+  document.getElementById('genCancel').onclick=()=>document.getElementById('genAddCard').classList.add('hidden');
+  document.getElementById('genSave').onclick=saveGenRecord;
+  document.getElementById('genCSV').onclick=()=>{const d=genExportData();exportCSV(d.file,d.headers,d.matrix);};
+  document.getElementById('genPDF').onclick=()=>{const d=genExportData();exportPDF(d.title,d.headers,d.matrix);};
+}
+function fieldHTML(c){
+  const id='gf_'+c.k;
+  let inner;
+  if(c.type==='pay') inner=`<select id="${id}">${PAYS.map(o=>`<option>${o}</option>`).join('')}</select>`;
+  else if(c.type==='tag') inner=`<select id="${id}">${(c.opts||[]).map(o=>`<option>${o}</option>`).join('')}</select>`;
+  else if(c.type==='date') inner=`<input id="${id}" type="date" value="${today}">`;
+  else if(c.type==='fee'||c.type==='num') inner=`<input id="${id}" type="number" min="0" placeholder="0">`;
+  else inner=`<input id="${id}" placeholder="${c.t}">`;
+  return `<div class="fld"><label>${c.t}</label>${inner}</div>`;
+}
+function saveGenRecord(){
+  const s=genDef.sections[genSec]; const obj={};
+  for(const c of s.cols){
+    const el=document.getElementById('gf_'+c.k); let v=el?el.value:'';
+    if(c.type==='fee'||c.type==='num') v=Number(v)||0;
+    if((c.type==='text'||!c.type)&&!v.trim() && c===s.cols[0]){ el.focus(); toast('Enter '+c.t); return; }
+    obj[c.k]=v;
+  }
+  s.rows.push(obj); persist(); renderGenBody();
+  toast(`${s.noun.charAt(0).toUpperCase()+s.noun.slice(1)} added`);
+}
+function genRevenue(def){let t=0;def.sections.forEach(s=>s.rows.forEach(r=>{if(typeof r.fee==='number')t+=r.fee;}));return t;}
+
+/* ===================== ADMIN ANALYTICS ===================== */
+let LEDGER=[];    // income & expense entries added by admin
+let VACANCIES=[]; // staff vacancies added by admin
+function openAdmin(){
+  ensureCreds();
+  document.getElementById('adRoles').textContent='2';
+  document.getElementById('adMods').textContent=MODULES.length;
+  renderAdminDash(); renderAdminModGrid(); renderAdminCreds();
+  document.querySelector('#adminSeg [data-tab="dash"]').classList.add('active');
+  document.getElementById('adminPage').classList.remove('hidden');
+  window.scrollTo(0,0);
+}
+document.getElementById('adminRefresh').onclick=()=>{ loadState(); renderAdminDash(); renderAdminModGrid(); renderAdminCreds(); toast('Synced latest data from all departments'); };
+document.getElementById('ledgerBtn').onclick=()=>document.getElementById('ledgerCard').classList.toggle('hidden');
+document.getElementById('ledgerCancel').onclick=()=>document.getElementById('ledgerCard').classList.add('hidden');
+document.getElementById('ledgerSave').onclick=addLedger;
+document.getElementById('vacBtn').onclick=()=>document.getElementById('vacCard').classList.toggle('hidden');
+document.getElementById('vacCancel').onclick=()=>document.getElementById('vacCard').classList.add('hidden');
+document.getElementById('vacSave').onclick=addVac;
+document.getElementById('adminSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  document.querySelectorAll('#adminSeg button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); const t=b.dataset.tab;
+  document.getElementById('adTabDash').classList.toggle('hidden',t!=='dash');
+  document.getElementById('adTabMods').classList.toggle('hidden',t!=='mods');
+  document.getElementById('adTabCred').classList.toggle('hidden',t!=='cred');
+  document.getElementById('adTabDanger').classList.toggle('hidden',t!=='danger');
+  if(t==='danger')genDangerCode();
+});
+
+/* ---------- danger zone: delete all & reset ---------- */
+let dangerCode='';
+function genDangerCode(){
+  dangerCode=Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,6).toUpperCase().padEnd(6,'X');
+  document.getElementById('dangerCode').textContent=dangerCode;
+  const inp=document.getElementById('dangerInput'); inp.value='';
+  document.getElementById('dangerBtn').disabled=true;
+}
+document.getElementById('dangerInput').addEventListener('input',function(){
+  this.value=this.value.toUpperCase();
+  document.getElementById('dangerBtn').disabled = this.value.trim()!==dangerCode;
+});
+document.getElementById('dangerBtn').onclick=()=>{
+  const typed=document.getElementById('dangerInput').value.trim().toUpperCase();
+  if(typed!==dangerCode){toast('Code does not match');return;}
+  try{localStorage.removeItem(LS_KEY);}catch(e){}
+  toast('All data deleted — resetting system…');
+  setTimeout(()=>{ try{location.hash='';}catch(e){} location.reload(); },700);
+};
+function deptRevenueMap(){
+  const map={};
+  Object.keys(MODULE_DEFS).forEach(n=>{const r=genRevenue(MODULE_DEFS[n]);if(r>0)map[n]=r;});
+  return map;
+}
+/* every amount entered across all department modules + admin income */
+function collectPayments(){
+  const out=[];
+  Object.keys(MODULE_DEFS).forEach(n=>{
+    MODULE_DEFS[n].sections.forEach(s=>{
+      if(!s.cols.some(c=>c.type==='fee'))return;
+      s.rows.forEach(r=>{
+        const fee=Number(r.fee)||0; if(!fee)return;
+        out.push({src:n, who:r.patient||r.name||r.invoice||('Token '+(r.token||'—')), amount:fee, pay:r.pay||'—'});
+      });
+    });
+  });
+  LEDGER.filter(l=>l.type==='Income').forEach(l=>out.push({src:'Admin ledger', who:l.desc||l.category||'Income', amount:Number(l.amount)||0, pay:'—'}));
+  return out;
+}
+function renderAdminDash(){
+  const dmap=deptRevenueMap();
+  const modRev=Object.values(dmap).reduce((a,b)=>a+b,0);
+  const incomeExtra=LEDGER.filter(l=>l.type==='Income').reduce((a,l)=>a+Number(l.amount||0),0);
+  const revenue=modRev+incomeExtra;
+  const equip=LEDGER.filter(l=>l.type==='Expense'&&l.category==='Equipment').reduce((a,l)=>a+Number(l.amount||0),0);
+  const expenses=LEDGER.filter(l=>l.type==='Expense').reduce((a,l)=>a+Number(l.amount||0),0);
+  const purchases=LEDGER.filter(l=>l.type==='Expense').length;
+  const occ=BEDS.filter(b=>b.status==='occupied').length, total=BEDS.length;
+  const vac=VACANCIES.reduce((a,v)=>a+Number(v.open||0),0);
+  const net=revenue-expenses;
+  document.getElementById('adRev').textContent=money(revenue);
+  document.getElementById('adExp').textContent=money(expenses);
+  document.getElementById('adNet').textContent=money(net);
+  document.getElementById('adNetD').textContent=net>=0?'Profit':'Loss';
+  document.getElementById('adNetD').className='ks '+(net>=0?'up':'dn');
+  document.getElementById('adBeds').textContent=occ+' / '+total;
+  document.getElementById('adBedsD').textContent=total?Math.round(occ/total*100)+'% occupancy':'—';
+  document.getElementById('gRev').textContent=money(revenue);
+  document.getElementById('gExp').textContent=money(expenses);
+  document.getElementById('gEquip').textContent=money(equip);
+  document.getElementById('gBuy').textContent=purchases;
+  document.getElementById('gBeds').textContent=occ;
+  document.getElementById('gVac').textContent=vac;
+  // weekly bars (fabricated trend, today = computed)
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const inc=[revenue*0.6,revenue*0.8,revenue*0.7,revenue*0.9,revenue*1.05,revenue*0.75,revenue].map(Math.round);
+  const exp=[expenses*0.5,expenses*0.7,expenses*0.6,expenses*0.85,expenses*0.9,expenses*0.55,expenses].map(Math.round);
+  const max=Math.max(...inc,...exp,1);
+  document.getElementById('adBars').innerHTML=days.map((d,i)=>`
+    <div class="barcol"><div class="barpair">
+      <div class="bar inc" style="height:${Math.max(4,inc[i]/max*100)}%" title="Income ${money(inc[i])}"></div>
+      <div class="bar exp" style="height:${Math.max(4,exp[i]/max*100)}%" title="Expense ${money(exp[i])}"></div>
+    </div><div class="barlbl">${d}</div></div>`).join('');
+  // dept revenue rows
+  const colorOf=n=>MODULES.find(m=>m.name===n)?.color||'#1f6feb';
+  document.getElementById('adDeptRev').innerHTML=Object.entries(dmap).sort((a,b)=>b[1]-a[1]).map(([n,v])=>
+    `<div class="brow"><span class="bn"><i style="background:${colorOf(n)}"></i>${n}</span><b>${money(v)}</b></div>`).join('')||'<div class="tempty">No revenue recorded yet.</div>';
+  // live payments feed
+  const pays=collectPayments();
+  document.getElementById('adPayments').innerHTML = pays.length
+    ? pays.slice().reverse().slice(0,20).map((p,i)=>`<tr><td class="sno">${i+1}</td><td><b>${p.src}</b></td><td>${p.who}</td><td><span class="money">${money(p.amount)}</span></td><td><span class="pay">${p.pay}</span></td></tr>`).join('')
+    : '<tr><td class="tempty" colspan="5">No payments recorded yet. Amounts entered in any department will appear here.</td></tr>';
+  renderLedger(); renderVac();
+}
+
+/* ---------- admin: income & expense ledger ---------- */
+function renderLedger(){
+  const b=document.getElementById('ledgerBody'); if(!b)return;
+  if(!LEDGER.length){b.innerHTML='<tr><td class="tempty" colspan="6">No entries yet. Click “Add entry”.</td></tr>';return;}
+  b.innerHTML=LEDGER.map((l,i)=>`<tr><td class="sno">${i+1}</td>
+    <td><span class="pill ${l.type==='Income'?'g':'r'}">${l.type}</span></td>
+    <td>${l.category||'—'}</td><td>${l.desc||'—'}</td>
+    <td><span class="money">${money(Number(l.amount)||0)}</span></td><td>${l.date}</td></tr>`).join('');
+}
+function addLedger(){
+  const type=document.getElementById('ledgerType').value;
+  const category=document.getElementById('ledgerCat').value.trim()||'General';
+  const desc=document.getElementById('ledgerDesc').value.trim();
+  const amount=Number(document.getElementById('ledgerAmt').value)||0;
+  if(!amount){document.getElementById('ledgerAmt').focus();toast('Enter an amount');return;}
+  LEDGER.push({type,category,desc,amount,date:new Date().toISOString().slice(0,10)}); persist();
+  document.getElementById('ledgerDesc').value='';document.getElementById('ledgerAmt').value='';document.getElementById('ledgerCat').value='';
+  document.getElementById('ledgerCard').classList.add('hidden');
+  renderAdminDash(); toast(type+' of '+money(amount)+' added');
+}
+/* ---------- admin: staff vacancies ---------- */
+function renderVac(){
+  const b=document.getElementById('vacBody'); if(!b)return;
+  if(!VACANCIES.length){b.innerHTML='<tr><td class="tempty" colspan="4">No vacancies yet. Click “Add vacancy”.</td></tr>';return;}
+  b.innerHTML=VACANCIES.map((v,i)=>`<tr><td class="sno">${i+1}</td><td>${v.role}</td><td>${v.dept}</td><td><b>${v.open}</b></td></tr>`).join('');
+}
+function addVac(){
+  const role=document.getElementById('vacRole').value.trim();
+  const dept=document.getElementById('vacDept').value.trim()||'General';
+  const open=Number(document.getElementById('vacOpen').value)||0;
+  if(!role){document.getElementById('vacRole').focus();toast('Enter a role');return;}
+  VACANCIES.push({role,dept,open:open||1}); persist();
+  document.getElementById('vacRole').value='';document.getElementById('vacDept').value='';document.getElementById('vacOpen').value='';
+  document.getElementById('vacCard').classList.add('hidden');
+  renderAdminDash(); toast('Vacancy added: '+role);
+}
+function renderAdminModGrid(){
+  const g=document.getElementById('adminModGrid'); g.innerHTML='';
+  MODULES.forEach(m=>{
+    const el=document.createElement('button'); el.className='amod';
+    el.innerHTML=`<div class="ai" style="background:${shade(m.color)};color:${m.color}">${svg(ICONS[m.icon]||ICONS.help)}</div><div><b>${m.name}</b><span>Open module</span></div>`;
+    el.onclick=()=>openInNewTab(m.name);
+    g.appendChild(el);
+  });
+}
+
+/* ---------- open a module in a new browser tab ---------- */
+function openInNewTab(name){
+  const base=location.href.split('#')[0];
+  const win=window.open(base+'#m='+encodeURIComponent(name),'_blank');
+  if(win){ toast(`Opening ${name} in a new tab…`); }
+  else { toast('Allow pop-ups to open modules in a new tab'); }
+}
+
+/* ---------- module page back routing ---------- */
+function backFromModule(){
+  if(moduleReturn==='close'){ window.close(); return; }
+  ['opdPage','ipdPage','genPage'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  if(moduleReturn==='admin'){
+    document.getElementById('adminPage').classList.remove('hidden');
+    document.querySelector('#adminSeg [data-tab="mods"]').click();
+    renderAdminDash();
+  } else {
+    document.getElementById('app').classList.remove('hidden');
+  }
+}
+document.getElementById('genBack').onclick=backFromModule;
+
+/* ===================== LIVE SHARED STATE (cross-tab) ===================== */
+const LS_KEY='medicore_hms_state';
+let _suppressPersist=false;
+let _stateV=0;
+function persist(){
+  if(_suppressPersist)return;
+  try{
+    const rows={};
+    Object.keys(MODULE_DEFS).forEach(n=>{rows[n]=MODULE_DEFS[n].sections.map(s=>s.rows);});
+    _stateV=Date.now();
+    const data={_v:_stateV,rows,QUEUE,TOKEN,BEDS,WARDS,LEDGER,VACANCIES,MODCREDS,
+      MODULES:MODULES.map(m=>({name:m.name,desc:m.desc,icon:m.icon,color:m.color,count:m.count}))};
+    localStorage.setItem(LS_KEY,JSON.stringify(data));
+  }catch(e){}
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem(LS_KEY); if(!raw)return false;
+    const d=JSON.parse(raw);
+    if(d.rows)Object.keys(d.rows).forEach(n=>{if(MODULE_DEFS[n])d.rows[n].forEach((r,i)=>{if(MODULE_DEFS[n].sections[i])MODULE_DEFS[n].sections[i].rows=r;});});
+    if(Array.isArray(d.QUEUE))QUEUE=d.QUEUE;
+    if(typeof d.TOKEN==='number')TOKEN=d.TOKEN;
+    if(Array.isArray(d.BEDS))BEDS=d.BEDS;
+    if(Array.isArray(d.WARDS))WARDS=d.WARDS;
+    if(Array.isArray(d.LEDGER))LEDGER=d.LEDGER;
+    if(Array.isArray(d.VACANCIES))VACANCIES=d.VACANCIES;
+    if(d.MODCREDS)Object.keys(d.MODCREDS).forEach(k=>MODCREDS[k]=d.MODCREDS[k]);
+    if(Array.isArray(d.MODULES))d.MODULES.forEach(m=>{if(!MODULES.find(x=>x.name===m.name))MODULES.push(m);});
+    if(typeof d._v==='number')_stateV=d._v;
+    return true;
+  }catch(e){return false;}
+}
+/* poll shared storage so updates land within ~1.5s even if storage events don't fire */
+function pollState(){
+  try{
+    const raw=localStorage.getItem(LS_KEY); if(!raw)return;
+    const d=JSON.parse(raw);
+    if(typeof d._v==='number' && d._v!==_stateV){ loadState(); refreshView(); }
+  }catch(e){}
+}
+setInterval(pollState,1500);
+/* re-render whatever page is currently visible (no write-back) */
+function refreshView(){
+  _suppressPersist=true;
+  try{
+    const vis=id=>!document.getElementById(id).classList.contains('hidden');
+    if(vis('adminPage')){renderAdminDash();renderAdminModGrid();renderAdminCreds();}
+    if(vis('app')){renderHub();renderModules();}
+    if(vis('opdPage')){renderQueue();showConsult();}
+    if(vis('ipdPage')){renderBoard();renderAdmitted();}
+    if(vis('genPage')&&genDef){renderGenSeg();renderGenBody();}
+  }finally{_suppressPersist=false;}
+}
+/* live: when another tab saves, pull it in and refresh */
+window.addEventListener('storage',e=>{ if(e.key===LS_KEY){ loadState(); refreshView(); } });
+
+/* ===================== EXPORT: CSV & PDF ===================== */
+function downloadFile(name,content,mime){
+  const blob=new Blob([content],{type:mime});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},120);
+}
+function exportCSV(file,headers,matrix){
+  if(!matrix.length){toast('No data to export');return;}
+  const esc=v=>{v=(v==null?'':String(v));return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  const lines=[headers.map(esc).join(',')].concat(matrix.map(r=>r.map(esc).join(',')));
+  downloadFile(file+'.csv','﻿'+lines.join('\r\n'),'text/csv;charset=utf-8;');
+  toast('CSV downloaded');
+}
+function exportPDF(title,headers,matrix){
+  if(!matrix.length){toast('No data to export');return;}
+  const w=window.open('','_blank');
+  if(!w){toast('Allow pop-ups to export PDF');return;}
+  const esc=c=>(c==null?'':String(c)).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const th=headers.map(h=>`<th>${esc(h)}</th>`).join('');
+  const rows=matrix.map(r=>'<tr>'+r.map(c=>`<td>${esc(c)}</td>`).join('')+'</tr>').join('');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title>
+  <style>*{box-sizing:border-box}body{font-family:Segoe UI,Arial,sans-serif;color:#0f2033;padding:30px;margin:0}
+  .hd{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #1f6feb;padding-bottom:12px;margin-bottom:16px}
+  .brand{font-size:20px;font-weight:800;color:#1f6feb}.brand span{color:#0ea5a4}
+  h1{font-size:15px;margin:0;font-weight:700}.sub{color:#5b6b7f;font-size:11px;text-align:right}
+  table{border-collapse:collapse;width:100%;font-size:11.5px}
+  th{background:#f0f4f9;text-align:left;padding:8px 9px;border:1px solid #d8e2ec;text-transform:uppercase;font-size:9.5px;letter-spacing:.4px;color:#5b6b7f}
+  td{padding:8px 9px;border:1px solid #e4ebf3}tr:nth-child(even) td{background:#f9fbfd}
+  .ft{margin-top:16px;color:#93a2b5;font-size:10px;text-align:center}
+  @media print{body{padding:0}}</style></head><body>
+  <div class="hd"><div><div class="brand">MediCore <span>HMS</span></div><h1>${esc(title)}</h1></div>
+  <div class="sub">Generated<br>${new Date().toLocaleString()}<br>${matrix.length} record(s)</div></div>
+  <table><thead><tr>${th}</tr></thead><tbody>${rows}</tbody></table>
+  <div class="ft">MediCore Hospital Management System · Confidential</div>
+  <script>window.onload=function(){setTimeout(function(){window.print();},300);}<\/script>
+  </body></html>`);
+  w.document.close();
+  toast('Opening PDF export…');
+}
+/* build export matrix for current generic section */
+function genExportData(){
+  const s=genDef.sections[genSec];
+  const headers=['S.No',...s.cols.map(c=>c.t)];
+  const matrix=s.rows.map((r,i)=>[i+1,...s.cols.map(c=>{
+    let v=r[c.k]; if(c.type==='fee')return (typeof v==='number'?v:(Number(v)||0)); return v==null?'':v;
+  })]);
+  return {file:(genMeta.name+'_'+s.label).replace(/[^a-zA-Z0-9]+/g,'_'),title:genMeta.name+' — '+s.label,headers,matrix};
+}
+function opdExport(type){
+  const headers=['Token','Patient','Age','Gender','Department','Doctor','Status','Complaint'];
+  const matrix=QUEUE.map(p=>[p.tok,p.name,p.age,p.gender,p.dept,p.doc,statusLabel(p.status),p.complaint||'']);
+  type==='csv'?exportCSV('OPD_Queue',headers,matrix):exportPDF('OPD — Patient Queue',headers,matrix);
+}
+function ipdExport(type){
+  const occ=BEDS.filter(b=>b.status==='occupied');
+  const headers=['Bed','Ward','Patient','Age','Gender','Doctor','Admitted','Diagnosis'];
+  const matrix=occ.map(b=>[b.id,wardName(b.ward),b.patient.name,b.patient.age,b.patient.gender,b.patient.doc,b.patient.date,b.patient.diag||'']);
+  type==='csv'?exportCSV('IPD_Admitted',headers,matrix):exportPDF('IPD — Admitted Patients',headers,matrix);
+}
+
+/* ---------- toast ---------- */
+let tt;
+function toast(msg){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200);}
+
+loadState();       // pull any shared data saved by other tabs
+ensureCreds();      // make sure every module (incl. restored custom ones) has creds
+renderModules();
+
+/* ---------- if opened as a module tab (#m=NAME), route straight in ---------- */
+(function routeModuleTab(){
+  const hash=location.hash.slice(1);
+  if(!hash) return;
+  const params=new URLSearchParams(hash);
+  const name=params.get('m');
+  if(!name) return;
+  ['auth','rolePage','app','adminPage'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  ensureCreds();
+  moduleReturn='close';
+  const mod=MODULES.find(x=>x.name===decodeURIComponent(name));
+  if(mod){ openModule(mod); }
+  else { document.getElementById('app').classList.remove('hidden'); }
+})();
+</script>
+</body>
+</html>
