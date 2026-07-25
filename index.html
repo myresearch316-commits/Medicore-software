@@ -1177,12 +1177,11 @@ document.getElementById('rpBack').onclick=()=>{
 /* ---------- enter hub / admin (page 3) ---------- */
 function enterApp(r){
   const disp=userName.charAt(0).toUpperCase()+userName.slice(1);
-  document.getElementById('rolePage').classList.add('hidden');
   if(r.name==='Admin'){
-    moduleReturn='rolePage';
-    openAdmin();
+    requestAdminAccess();   // require admin login before opening the portal
     return;
   }
+  document.getElementById('rolePage').classList.add('hidden');
   document.getElementById('avName').textContent = disp+' · Departments';
   document.getElementById('avRole').textContent = r.sub;
   document.getElementById('avInit').textContent = (disp[0]||'D').toUpperCase()+'D';
@@ -1239,6 +1238,7 @@ function openModule(m){
 
 /* ---------- per-module credentials ---------- */
 const MODCREDS={};
+const ADMIN_CRED={user:'admin',pass:'admin123'}; // Admin portal login (changeable)
 function credKey(name){return name.toLowerCase().replace(/[^a-z0-9]/g,'')||'mod';}
 function ensureCreds(){
   MODULES.forEach(m=>{ if(!MODCREDS[m.name]){ const k=credKey(m.name); MODCREDS[m.name]={user:k, pass:k+'123'}; } });
@@ -1260,15 +1260,28 @@ function requestModuleAccess(m){
   document.getElementById('modLoginOverlay').classList.remove('hidden');
   setTimeout(()=>document.getElementById('mlUser').focus(),50);
 }
+function requestAdminAccess(){
+  pendingModule={name:'Admin Portal',admin:true,color:'#1f6feb',icon:'admin'};
+  const ico=document.getElementById('mlIco'); ico.style.background=shade('#1f6feb'); ico.style.color='#1f6feb'; ico.innerHTML=svg(ICONS.admin);
+  document.getElementById('mlTitle').textContent='Admin Portal';
+  document.getElementById('mlUser').value=''; document.getElementById('mlPass').value=''; document.getElementById('mlErr').textContent='';
+  document.getElementById('modLoginOverlay').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('mlUser').focus(),50);
+}
 function closeModLogin(){document.getElementById('modLoginOverlay').classList.add('hidden');pendingModule=null;}
 document.getElementById('mlClose').onclick=closeModLogin;
 document.getElementById('mlCancel').onclick=closeModLogin;
 document.getElementById('modLoginOverlay').addEventListener('click',e=>{if(e.target.id==='modLoginOverlay')closeModLogin();});
 function tryModLogin(){
   if(!pendingModule)return;
-  const c=MODCREDS[pendingModule.name];
   const u=document.getElementById('mlUser').value.trim();
   const p=document.getElementById('mlPass').value.trim();
+  if(pendingModule.admin){
+    if(u===ADMIN_CRED.user && p===ADMIN_CRED.pass){ closeModLogin(); document.getElementById('rolePage').classList.add('hidden'); moduleReturn='rolePage'; openAdmin(); }
+    else { document.getElementById('mlErr').textContent='Incorrect admin username or password.'; }
+    return;
+  }
+  const c=MODCREDS[pendingModule.name];
   if(u===c.user && p===c.pass){ const m=pendingModule; closeModLogin(); openInNewTab(m.name); }
   else { document.getElementById('mlErr').textContent='Incorrect username or password for this module.'; }
 }
@@ -1281,6 +1294,12 @@ function renderAdminCreds(){
   const wrap=document.getElementById('adminCredList'); wrap.innerHTML='';
   const head=document.createElement('div'); head.className='cred-head';
   head.innerHTML='<div>Module</div><div>Username</div><div>Password</div>'; wrap.appendChild(head);
+  const arow=document.createElement('div'); arow.className='cred-row'; arow.style.background='#f4f9ff'; arow.style.borderRadius='10px';
+  arow.innerHTML=`
+    <div class="cred-mod"><div class="ci" style="background:#eaf1ff;color:#1f6feb">${svg(ICONS.admin)}</div>Admin Portal <span class="pill b" style="margin-left:4px">login</span></div>
+    <div><span class="lbl">Username</span><input data-au value="${ADMIN_CRED.user}"></div>
+    <div><span class="lbl">Password</span><input data-ap value="${ADMIN_CRED.pass}"></div>`;
+  wrap.appendChild(arow);
   MODULES.forEach(m=>{
     const c=MODCREDS[m.name];
     const row=document.createElement('div'); row.className='cred-row';
@@ -1292,6 +1311,8 @@ function renderAdminCreds(){
   });
 }
 document.getElementById('saveAllCreds').onclick=()=>{
+  const au=document.querySelector('#adminCredList [data-au]'); if(au)ADMIN_CRED.user=au.value.trim()||'admin';
+  const ap=document.querySelector('#adminCredList [data-ap]'); if(ap)ADMIN_CRED.pass=ap.value.trim()||'admin123';
   document.querySelectorAll('#adminCredList [data-cu]').forEach(inp=>{
     const n=inp.dataset.cu; MODCREDS[n].user=inp.value.trim()||credKey(n);
   });
@@ -2011,7 +2032,7 @@ function persist(){
     const rows={};
     Object.keys(MODULE_DEFS).forEach(n=>{rows[n]=MODULE_DEFS[n].sections.map(s=>s.rows);});
     _stateV=Date.now();
-    const data={_v:_stateV,rows,QUEUE,TOKEN,BEDS,WARDS,LEDGER,VACANCIES,MODCREDS,
+    const data={_v:_stateV,rows,QUEUE,TOKEN,BEDS,WARDS,LEDGER,VACANCIES,MODCREDS,ADMIN_CRED,
       MODULES:MODULES.map(m=>({name:m.name,desc:m.desc,icon:m.icon,color:m.color,count:m.count}))};
     localStorage.setItem(LS_KEY,JSON.stringify(data));
   }catch(e){}
@@ -2028,6 +2049,7 @@ function loadState(){
     if(Array.isArray(d.LEDGER))LEDGER=d.LEDGER;
     if(Array.isArray(d.VACANCIES))VACANCIES=d.VACANCIES;
     if(d.MODCREDS)Object.keys(d.MODCREDS).forEach(k=>MODCREDS[k]=d.MODCREDS[k]);
+    if(d.ADMIN_CRED){ADMIN_CRED.user=d.ADMIN_CRED.user;ADMIN_CRED.pass=d.ADMIN_CRED.pass;}
     if(Array.isArray(d.MODULES))d.MODULES.forEach(m=>{if(!MODULES.find(x=>x.name===m.name))MODULES.push(m);});
     if(typeof d._v==='number')_stateV=d._v;
     return true;
