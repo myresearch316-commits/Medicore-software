@@ -1,44 +1,62 @@
-# MediCore HMS — Deploy to Render
+# MediCore HMS — Full-Stack (Node + PostgreSQL on Render)
 
-This is a single-file hospital management system (`index.html`). No backend, no build step — it runs entirely in the browser and saves data in the browser's local storage.
+A real backend with a strong database. Data is stored in **Render PostgreSQL**,
+so when you log in from any computer or browser, the same data is there.
 
-## Option A — Deploy via GitHub (recommended)
+```
+medicore-server/
+├── server.js         Express API + serves the app
+├── package.json      dependencies (express, pg)
+├── render.yaml       Render blueprint: web service + PostgreSQL database
+└── public/
+    └── index.html    the MediCore HMS frontend
+```
 
-1. Create a new GitHub repository (e.g. `medicore-hms`).
-2. Upload these two files to the repo root:
-   - `index.html`
-   - `render.yaml`
-   (You can drag-and-drop them in GitHub's "Add file → Upload files" screen.)
-3. Go to https://dashboard.render.com → **New +** → **Static Site**.
-4. Connect your GitHub account and pick the `medicore-hms` repo.
-5. Render auto-reads `render.yaml`. If asked manually, use:
-   - **Build Command:** *(leave empty)*
-   - **Publish Directory:** `.`
-6. Click **Create Static Site**. In ~1 minute you get a public URL like
-   `https://medicore-hms.onrender.com`.
+## How it works
+- **PostgreSQL** holds two tables (auto-created on first start):
+  - `app_state` – the current data (JSONB) + a version number
+  - `state_history` – an append-only log of **every** save (full audit trail; nothing is ever lost)
+- The frontend talks to `/api/state` on the same server (no keys, no third parties).
+- Saves use last-write-wins by version, so newer data never gets clobbered by stale writes.
+- If the DB is briefly unavailable, the app keeps working from the browser and re-syncs.
 
-## Option B — Deploy without render.yaml
+## Deploy on Render (Blueprint — easiest)
 
-If you skip the blueprint, create the Static Site and set:
-- **Build Command:** *(empty)*
-- **Publish Directory:** `.`
+1. Put this whole `medicore-server` folder into a **GitHub repo** (keep the structure).
+2. Render dashboard → **New +** → **Blueprint**.
+3. Connect the repo. Render reads `render.yaml` and creates **two things**:
+   - a **PostgreSQL** database (`medicore-db`)
+   - a **Web Service** (`medicore-hms`) with `DATABASE_URL` wired in automatically
+4. Click **Apply**. First build takes a few minutes.
+5. Open the web service URL (e.g. `https://medicore-hms.onrender.com`). Done —
+   the database is connected automatically.
 
-## After deploying
+### Manual alternative (no blueprint)
+1. Render → **New + → PostgreSQL** → create `medicore-db` → copy its **Internal Database URL**.
+2. Render → **New + → Web Service** → connect the repo. Settings:
+   - Runtime: **Node**
+   - Build Command: `npm install`
+   - Start Command: `node server.js`
+   - Add env var **DATABASE_URL** = the Internal Database URL from step 1.
+   - Health Check Path: `/api/health`
+3. Create → wait for the build → open the URL.
 
-- Open the URL. App login: **admin / medicore**.
-- Page 2: choose **Admin** or **Departments**.
-- Module logins (admin can change them in Admin → Credentials):
-  opd/opd123, ipd/ipd123, doctor/doctor123, nursing/nursing123,
-  pathology/pathology123, sonography/sonography123, radiology/radiology123,
-  cardiology/cardiology123, accounting/accounting123, mrd/mrd123, help/help123.
-- Modules open in new tabs — allow pop-ups the first time.
+## Updating later
+Push changes to the repo (or upload a new `public/index.html`). Render auto-redeploys.
+Existing data stays safe in PostgreSQL across deploys.
+
+## Logins
+- App login: **admin / medicore**
+- Admin portal: **admin / admin123** (changeable in Admin → Credentials)
+- Modules: `opd/opd123`, `ipd/ipd123`, `doctor/doctor123`, `nursing/nursing123`,
+  `pathology/pathology123`, `sonography/sonography123`, `radiology/radiology123`,
+  `cardiology/cardiology123`, `accounting/accounting123`, `mrd/mrd123`, `help/help123`.
+
+## Health check
+Visit `/api/health` on your deployed URL → should return `{"ok":true,"db":true}`.
 
 ## Notes
-
-- **Data storage:** entries are saved per browser (localStorage) and sync live
-  across tabs. This is client-side only — data is per-device, not a shared
-  central database. Different computers will each have their own data.
-- **Live sync** (department → admin dashboard) works within ~1.5s and is more
-  reliable on a real https domain than when opening the file locally.
-- To later turn this into a true multi-user system with one shared database,
-  a small backend (e.g. Node + a database) would be added — ask if you want that.
+- Render's **free** PostgreSQL is time-limited; for long-term production choose a paid
+  database instance (same setup, just pick a paid plan in render.yaml or the dashboard).
+- The free web service sleeps after inactivity and wakes on the next visit (first load
+  may take a few seconds). Paid instances stay always-on.
