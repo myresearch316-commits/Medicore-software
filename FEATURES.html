@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MediCore HMS — What we built today</title>
+<style>
+  :root{--bg:#f4f7fb;--panel:#fff;--ink:#0f2033;--muted:#5b6b7f;--line:#e4ebf3;--brand:#1f6feb;--brand2:#0ea5a4;--ok:#16a34a}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.55}
+  .hero{background:linear-gradient(150deg,#134e9e 0%,#1f6feb 50%,#0ea5a4 120%);color:#fff;padding:44px 24px 40px}
+  .wrap{max-width:900px;margin:0 auto;padding:0 20px}
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .mark{width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);display:grid;place-items:center}
+  .mark svg{width:26px;height:26px}
+  .brand b{font-size:20px;font-weight:800}.brand span{opacity:.85;font-weight:500}
+  .hero h1{font-size:30px;margin:6px 0 8px;font-weight:800;letter-spacing:-.5px}
+  .hero p{opacity:.92;margin:0;font-size:15.5px;max-width:640px}
+  .stats{display:flex;gap:26px;margin-top:22px;flex-wrap:wrap}
+  .stats .st b{display:block;font-size:26px;font-weight:800}.stats .st span{font-size:12px;opacity:.85;text-transform:uppercase;letter-spacing:.5px}
+  main{max-width:900px;margin:-22px auto 60px;padding:0 20px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 50px -30px rgba(15,42,72,.35);padding:22px 22px 8px;margin-bottom:18px}
+  .card > h2{font-size:17px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .tag{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#fff;background:var(--brand);padding:3px 9px;border-radius:20px}
+  .tag.fix{background:#dc2626}.tag.new{background:var(--ok)}.tag.imp{background:#7c3aed}
+  .card > p.sub{color:var(--muted);margin:0 0 14px;font-size:13.5px}
+  ul{margin:0 0 16px;padding-left:0;list-style:none}
+  li{position:relative;padding:7px 0 7px 26px;font-size:14px;border-top:1px solid var(--line)}
+  li:first-child{border-top:0}
+  li::before{content:"";position:absolute;left:2px;top:14px;width:9px;height:9px;border-radius:50%;background:var(--brand2)}
+  li b{font-weight:700}
+  .foot{max-width:900px;margin:0 auto;padding:0 20px 50px;color:var(--muted);font-size:13px}
+  .pill{display:inline-block;font-size:11.5px;font-weight:700;background:#eef2f7;color:#5b6b7f;padding:3px 10px;border-radius:20px;margin:2px 4px 2px 0}
+  .note{background:#fff7ec;border:1px solid #f3e0bf;color:#8a5b1b;border-radius:12px;padding:12px 14px;font-size:13px;margin:6px 0 16px}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="brand">
+      <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 5 4-14 2 9h6"/></svg></div>
+      <div><b>MediCore HMS</b> <span>· Hospital Management System</span></div>
+    </div>
+    <h1>What we built today</h1>
+    <p>A full day of upgrades — from a broken live-sync to a complete, department-driven hospital platform where every entry flows to the administrator in real time.</p>
+    <div class="stats">
+      <div class="st"><b>8</b><span>Feature packages</span></div>
+      <div class="st"><b>5</b><span>New departments</span></div>
+      <div class="st"><b>Live</b><span>Cross-device sync</span></div>
+      <div class="st"><b>Node + PostgreSQL</b><span>Backend</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="card">
+    <h2><span class="tag fix">Fix</span> Live cross-device sync + strong backend</h2>
+    <p class="sub">The foundation: data entered on any device now reaches every device, through a hardened server.</p>
+    <ul>
+      <li><b>DB-optional backend</b> — Node/Express serves the app and stores data in <b>PostgreSQL</b> when available, or a durable <b>file/in-memory store</b> otherwise, so sync never goes dark even if the database expires.</li>
+      <li><b>Server-authoritative versioning</b> — the server owns a strictly increasing version and always accepts the newest write, so records are never silently dropped (the old bug).</li>
+      <li><b>Audit trail + feedback tables</b>, automatic <b>database reconnect</b>, and a richer <b>/api/health</b> for diagnostics.</li>
+      <li><b>Sync status badge</b> (bottom-left) shows each device as "Live sync on" or "Offline — local only"; pull-on-focus + 2.5s polling keep devices current.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag imp">UI</span> Interface fixes</h2>
+    <ul>
+      <li><b>Settings</b> (gear) and <b>Notifications</b> (bell) buttons now open working dropdown menus (Admin Portal, Sync now, Sign out).</li>
+      <li><b>Search</b> works everywhere — the home hub filters departments; each department page filters its records live.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag new">A</span> Live admin analytics &amp; payments</h2>
+    <ul>
+      <li><b>Time-window revenue</b> — today, yesterday, last 48 hours, last 7 days, last 30 days.</li>
+      <li><b>Revenue by department (today)</b> and a <b>payment-method split</b> (UPI, Cash, Card, Insurance/claimed).</li>
+      <li><b>Token cancellations</b> &amp; <b>patients who left without service</b>, and the <b>longest-waiting service</b>.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag new">C</span> Pharmacy module</h2>
+    <ul>
+      <li>Stock in/out with auto-updating quantities; <b>rack &amp; box location</b> per medicine; <b>expiry</b> tracking.</li>
+      <li><b>Low-stock &amp; expiry alerts</b> ("recharge the stock"); spent-today, earned-today, stock value.</li>
+      <li><b>Printable receipts</b> for dispensing; sales flow live into admin revenue.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag new">B</span> Shift &amp; attendance</h2>
+    <ul>
+      <li>Doctors &amp; nurses <b>clock in / out</b> and apply <b>leave</b>, with automatic timings.</li>
+      <li>Live <b>"currently on duty"</b> list and a full attendance log with worked-duration.</li>
+      <li>Admin sees who logged in/out and when, in real time.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag new">D</span> OPD upgrades — insurance &amp; billing</h2>
+    <ul>
+      <li><b>Insurance vs normal patients</b> at registration (insurer + policy); insurance patients flagged in the live queue.</li>
+      <li><b>Billing tab</b> for all patient/bed charges with <b>paid / unpaid</b> status and <b>printable receipts</b>.</li>
+      <li>Admin shows OPD collected-today, outstanding, and the insurance-vs-normal patient mix.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag new">E</span> Sanitization tracker</h2>
+    <ul>
+      <li>Raise cleaning tasks after <b>discharge, OT or ICU</b> use; two-step <b>Start → Mark cleaned</b> flow with timestamps.</li>
+      <li>Alerts for areas awaiting cleaning; live status visible to admin.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag new">F</span> Patient Accounts (MRD)</h2>
+    <ul>
+      <li>Search a patient for a <b>full statement</b> — OPD bills + pharmacy, billed / paid / outstanding.</li>
+      <li>Shows the patient's <b>discharge summary</b> and prints a clean account statement.</li>
+      <li>Overview of every patient sorted by amount outstanding.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag new">G</span> QR feedback</h2>
+    <ul>
+      <li>Admin generates a <b>QR code</b>; patients &amp; visitors scan it, open a mobile feedback page, and submit feedback or complaints.</li>
+      <li>Responses appear <b>live in the admin portal</b> (admin-only), colour-coded by type.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag new">H</span> Receipts</h2>
+    <ul>
+      <li>One-click <b>Print receipt</b> in Pharmacy (dispensing) and OPD (patient bills), and printable statements in Patient Accounts.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Every department now feeds the admin — live</h2>
+    <p class="sub">Data entered anywhere flows to the administrator dashboard in real time.</p>
+    <div>
+      <span class="pill">OPD</span><span class="pill">IPD</span><span class="pill">Pharmacy</span><span class="pill">Shift Mgmt</span><span class="pill">Sanitation</span>
+      <span class="pill">Patient Accounts</span><span class="pill">Pathology</span><span class="pill">Radiology</span><span class="pill">Cardiology</span>
+      <span class="pill">Accounting</span><span class="pill">Doctor</span><span class="pill">Nursing</span><span class="pill">MRD</span>
+    </div>
+  </div>
+
+  <div class="note">Note: cross-device sync and QR feedback only work on the <b>deployed URL</b> (Render), not when opening the local file. The sync badge will read "Offline — local only" on a local file — that's expected.</div>
+
+</main>
+
+<div class="foot">© MediCore Health Systems · Built and hardened today · Node.js + Express + PostgreSQL (with durable file fallback)</div>
+</body>
+</html>

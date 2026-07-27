@@ -432,6 +432,10 @@
   .win.hl{background:linear-gradient(180deg,#f2f7ff,#eaf1ff);border-color:#cfe0f7}
   .ph-alert{background:#fff7ec;border:1px solid #f3e0bf;color:#8a5b1b;border-radius:12px;padding:12px 14px;font-size:13px;font-weight:600;margin-bottom:16px;line-height:1.55;display:flex;gap:10px}
   .ph-alert svg{width:18px;height:18px;flex:none;color:#b45309;margin-top:1px}
+  .syncbadge{position:fixed;left:14px;bottom:14px;z-index:70;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 13px;box-shadow:var(--shadow-sm);font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);user-select:none}
+  .syncbadge .sb-dot{width:9px;height:9px;border-radius:50%;background:#9fb0c2;flex:none}
+  .syncbadge.on{color:#15803d;border-color:#cdead6}.syncbadge.on .sb-dot{background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.18)}
+  .syncbadge.off{color:#b45309;border-color:#f0d9b8}.syncbadge.off .sb-dot{background:#e0a800}
   .kbig{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
   .kbig .kt{font-size:11.5px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:8px}
   .kbig .kt .ci{width:30px;height:30px;border-radius:9px;display:grid;place-items:center}
@@ -909,6 +913,32 @@
   </div>
 </section>
 
+<!-- ========================= PATIENT ACCOUNTS / MRD PAGE ========================= -->
+<section id="accountsPage" class="hidden">
+  <div class="mod-bar">
+    <button class="mod-back" id="accBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      <span id="accBackLbl">Modules</span>
+    </button>
+    <div class="mod-title">
+      <div class="m-ico" style="background:rgba(180,83,9,.12);color:#b45309"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h11l5 5v11H4z"/><path d="M15 4v5h5M8 13h8M8 17h5"/></svg></div>
+      <div><h2>Patient Accounts — MRD</h2><div class="crumb">Discharge summary · Full patient payments</div></div>
+    </div>
+    <div class="mod-stats" id="accStats"></div>
+  </div>
+  <div class="gen-main">
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>Patient account statement</h3>
+      <p class="psub">Search a patient to see their full bill — OPD charges &amp; pharmacy, paid &amp; outstanding — plus discharge summary.</p>
+      <div style="display:flex;gap:8px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 13px;max-width:420px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--muted);flex:none"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="accSearch" placeholder="Search patient name…" style="border:0;background:transparent;outline:0;width:100%;font-size:14px;color:var(--ink)">
+      </div>
+    </div>
+    <div id="accBody"></div>
+  </div>
+</section>
+
 <!-- ========================= SANITIZATION MODULE PAGE ========================= -->
 <section id="sanitizePage" class="hidden">
   <div class="mod-bar">
@@ -1273,6 +1303,7 @@
 </div>
 
 <div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span id="toastMsg">Done</span></div>
+<div class="syncbadge" id="syncBadge" title="Live sync status — tap to sync now"><span class="sb-dot"></span><span class="sb-txt">Connecting…</span></div>
 
 <script>
 /* ---------- icon library ---------- */
@@ -1315,6 +1346,7 @@ const MODULES = [
   {name:'Pharmacy', desc:'Stock, dispensing, expiry & low-stock alerts', icon:'pharma', color:'#0d9488', count:'Live stock'},
   {name:'Shift Mgmt', desc:'Doctor & nurse clock-in / out & leave', icon:'clock', color:'#7c3aed', count:'Attendance'},
   {name:'Sanitation', desc:'Cleaning after discharge, OT & ICU — track completion', icon:'sanitize', color:'#0891b2', count:'Hygiene'},
+  {name:'Patient Accounts', desc:'Discharge summary & full patient payment statement', icon:'mrd', color:'#b45309', count:'Billing'},
   {name:'Admin', desc:'Staff, roles, master data & configuration', icon:'admin', color:'#0f766e', count:'Control'},
   {name:'MRD', desc:'Medical records, archives & discharge files', icon:'mrd', color:'#b45309', count:'11.2k files'},
   {name:'Help', desc:'Support desk, guides & system assistance', icon:'help', color:'#475569', count:'24/7'}
@@ -1511,6 +1543,7 @@ function openModule(m){
   else if(m.name==='Pharmacy'){ openPharmacy(); }
   else if(m.name==='Shift Mgmt'){ openShift(); }
   else if(m.name==='Sanitation'){ openSanitize(); }
+  else if(m.name==='Patient Accounts'){ openAccounts(); }
   else if(MODULE_DEFS[m.name]){ openGeneric(m); }
   else { toast(`${m.name} module — coming in the next build`); }
 }
@@ -2553,7 +2586,7 @@ function openInNewTab(name){
 /* ---------- module page back routing ---------- */
 function backFromModule(){
   if(moduleReturn==='close'){ window.close(); return; }
-  ['opdPage','ipdPage','genPage','pharmaPage','shiftPage','sanitizePage'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  ['opdPage','ipdPage','genPage','pharmaPage','shiftPage','sanitizePage','accountsPage'].forEach(id=>document.getElementById(id).classList.add('hidden'));
   if(moduleReturn==='admin'){
     document.getElementById('adminPage').classList.remove('hidden');
     document.querySelector('#adminSeg [data-tab="mods"]').click();
@@ -2563,6 +2596,95 @@ function backFromModule(){
   }
 }
 document.getElementById('genBack').onclick=backFromModule;
+
+/* ===================== PATIENT ACCOUNTS / MRD (Package F) ===================== */
+let _accQuery='';
+function patientAccount(name){
+  const q=(name||'').trim().toLowerCase(); const items=[];
+  (typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).filter(b=>(b.patient||'').toLowerCase().includes(q)).forEach(b=>items.push({src:'OPD',item:b.type||'Charge',amount:Number(b.amount)||0,status:b.status,pay:b.pay}));
+  (typeof PHARMA_MOVES!=='undefined'?PHARMA_MOVES:[]).filter(x=>x.type==='out'&&(x.who||'').toLowerCase().includes(q)).forEach(x=>{const med=(typeof PHARMACY!=='undefined')?PHARMACY.find(m=>m.id===x.medId):null;items.push({src:'Pharmacy',item:(med?med.name:x.medName)||'Medicine',amount:Number(x.amount)||0,status:'Paid',pay:x.pay});});
+  const billed=items.reduce((a,x)=>a+x.amount,0);
+  const paid=items.filter(x=>x.status==='Paid').reduce((a,x)=>a+x.amount,0);
+  let discharge=null;
+  const md=(typeof MODULE_DEFS!=='undefined')?MODULE_DEFS['MRD']:null;
+  if(md)md.sections.forEach(s=>s.rows.forEach(r=>{ if((r.patient||'').toLowerCase().includes(q)) discharge=r; }));
+  return {items,billed,paid,outstanding:billed-paid,discharge};
+}
+function accountsOverview(){
+  const map={};
+  const add=(k,amt,paid)=>{ if(!k)return; map[k]=map[k]||{billed:0,paid:0}; map[k].billed+=amt; if(paid)map[k].paid+=amt; };
+  (typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).forEach(b=>add(b.patient,Number(b.amount)||0,b.status==='Paid'));
+  (typeof PHARMA_MOVES!=='undefined'?PHARMA_MOVES:[]).filter(x=>x.type==='out'&&x.who).forEach(x=>add(x.who,Number(x.amount)||0,true));
+  return Object.entries(map).map(([name,v])=>({name,billed:v.billed,paid:v.paid,outstanding:v.billed-v.paid})).sort((a,b)=>b.outstanding-a.outstanding);
+}
+function openAccounts(){
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('adminPage').classList.add('hidden');
+  document.getElementById('accountsPage').classList.remove('hidden');
+  document.getElementById('accBackLbl').textContent = moduleReturn==='close'?'Close tab':(moduleReturn==='admin'?'Admin':'Modules');
+  renderAccounts(); window.scrollTo(0,0);
+}
+document.getElementById('accBack').onclick=()=>backFromModule();
+document.getElementById('accSearch').addEventListener('input',function(){ _accQuery=this.value; renderAccountsBody(); });
+function renderAccounts(){
+  const all=accountsOverview();
+  const totalOut=all.reduce((a,x)=>a+x.outstanding,0), totalPaid=all.reduce((a,x)=>a+x.paid,0);
+  document.getElementById('accStats').innerHTML=
+    `<div class="mstat"><b>${all.length}</b><span>Patients</span></div>`+
+    `<div class="mstat"><b>${money(totalPaid)}</b><span>Collected</span></div>`+
+    `<div class="mstat"><b>${money(totalOut)}</b><span>Outstanding</span></div>`;
+  renderAccountsBody();
+}
+function renderAccountsBody(){
+  const body=document.getElementById('accBody'); if(!body)return;
+  const q=_accQuery.trim();
+  if(!q){
+    const all=accountsOverview();
+    body.innerHTML = `<div class="sec-head"><div><h3>All patient accounts</h3><p>Search above for a full statement · sorted by outstanding</p></div></div>
+      <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Billed</th><th>Paid</th><th>Outstanding</th></tr></thead><tbody>${
+        all.length ? all.map((p,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(p.name)}</b></td><td>${money(p.billed)}</td><td>${money(p.paid)}</td><td>${p.outstanding>0?`<span class="pill r">${money(p.outstanding)}</span>`:'<span class="pill g">Settled</span>'}</td></tr>`).join('')
+          : '<tr><td class="tempty" colspan="5">No patient bills yet. Bills entered in OPD and Pharmacy appear here.</td></tr>'
+      }</tbody></table></div>`;
+    return;
+  }
+  const acc=patientAccount(q), d=acc.discharge;
+  const itemsHtml = acc.items.length ? acc.items.map((x,i)=>`<tr><td class="sno">${i+1}</td><td>${genEsc(x.src)}</td><td>${genEsc(x.item)}</td><td>${money(x.amount)}</td><td>${x.status==='Paid'?'<span class="pill g">Paid</span>':'<span class="pill r">Unpaid</span>'}</td></tr>`).join('') : '<tr><td class="tempty" colspan="5">No bills found for this patient.</td></tr>';
+  body.innerHTML=`
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="kbig"><div class="kt">Total billed</div><b>${money(acc.billed)}</b></div>
+      <div class="kbig"><div class="kt">Paid</div><b>${money(acc.paid)}</b></div>
+      <div class="kbig"><div class="kt">Outstanding</div><b>${money(acc.outstanding)}</b></div>
+    </div>
+    ${d?`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>Discharge summary</h3><p class="psub">${genEsc(d.dept||'')}${d.doctor?(' · '+genEsc(d.doctor)):''}${d.date?(' · '+genEsc(d.date)):''}</p><div style="font-size:14px;line-height:1.6">${genEsc(d.summary||d.status||'—')}</div></div>`:''}
+    <div class="sec-head"><div><h3>Statement — ${genEsc(q)}</h3><p>${acc.items.length} item(s) · OPD + pharmacy</p></div>
+      <button class="btn sm" id="accPrint" style="width:auto;padding:10px 15px">Print statement</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Source</th><th>Item</th><th>Amount</th><th>Status</th></tr></thead><tbody>${itemsHtml}</tbody></table></div>`;
+  const pb=document.getElementById('accPrint'); if(pb)pb.onclick=()=>printAccountStatement(q);
+}
+function printAccountStatement(name){
+  const acc=patientAccount(name);
+  const w=window.open('','_blank'); if(!w){toast('Allow pop-ups to print');return;}
+  const esc=c=>(c==null?'':String(c)).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const rows=acc.items.map(x=>`<tr><td>${esc(x.src)}</td><td>${esc(x.item)}</td><td style="text-align:right">₹${esc(Number(x.amount||0).toLocaleString('en-IN'))}</td><td>${esc(x.status)}</td></tr>`).join('');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Statement ${esc(name)}</title>
+  <style>body{font-family:Segoe UI,Arial,sans-serif;color:#0f2033;padding:28px;max-width:520px;margin:0 auto}
+  h2{color:#1f6feb;margin:0 0 2px}.sub{color:#5b6b7f;font-size:12px;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}th,td{padding:7px 8px;border-bottom:1px solid #e4ebf3;text-align:left}
+  th{background:#f0f4f9;text-transform:uppercase;font-size:10px;letter-spacing:.4px;color:#5b6b7f}
+  .tot{display:flex;justify-content:space-between;padding:8px 0;font-size:13.5px}.tot.big{font-weight:800;font-size:15px;border-top:2px solid #1f6feb;margin-top:6px;padding-top:8px}
+  .ds{background:#f7fafd;border:1px solid #e4ebf3;border-radius:10px;padding:12px 14px;margin:14px 0;font-size:13px;line-height:1.6}
+  .ft{margin-top:16px;color:#93a2b5;font-size:11px;text-align:center}</style></head><body>
+  <h2>MediCore Hospital</h2><div class="sub">Patient account statement · ${esc(name)} · ${new Date().toLocaleDateString()}</div>
+  ${acc.discharge?`<div class="ds"><b>Discharge summary:</b> ${esc(acc.discharge.summary||acc.discharge.status||'—')}</div>`:''}
+  <table><thead><tr><th>Source</th><th>Item</th><th style="text-align:right">Amount</th><th>Status</th></tr></thead><tbody>${rows||'<tr><td colspan="4">No items.</td></tr>'}</tbody></table>
+  <div style="margin-top:14px"><div class="tot"><span>Total billed</span><span>₹${esc(Number(acc.billed).toLocaleString('en-IN'))}</span></div>
+  <div class="tot"><span>Paid</span><span>₹${esc(Number(acc.paid).toLocaleString('en-IN'))}</span></div>
+  <div class="tot big"><span>Outstanding</span><span>₹${esc(Number(acc.outstanding).toLocaleString('en-IN'))}</span></div></div>
+  <div class="ft">MediCore HMS · Confidential</div>
+  <script>window.onload=function(){setTimeout(function(){window.print();},250);}<\/script>
+  </body></html>`);
+  w.document.close();
+}
 
 /* ===================== SANITIZATION MODULE (Package E) ===================== */
 let SANITIZE=[];  // {id, area, type, staff, note, status:'pending'|'progress'|'done', raisedAt, startedAt, doneAt, _ts}
@@ -2868,23 +2990,33 @@ function printPharmaReceipt(id){
    it automatically falls back to browser-only storage.                              */
 const API_STATE='/api/state';
 const CLOUD=true;
-let _cloudTimer=null, _cloudBusy=false;
+let _cloudTimer=null, _cloudBusy=false, _online=null;
+/* show whether this device is actually reaching the server (cross-device sync) */
+function setSync(on){
+  if(_online===on)return; _online=on;
+  const el=document.getElementById('syncBadge'); if(!el)return;
+  el.className='syncbadge '+(on?'on':'off');
+  const t=el.querySelector('.sb-txt'); if(t)t.textContent = on?'Live sync on':'Offline — local only';
+}
 function cloudPush(){
   clearTimeout(_cloudTimer);
   _cloudTimer=setTimeout(()=>{
     fetch(API_STATE,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:buildStateObject()})})
-      .then(r=>r.ok?r.json():null)
+      .then(r=>{ setSync(r.ok); return r.ok?r.json():null; })
       .then(j=>{ // adopt the server's authoritative version so every client converges
         if(j&&typeof j.version==='number'){
           _stateV=j.version;
           try{const o=JSON.parse(localStorage.getItem(LS_KEY)||'{}');o._v=_stateV;localStorage.setItem(LS_KEY,JSON.stringify(o));}catch(e){}
         }
       })
-      .catch(()=>{});
+      .catch(()=>{ setSync(false); });
   },400);
 }
 function cloudPull(){
-  return fetch(API_STATE,{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>(j&&j.data)?j.data:null).catch(()=>null);
+  return fetch(API_STATE,{cache:'no-store'})
+    .then(r=>{ setSync(r.ok); return r.ok?r.json():null; })
+    .then(j=>(j&&j.data)?j.data:null)
+    .catch(()=>{ setSync(false); return null; });
 }
 
 /* ===================== LIVE SHARED STATE ===================== */
@@ -2951,7 +3083,17 @@ function pollState(){
   }catch(e){}
 }
 setInterval(pollState,1500);
-setInterval(cloudSync,4000);
+setInterval(cloudSync,2500);
+/* pull the latest immediately when this device/tab regains focus, so it never shows stale data */
+window.addEventListener('focus',cloudSync);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) cloudSync(); });
+/* sync-status badge: shows if this device is reaching the server; tap to force a sync */
+(function initSyncBadge(){
+  const el=document.getElementById('syncBadge'); if(!el)return;
+  el.onclick=()=>{ cloudSync(); toast('Syncing with server…'); };
+  if(CLOUD){ fetch(API_STATE,{cache:'no-store'}).then(r=>setSync(r.ok)).catch(()=>setSync(false)); }
+  else setSync(false);
+})();
 /* re-render whatever page is currently visible (no write-back) */
 function refreshView(){
   _suppressPersist=true;
@@ -2965,6 +3107,7 @@ function refreshView(){
     if(vis('pharmaPage')){renderPharma();}
     if(vis('shiftPage')){renderShift();}
     if(vis('sanitizePage')){renderSanitize();}
+    if(vis('accountsPage')){renderAccounts();}
   }finally{_suppressPersist=false;}
 }
 /* live: when another tab saves, pull it in and refresh */
