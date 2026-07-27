@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: medicore-hms
+    runtime: static
+    buildCommand: "echo No build step needed"
+    staticPublishPath: .
+    pullRequestPreviewsEnabled: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
