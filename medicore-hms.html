@@ -62,10 +62,22 @@
   }
   .dot{width:8px;height:8px;border-radius:50%;background:#7CFFB2;box-shadow:0 0 0 4px rgba(124,255,178,.25)}
 
-  .auth-formside{display:flex; align-items:center; justify-content:center; padding:40px}
-  .auth-card{width:100%; max-width:410px}
-  .auth-card h2{font-size:27px; margin:0 0 6px; font-weight:800; letter-spacing:-.3px}
-  .auth-sub{color:var(--muted); margin:0 0 26px; font-size:14.5px}
+  .auth-formside{display:flex; align-items:center; justify-content:center; padding:40px; background:radial-gradient(1000px 720px at 120% -10%, #eef4fc, var(--bg) 62%)}
+  .auth-card{width:100%; max-width:426px; background:#fff; border:1px solid var(--line); border-radius:24px; box-shadow:0 34px 80px -34px rgba(15,42,72,.42); padding:42px 38px}
+  .auth-card .card-brand{display:flex; align-items:center; gap:12px; margin-bottom:26px}
+  .auth-card .cb-mark{width:46px;height:46px;border-radius:14px;background:linear-gradient(150deg,#1f6feb,#0ea5a4);display:grid;place-items:center;box-shadow:0 10px 22px -10px rgba(31,111,235,.6)}
+  .auth-card .cb-mark svg{width:25px;height:25px;color:#fff}
+  .auth-card .card-brand b{font-size:16.5px;font-weight:800;display:block;letter-spacing:-.2px;line-height:1.2}
+  .auth-card .card-brand span{font-size:11.5px;color:var(--muted);font-weight:500}
+  .sec-chip{display:inline-flex;align-items:center;gap:7px;background:#eef7f0;border:1px solid #d3ead9;color:#15803d;font-size:11.5px;font-weight:700;padding:5px 12px;border-radius:999px;margin-bottom:18px}
+  .sec-chip svg{width:13px;height:13px}
+  .auth-card h2{font-size:26px; margin:0 0 6px; font-weight:800; letter-spacing:-.4px}
+  .auth-sub{color:var(--muted); margin:0 0 24px; font-size:14px}
+  .signin-row{display:flex; justify-content:flex-end; margin-top:4px}
+  .btn.signin{width:auto; padding:12px 26px; font-size:14px; border-radius:12px; letter-spacing:.2px}
+  .trust{display:flex; gap:16px; justify-content:center; margin-top:22px; flex-wrap:wrap}
+  .trust span{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:#8194a8; letter-spacing:.2px}
+  .trust svg{width:13px; height:13px; color:#0ea5a4}
 
   .roles{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:22px}
   .role{
@@ -164,6 +176,19 @@
   .tb-ico:hover{border-color:var(--brand);color:var(--brand)}
   .tb-ico svg{width:18px;height:18px}
   .tb-ico .badge{position:absolute;top:-5px;right:-5px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;min-width:17px;height:17px;border-radius:9px;display:grid;place-items:center;padding:0 4px;border:2px solid #fff}
+  .tb-menuwrap{position:relative}
+  .tb-menu{position:absolute;right:0;top:48px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);min-width:236px;padding:6px;z-index:60}
+  .tb-menu.hidden{display:none}
+  .tb-menu .tm-head{padding:9px 12px 6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  .tb-menu button.tm-item{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;padding:10px 12px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--ink);text-align:left}
+  .tb-menu button.tm-item:hover{background:var(--bg)}
+  .tb-menu button.tm-item svg{width:16px;height:16px;color:var(--muted);flex:none}
+  .tb-menu .tm-item.danger{color:var(--danger)} .tb-menu .tm-item.danger svg{color:var(--danger)}
+  .tb-menu .tm-sep{height:1px;background:var(--line);margin:5px 6px}
+  .tb-menu .tb-notif-item{padding:9px 12px;border-radius:9px}
+  .tb-menu .tb-notif-item:hover{background:var(--bg)}
+  .tb-menu .tb-notif-item b{font-size:12.8px;display:block;font-weight:700}
+  .tb-menu .tb-notif-item span{font-size:11.5px;color:var(--muted)}
   .avatar{display:flex;align-items:center;gap:10px;padding-left:6px;border-left:1px solid var(--line)}
   .avatar .pic{width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#1f6feb,#134e9e);color:#fff;display:grid;place-items:center;font-weight:800;font-size:14px}
   .avatar .who{line-height:1.25}
@@ -397,6 +422,20 @@
   .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
   @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:520px){.kpi-grid{grid-template-columns:1fr}}
+  .win-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+  @media(max-width:900px){.win-grid{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:520px){.win-grid{grid-template-columns:repeat(2,1fr)}}
+  .win{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 15px;box-shadow:var(--shadow-sm)}
+  .win .wl{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.4px}
+  .win b{display:block;font-size:20px;font-weight:800;margin-top:8px;letter-spacing:-.4px}
+  .win .ws{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+  .win.hl{background:linear-gradient(180deg,#f2f7ff,#eaf1ff);border-color:#cfe0f7}
+  .ph-alert{background:#fff7ec;border:1px solid #f3e0bf;color:#8a5b1b;border-radius:12px;padding:12px 14px;font-size:13px;font-weight:600;margin-bottom:16px;line-height:1.55;display:flex;gap:10px}
+  .ph-alert svg{width:18px;height:18px;flex:none;color:#b45309;margin-top:1px}
+  .syncbadge{position:fixed;left:14px;bottom:14px;z-index:70;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 13px;box-shadow:var(--shadow-sm);font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);user-select:none}
+  .syncbadge .sb-dot{width:9px;height:9px;border-radius:50%;background:#9fb0c2;flex:none}
+  .syncbadge.on{color:#15803d;border-color:#cdead6}.syncbadge.on .sb-dot{background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.18)}
+  .syncbadge.off{color:#b45309;border-color:#f0d9b8}.syncbadge.off .sb-dot{background:#e0a800}
   .kbig{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
   .kbig .kt{font-size:11.5px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:8px}
   .kbig .kt .ci{width:30px;height:30px;border-radius:9px;display:grid;place-items:center}
@@ -504,15 +543,20 @@
 
   <div class="auth-formside">
     <div class="auth-card">
-      <h2>Sign in</h2>
-      <p class="auth-sub">Enter your administrator credentials to access MediCore.</p>
+      <div class="card-brand">
+        <div class="cb-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 5 4-14 2 9h6"/></svg></div>
+        <div><b>MediCore</b><span>Hospital Management System</span></div>
+      </div>
+      <span class="sec-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Secure staff login</span>
+      <h2>Sign in to your account</h2>
+      <p class="auth-sub">Enter your credentials to access the MediCore workspace.</p>
 
       <form id="loginForm" autocomplete="off">
         <div class="field">
           <label>User ID / Email</label>
           <div class="inp">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m4 7 8 6 8-6"/></svg>
-            <input type="text" id="uid" placeholder="you@hospital.org" value="admin">
+            <input type="text" id="uid" placeholder="Enter your user ID or email" autocomplete="off" name="mc_uid_field" readonly onfocus="this.removeAttribute('readonly')">
           </div>
         </div>
 
@@ -520,7 +564,7 @@
           <label>Password</label>
           <div class="inp">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-            <input type="password" id="pwd" placeholder="••••••••" value="medicore">
+            <input type="password" id="pwd" placeholder="Enter your password" autocomplete="new-password" name="mc_pwd_field" readonly onfocus="this.removeAttribute('readonly')">
             <button type="button" class="eye" id="eye" aria-label="Show password">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
@@ -532,15 +576,22 @@
           <a class="link" href="#" onclick="return false">Forgot password?</a>
         </div>
 
-        <button class="btn" type="submit">
-          Sign in securely
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </button>
+        <div class="signin-row">
+          <button class="btn signin" type="submit">
+            Sign in
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </div>
         <div class="err" id="err"></div>
       </form>
 
-      <div class="divider">Protected by MediCore Secure</div>
-      <p class="auth-foot">Demo credentials pre-filled. Access is monitored & encrypted end-to-end.</p>
+      <div class="trust">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Encrypted</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5z"/></svg>Role-based access</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg>Audit-ready</span>
+      </div>
+      <div class="divider">MediCore Secure</div>
+      <p class="auth-foot">© 2026 MediCore Health Systems · Authorized personnel only</p>
     </div>
   </div>
 </section>
@@ -576,16 +627,35 @@
     <div class="tb-name">MediCore<span>HMS</span></div>
     <div class="tb-search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      <input placeholder="Search patients, modules, records…">
+      <input id="hubSearch" placeholder="Search departments…">
     </div>
     <div class="tb-right">
-      <button class="tb-ico" title="Notifications">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-        <span class="badge">5</span>
-      </button>
-      <button class="tb-ico" title="Settings">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.2A1.6 1.6 0 0 0 6.6 19l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 4 13.6H4a2 2 0 1 1 0-4h.2A1.6 1.6 0 0 0 5 6.6l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 10.4 4V4a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8"/></svg>
-      </button>
+      <div class="tb-menuwrap">
+        <button class="tb-ico" id="btnNotif" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="badge">5</span>
+        </button>
+        <div class="tb-menu hidden" id="notifMenu">
+          <div class="tm-head">Notifications</div>
+          <div class="tb-notif-item"><b>Live sync active</b><span>Data is syncing across all departments</span></div>
+          <div class="tb-notif-item"><b>Patients waiting in OPD</b><span>Open the OPD queue to call the next patient</span></div>
+          <div class="tb-notif-item"><b>Pending lab results</b><span>Pathology has samples in progress</span></div>
+          <div class="tm-sep"></div>
+          <button class="tm-item" id="notifClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Mark all as read</button>
+        </div>
+      </div>
+      <div class="tb-menuwrap">
+        <button class="tb-ico" id="btnSettings" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.2A1.6 1.6 0 0 0 6.6 19l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 4 13.6H4a2 2 0 1 1 0-4h.2A1.6 1.6 0 0 0 5 6.6l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 10.4 4V4a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8"/></svg>
+        </button>
+        <div class="tb-menu hidden" id="settingsMenu">
+          <div class="tm-head">Settings</div>
+          <button class="tm-item" id="setAdmin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/></svg>Admin Portal</button>
+          <button class="tm-item" id="setSync"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>Sync data now</button>
+          <div class="tm-sep"></div>
+          <button class="tm-item danger" id="setSignout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sign out</button>
+        </div>
+      </div>
       <div class="avatar">
         <div class="pic" id="avInit">AD</div>
         <div class="who"><b id="avName">Admin User</b><span id="avRole">Administrator</span></div>
@@ -664,6 +734,7 @@
       <div class="seg" id="opdSeg">
         <button data-tab="reg" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>Registration</button>
         <button data-tab="con"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13l2 2 4-4"/></svg>Consultation</button>
+        <button data-tab="bills"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Billing</button>
       </div>
 
       <!-- REGISTRATION TAB -->
@@ -681,6 +752,9 @@
                 <select id="rDept"><option>General Medicine</option><option>Cardiology</option><option>Orthopedics</option><option>Pediatrics</option><option>ENT</option><option>Dermatology</option><option>Gynecology</option></select></div>
               <div class="fld"><label>Consulting doctor</label>
                 <select id="rDoc"><option>Dr. A. Sharma</option><option>Dr. P. Mehta</option><option>Dr. S. Iyer</option><option>Dr. R. Nair</option></select></div>
+              <div class="fld"><label>Patient type</label><select id="rType"><option>Normal</option><option>Insurance</option></select></div>
+              <div class="fld" id="rInsurerWrap" style="display:none"><label>Insurer</label><input id="rInsurer" placeholder="e.g. Star Health"></div>
+              <div class="fld" id="rPolicyWrap" style="display:none"><label>Policy no.</label><input id="rPolicy" placeholder="Policy number"></div>
               <div class="fld full"><label>Chief complaint</label><textarea id="rComplaint" placeholder="Reason for visit / symptoms…"></textarea></div>
             </div>
             <div class="form-actions">
@@ -722,13 +796,18 @@
               <div class="fld"><label>Follow-up date</label><input id="cFollow" type="date"></div>
               <div class="fld"><label>Advice</label><input id="cAdvice" placeholder="e.g. Rest, fluids, review in 5 days"></div>
             </div>
-            <div class="form-actions">
+            <div class="form-actions" style="flex-wrap:wrap">
               <button type="button" class="btn" id="btnComplete">Complete consultation</button>
               <button type="button" class="btn ghost" id="btnHold" style="width:auto;padding:13px 22px">Save & keep in queue</button>
+              <button type="button" class="btn ghost" id="btnNoShow" style="width:auto;padding:13px 22px;color:#b45309;border-color:#f0d5ad">Left / no-show</button>
+              <button type="button" class="btn ghost" id="btnCancelTok" style="width:auto;padding:13px 22px;color:#dc2626;border-color:#f1cccc">Cancel token</button>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- BILLING TAB -->
+      <div id="tabBills" class="hidden"><div id="opdBillsBody"></div></div>
     </div>
   </div>
 </section>
@@ -834,6 +913,92 @@
   </div>
 </section>
 
+<!-- ========================= PATIENT ACCOUNTS / MRD PAGE ========================= -->
+<section id="accountsPage" class="hidden">
+  <div class="mod-bar">
+    <button class="mod-back" id="accBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      <span id="accBackLbl">Modules</span>
+    </button>
+    <div class="mod-title">
+      <div class="m-ico" style="background:rgba(180,83,9,.12);color:#b45309"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h11l5 5v11H4z"/><path d="M15 4v5h5M8 13h8M8 17h5"/></svg></div>
+      <div><h2>Patient Accounts — MRD</h2><div class="crumb">Discharge summary · Full patient payments</div></div>
+    </div>
+    <div class="mod-stats" id="accStats"></div>
+  </div>
+  <div class="gen-main">
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>Patient account statement</h3>
+      <p class="psub">Search a patient to see their full bill — OPD charges &amp; pharmacy, paid &amp; outstanding — plus discharge summary.</p>
+      <div style="display:flex;gap:8px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 13px;max-width:420px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--muted);flex:none"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="accSearch" placeholder="Search patient name…" style="border:0;background:transparent;outline:0;width:100%;font-size:14px;color:var(--ink)">
+      </div>
+    </div>
+    <div id="accBody"></div>
+  </div>
+</section>
+
+<!-- ========================= SANITIZATION MODULE PAGE ========================= -->
+<section id="sanitizePage" class="hidden">
+  <div class="mod-bar">
+    <button class="mod-back" id="sanBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      <span id="sanBackLbl">Modules</span>
+    </button>
+    <div class="mod-title">
+      <div class="m-ico" style="background:rgba(8,145,178,.12);color:#0891b2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="9" width="10" height="12" rx="2"/><path d="M10 9V6h4v3M12 4V2"/></svg></div>
+      <div><h2>Sanitization — Cleaning tracker</h2><div class="crumb">Post-discharge · OT · ICU · Completion tracking</div></div>
+    </div>
+    <div class="mod-stats" id="sanStats"></div>
+  </div>
+  <div class="gen-main">
+    <div id="sanAlert"></div>
+    <div id="sanBody"></div>
+  </div>
+</section>
+
+<!-- ========================= SHIFT MANAGEMENT PAGE ========================= -->
+<section id="shiftPage" class="hidden">
+  <div class="mod-bar">
+    <button class="mod-back" id="shiftBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      <span id="shiftBackLbl">Modules</span>
+    </button>
+    <div class="mod-title">
+      <div class="m-ico" style="background:rgba(124,58,237,.12);color:#7c3aed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+      <div><h2>Shift Management — Attendance</h2><div class="crumb">Doctor &amp; nurse clock-in / out · Leave · Timings</div></div>
+    </div>
+    <div class="mod-stats" id="shiftStats"></div>
+  </div>
+  <div class="gen-main">
+    <div id="shiftBody"></div>
+  </div>
+</section>
+
+<!-- ========================= PHARMACY MODULE PAGE ========================= -->
+<section id="pharmaPage" class="hidden">
+  <div class="mod-bar">
+    <button class="mod-back" id="pharmaBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      <span id="pharmaBackLbl">Modules</span>
+    </button>
+    <div class="mod-title">
+      <div class="m-ico" style="background:rgba(13,148,136,.12);color:#0d9488"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="12" rx="2"/><path d="M8 9V6a4 4 0 0 1 8 0v3M12 13v4M10 15h4"/></svg></div>
+      <div><h2>Pharmacy — Stock &amp; Dispensing</h2><div class="crumb">Inventory · Rack/box location · Expiry · Low-stock alerts</div></div>
+    </div>
+    <div class="mod-stats" id="pharmaStats"></div>
+  </div>
+  <div class="gen-main">
+    <div id="pharmaAlert"></div>
+    <div class="seg" id="pharmaSeg">
+      <button data-ptab="stock" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 4v16"/></svg>Stock &amp; inventory</button>
+      <button data-ptab="moves"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10l5-5 5 5M12 5v14"/></svg>Stock in / out</button>
+    </div>
+    <div id="pharmaBody"></div>
+  </div>
+</section>
+
 <!-- ========================= ADMIN PORTAL PAGE ========================= -->
 <section id="adminPage" class="hidden">
   <div class="mod-bar">
@@ -857,6 +1022,7 @@
       <button data-tab="dash" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h8V3H3zM13 21h8V3h-8zM3 21h8v-6H3z"/></svg>Dashboard</button>
       <button data-tab="mods"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>All modules</button>
       <button data-tab="cred"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Credentials</button>
+      <button data-tab="feedback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Feedback (QR)</button>
       <button data-tab="danger" style="color:#dc2626"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>Danger zone</button>
     </div>
 
@@ -867,6 +1033,15 @@
         <div class="kbig"><div class="kt"><span class="ci" style="background:#fdeaea;color:#dc2626"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Expenses today</div><b id="adExp">₹0</b><div class="ks dn" id="adExpD">▼ spend</div></div>
         <div class="kbig"><div class="kt"><span class="ci" style="background:#eaf1ff;color:#1f6feb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 5 4-14 2 9h6"/></svg></span>Net today</div><b id="adNet">₹0</b><div class="ks" id="adNetD">Profit</div></div>
         <div class="kbig"><div class="kt"><span class="ci" style="background:#e6faf8;color:#0ea5a4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6M3 14h18M6 10V7"/></svg></span>Beds in use</div><b id="adBeds">0 / 0</b><div class="ks" id="adBedsD">occupancy</div></div>
+      </div>
+
+      <!-- time-window revenue (live) -->
+      <div class="win-grid">
+        <div class="win hl"><div class="wl">Today</div><b id="winToday">₹0</b><div class="ws">revenue collected</div></div>
+        <div class="win"><div class="wl">Yesterday</div><b id="winYest">₹0</b><div class="ws">revenue</div></div>
+        <div class="win"><div class="wl">Last 48 hours</div><b id="win48">₹0</b><div class="ws">rolling</div></div>
+        <div class="win"><div class="wl">Last 7 days</div><b id="winWeek">₹0</b><div class="ws">this week</div></div>
+        <div class="win"><div class="wl">Last 30 days</div><b id="winMonth">₹0</b><div class="ws">this month</div></div>
       </div>
       <div class="dash-2">
         <div class="chartcard">
@@ -884,9 +1059,70 @@
           <div class="brow"><span class="bn"><i style="background:#1f6feb"></i>Staff vacancies</span><b id="gVac">0</b></div>
         </div>
       </div>
-      <div class="breakdown">
-        <h3>Revenue by department (today)</h3>
-        <div id="adDeptRev"></div>
+      <div class="dash-2" style="margin-top:16px">
+        <div class="breakdown">
+          <div class="sec-head"><div><h3>Revenue by department (today)</h3><p style="margin:2px 0 0;color:var(--muted);font-size:12.5px">Money collected per department today</p></div>
+            <span class="qh-live"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></span> LIVE</span></div>
+          <div id="adDeptRev" style="margin-top:8px"></div>
+        </div>
+        <div class="breakdown">
+          <h3>Payments by method</h3>
+          <p class="psub" style="margin:2px 0 12px">Split of collections by mode — updates live as departments enter payments</p>
+          <div id="adPayMethods"></div>
+        </div>
+      </div>
+
+      <div class="dash-2" style="margin-top:16px">
+        <div class="breakdown">
+          <h3>OPD operations</h3>
+          <p class="psub" style="margin:2px 0 12px">Live from the OPD queue</p>
+          <div class="brow"><span class="bn"><i style="background:#dc2626"></i>Tokens cancelled</span><b id="adCancelled">0</b></div>
+          <div class="brow"><span class="bn"><i style="background:#b45309"></i>Left without service</span><b id="adNoShow">0</b></div>
+          <div class="brow"><span class="bn"><i style="background:#1f6feb"></i>Longest waiting service</span><b id="adLongWait">—</b></div>
+        </div>
+        <div class="breakdown">
+          <h3>Waiting time by service</h3>
+          <p class="psub" style="margin:2px 0 12px">Average wait for patients still in the OPD queue</p>
+          <div id="adWaitList"></div>
+        </div>
+      </div>
+
+      <div class="breakdown" style="margin-top:16px">
+        <div class="sec-head"><div><h3>Staff attendance (live)</h3><p style="margin:2px 0 0;color:var(--muted);font-size:12.5px">Doctors &amp; nurses clock-in / out &amp; leave — who's on duty and when</p></div>
+          <span class="qh-live"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></span> LIVE</span></div>
+        <div class="win-grid" style="grid-template-columns:repeat(3,1fr);margin:10px 0 0">
+          <div class="win"><div class="wl">On duty now</div><b id="adOnDuty">0</b><div class="ws">clocked in</div></div>
+          <div class="win"><div class="wl">Clock-ins today</div><b id="adClockIns">0</b><div class="ws">today</div></div>
+          <div class="win"><div class="wl">On leave today</div><b id="adOnLeave">0</b><div class="ws">today</div></div>
+        </div>
+        <div class="tablewrap" style="margin-top:12px"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Staff</th><th>Role</th><th>Dept</th><th>Action</th><th>Time</th><th>Duration</th></tr></thead><tbody id="adAttendBody"></tbody></table></div>
+      </div>
+
+      <div class="breakdown" style="margin-top:16px">
+        <div class="sec-head"><div><h3>Sanitization status (live)</h3><p style="margin:2px 0 0;color:var(--muted);font-size:12.5px">Cleaning after discharge, OT &amp; ICU — what's done and what's pending</p></div>
+          <span class="qh-live"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></span> LIVE</span></div>
+        <div class="win-grid" style="grid-template-columns:repeat(3,1fr);margin:10px 0 0">
+          <div class="win"><div class="wl">Awaiting cleaning</div><b id="adSanPending">0</b><div class="ws">pending + in progress</div></div>
+          <div class="win"><div class="wl">Cleaned today</div><b id="adSanDone">0</b><div class="ws">today</div></div>
+          <div class="win"><div class="wl">Total tasks</div><b id="adSanTotal">0</b><div class="ws">all time</div></div>
+        </div>
+        <div class="tablewrap" style="margin-top:12px"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Area</th><th>Trigger</th><th>Status</th><th>Staff</th><th>Updated</th></tr></thead><tbody id="adSanBody"></tbody></table></div>
+      </div>
+
+      <div class="dash-2" style="margin-top:16px">
+        <div class="breakdown">
+          <h3>OPD billing (live)</h3>
+          <p class="psub" style="margin:2px 0 12px">All patient/bed bills from OPD (pharmacy is separate)</p>
+          <div class="brow"><span class="bn"><i style="background:#16a34a"></i>Collected today</span><b id="adOpdCollected">₹0</b></div>
+          <div class="brow"><span class="bn"><i style="background:#dc2626"></i>Outstanding (unpaid)</span><b id="adOpdOutstanding">₹0</b></div>
+          <div class="brow"><span class="bn"><i style="background:#1f6feb"></i>Total bills</span><b id="adOpdBills">0</b></div>
+        </div>
+        <div class="breakdown">
+          <h3>OPD patient mix</h3>
+          <p class="psub" style="margin:2px 0 12px">Insurance vs normal patients registered</p>
+          <div class="brow"><span class="bn"><i style="background:#7c3aed"></i>Insurance patients</span><b id="adInsPat">0</b></div>
+          <div class="brow"><span class="bn"><i style="background:#0ea5a4"></i>Normal patients</span><b id="adNormPat">0</b></div>
+        </div>
       </div>
 
       <div class="breakdown" style="margin-top:16px">
@@ -944,6 +1180,23 @@
         <div class="form-actions">
           <button type="button" class="btn" id="saveAllCreds">Save all changes</button>
           <button type="button" class="btn ghost" id="resetCreds" style="width:auto;padding:13px 22px">Reset to defaults</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEEDBACK (QR) -->
+    <div id="adTabFeedback" class="hidden">
+      <div class="dash-2">
+        <div class="panel" style="max-width:none">
+          <h3>Feedback QR code</h3>
+          <p class="psub">Print or display this QR. Patients and visitors scan it to send feedback or complaints straight to you. Admin-only.</p>
+          <div id="fbQR" style="display:flex;justify-content:center;padding:10px 0"></div>
+          <div style="font-size:12.5px;color:var(--muted);word-break:break-all;text-align:center">Link: <b id="fbUrl">—</b></div>
+        </div>
+        <div class="breakdown">
+          <div class="sec-head"><div><h3>Responses received</h3><p style="margin:2px 0 0;color:var(--muted);font-size:12.5px"><b id="fbCount">0</b> total · live</p></div>
+            <span class="qh-live"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></span> LIVE</span></div>
+          <div class="tablewrap" style="margin-top:10px"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Type</th><th>From</th><th>Message</th><th>When</th></tr></thead><tbody id="fbBody"></tbody></table></div>
         </div>
       </div>
     </div>
@@ -1050,6 +1303,7 @@
 </div>
 
 <div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span id="toastMsg">Done</span></div>
+<div class="syncbadge" id="syncBadge" title="Live sync status — tap to sync now"><span class="sb-dot"></span><span class="sb-txt">Connecting…</span></div>
 
 <script>
 /* ---------- icon library ---------- */
@@ -1064,6 +1318,8 @@ const ICONS = {
   cardio:'<path d="M3 12h4l2 5 4-14 2 9h6"/>',
   account:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h4M7 12h4M7 16h4M15 8v8"/><circle cx="15" cy="8" r="0"/>',
   admin:'<path d="M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  sanitize:'<rect x="7" y="9" width="10" height="12" rx="2"/><path d="M10 9V6h4v3M12 4V2M15 4l1-1M9 4 8 3"/>',
   mrd:'<path d="M4 4h11l5 5v11H4z"/><path d="M15 4v5h5M8 13h8M8 17h5"/>',
   help:'<circle cx="12" cy="12" r="9"/><path d="M9.2 9a3 3 0 0 1 5.6 1c0 2-3 2.5-3 4"/><path d="M12 17h.01"/>',
   reception:'<path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-3"/><path d="M9 9h.01M9 13h.01"/>',
@@ -1087,6 +1343,10 @@ const MODULES = [
   {name:'Radiology', desc:'X-ray, CT & MRI imaging workflow', icon:'radio', color:'#4f46e5', count:'28 scans'},
   {name:'Cardiology', desc:'ECG, ECHO & cardiac diagnostics', icon:'cardio', color:'#dc2626', count:'9 today'},
   {name:'Accounting', desc:'Billing, invoices, insurance & payments', icon:'account', color:'#16a34a', count:'₹4.2L today'},
+  {name:'Pharmacy', desc:'Stock, dispensing, expiry & low-stock alerts', icon:'pharma', color:'#0d9488', count:'Live stock'},
+  {name:'Shift Mgmt', desc:'Doctor & nurse clock-in / out & leave', icon:'clock', color:'#7c3aed', count:'Attendance'},
+  {name:'Sanitation', desc:'Cleaning after discharge, OT & ICU — track completion', icon:'sanitize', color:'#0891b2', count:'Hygiene'},
+  {name:'Patient Accounts', desc:'Discharge summary & full patient payment statement', icon:'mrd', color:'#b45309', count:'Billing'},
   {name:'Admin', desc:'Staff, roles, master data & configuration', icon:'admin', color:'#0f766e', count:'Control'},
   {name:'MRD', desc:'Medical records, archives & discharge files', icon:'mrd', color:'#b45309', count:'11.2k files'},
   {name:'Help', desc:'Support desk, guides & system assistance', icon:'help', color:'#475569', count:'24/7'}
@@ -1098,9 +1358,12 @@ function shade(hex){ // light bg from accent
 }
 
 const grid = document.getElementById('moduleGrid');
+let _hubQuery='';
 function renderModules(){
   grid.innerHTML='';
-  MODULES.forEach(m=>{
+  const q=_hubQuery.trim().toLowerCase();
+  const list=MODULES.filter(m=>!q || m.name.toLowerCase().includes(q) || (m.desc||'').toLowerCase().includes(q));
+  list.forEach(m=>{
     const el=document.createElement('button');
     el.className='module';
     el.style.setProperty('--mc',m.color);
@@ -1116,13 +1379,25 @@ function renderModules(){
     el.onclick=()=>requestModuleAccess(m);
     grid.appendChild(el);
   });
-  // add tile
-  const add=document.createElement('button');
-  add.className='module add';
-  add.innerHTML=`<div class="add-plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div><h3>Add module</h3><p>Create a new department tile</p>`;
-  add.onclick=openAdd;
-  grid.appendChild(add);
+  if(q && !list.length){
+    const none=document.createElement('div');
+    none.style.cssText='grid-column:1/-1;color:var(--muted);font-size:14px;padding:22px 4px';
+    none.textContent='No departments match “'+_hubQuery.trim()+'”.';
+    grid.appendChild(none);
+  }
+  if(!q){
+    // add tile (only when not searching)
+    const add=document.createElement('button');
+    add.className='module add';
+    add.innerHTML=`<div class="add-plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div><h3>Add module</h3><p>Create a new department tile</p>`;
+    add.onclick=openAdd;
+    grid.appendChild(add);
+  }
 }
+(function initHubSearch(){
+  const inp=document.getElementById('hubSearch');
+  if(inp)inp.addEventListener('input',e=>{ _hubQuery=e.target.value; renderModules(); });
+})();
 
 /* ---------- roles (page 2) ---------- */
 const ROLES=[
@@ -1203,6 +1478,39 @@ document.getElementById('logout').onclick=()=>{
   document.getElementById('app').classList.add('hidden');
   document.getElementById('rolePage').classList.remove('hidden');
 };
+
+/* ---------- top-bar menus: Settings + Notifications ---------- */
+function syncNow(){
+  try{
+    if(typeof CLOUD!=='undefined' && CLOUD && typeof cloudPull==='function'){
+      cloudPull().then(d=>{
+        if(d){ const rv=d._v||0; if(typeof _stateV==='number' && rv>=_stateV && typeof applyState==='function'){ applyState(d); try{localStorage.setItem(LS_KEY,JSON.stringify(d));}catch(e){} } }
+        if(typeof refreshView==='function')refreshView();
+        toast('Synced latest data');
+      }).catch(()=>toast('Sync failed — check your connection'));
+    } else {
+      if(typeof loadState==='function')loadState();
+      if(typeof refreshView==='function')refreshView();
+      toast('Synced');
+    }
+  }catch(e){ toast('Sync failed'); }
+}
+(function initTopbarMenus(){
+  const sBtn=document.getElementById('btnSettings'), sMenu=document.getElementById('settingsMenu');
+  const nBtn=document.getElementById('btnNotif'), nMenu=document.getElementById('notifMenu');
+  function closeAll(){ if(sMenu)sMenu.classList.add('hidden'); if(nMenu)nMenu.classList.add('hidden'); }
+  function toggle(menu){ if(!menu)return; const willOpen=menu.classList.contains('hidden'); closeAll(); if(willOpen)menu.classList.remove('hidden'); }
+  if(sBtn)sBtn.onclick=e=>{e.stopPropagation();toggle(sMenu);};
+  if(nBtn)nBtn.onclick=e=>{e.stopPropagation();toggle(nMenu);};
+  if(sMenu)sMenu.addEventListener('click',e=>e.stopPropagation());
+  if(nMenu)nMenu.addEventListener('click',e=>e.stopPropagation());
+  document.addEventListener('click',closeAll);
+  const act=(id,fn)=>{const el=document.getElementById(id); if(el)el.onclick=()=>{closeAll();fn();};};
+  act('setAdmin',()=>{ if(typeof requestAdminAccess==='function')requestAdminAccess(); });
+  act('setSync',()=>syncNow());
+  act('setSignout',()=>{ document.getElementById('app').classList.add('hidden'); document.getElementById('rolePage').classList.remove('hidden'); });
+  act('notifClear',()=>{ if(nBtn){const b=nBtn.querySelector('.badge'); if(b)b.remove();} toast('Notifications cleared'); });
+})();
 function greet(){const h=new Date().getHours();return h<12?'Good morning':h<17?'Good afternoon':'Good evening';}
 document.getElementById('today').textContent = new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
 
@@ -1232,6 +1540,10 @@ document.getElementById('saveMod').onclick=()=>{
 function openModule(m){
   if(m.name==='OPD'){ openOPD(); }
   else if(m.name==='IPD'){ openIPD(); }
+  else if(m.name==='Pharmacy'){ openPharmacy(); }
+  else if(m.name==='Shift Mgmt'){ openShift(); }
+  else if(m.name==='Sanitation'){ openSanitize(); }
+  else if(m.name==='Patient Accounts'){ openAccounts(); }
   else if(MODULE_DEFS[m.name]){ openGeneric(m); }
   else { toast(`${m.name} module — coming in the next build`); }
 }
@@ -1333,6 +1645,7 @@ document.getElementById('adminBack').onclick=()=>{
 /* ===================== OPD MODULE ===================== */
 let TOKEN=100;
 let QUEUE=[];
+let OPD_BILLS=[];   // {id, patient, type, amount, pay, status:'Paid'|'Unpaid', insurance, insurer, _ts, date}
 let activeTok=null;
 
 function openOPD(){
@@ -1355,15 +1668,17 @@ document.getElementById('opdSeg').addEventListener('click',e=>{
   const t=b.dataset.tab;
   document.getElementById('tabReg').classList.toggle('hidden',t!=='reg');
   document.getElementById('tabCon').classList.toggle('hidden',t!=='con');
+  document.getElementById('tabBills').classList.toggle('hidden',t!=='bills');
+  if(t==='bills')renderOpdBills();
 });
 function goTab(t){document.querySelector(`#opdSeg [data-tab="${t}"]`).click();}
 
 /* queue rendering */
-function statusLabel(s){return s==='serving'?'In Room':s==='done'?'Seen':'Waiting';}
+function statusLabel(s){return s==='serving'?'In Room':s==='done'?'Seen':s==='cancelled'?'Cancelled':s==='left'?'No-show':'Waiting';}
 function renderQueue(){
   const q=(document.getElementById('qSearch').value||'').toLowerCase();
   const list=document.getElementById('queueList'); list.innerHTML='';
-  const shown=QUEUE.filter(p=>!q || p.name.toLowerCase().includes(q) || String(p.tok).includes(q));
+  const shown=QUEUE.filter(p=>p.status!=='cancelled'&&p.status!=='left').filter(p=>!q || p.name.toLowerCase().includes(q) || String(p.tok).includes(q));
   if(!shown.length){list.innerHTML='<div class="qempty">No patients in queue.<br>Register a patient to begin.</div>';}
   shown.forEach(p=>{
     const el=document.createElement('div');
@@ -1371,7 +1686,7 @@ function renderQueue(){
     const cls=p.status;
     el.innerHTML=`
       <div class="qtok ${cls}">${p.tok}</div>
-      <div class="qmeta"><b>${p.name}</b><span>${p.age}y · ${p.gender} · ${p.dept}</span></div>
+      <div class="qmeta"><b>${p.name}${p.ptype==='Insurance'?' <span class="pill b" style="font-size:9px;padding:1px 6px;vertical-align:middle">INS</span>':''}</b><span>${p.age}y · ${p.gender} · ${p.dept}</span></div>
       <div class="qstat ${cls}">${statusLabel(p.status)}</div>`;
     el.onclick=()=>{selectPatient(p.tok);};
     list.appendChild(el);
@@ -1420,6 +1735,20 @@ document.getElementById('btnHold').onclick=()=>{
   persist();
   toast('Notes saved · patient kept in queue');
 };
+function advanceQueueAfter(p,newStatus,msg){
+  p.status=newStatus; p.closedAt=Date.now();
+  const next=QUEUE.find(x=>x.status==='wait');
+  activeTok=next?next.tok:null; if(next)next.status='serving';
+  persist(); renderQueue(); showConsult(); toast(msg);
+}
+document.getElementById('btnNoShow').onclick=()=>{
+  const p=QUEUE.find(x=>x.tok===activeTok); if(!p)return;
+  advanceQueueAfter(p,'left',`${p.name} marked as left / no-show`);
+};
+document.getElementById('btnCancelTok').onclick=()=>{
+  const p=QUEUE.find(x=>x.tok===activeTok); if(!p)return;
+  advanceQueueAfter(p,'cancelled',`Token ${p.tok} cancelled`);
+};
 document.getElementById('btnCallNext').onclick=()=>{
   const next=QUEUE.find(x=>x.status==='wait');
   if(!next){toast('Queue is clear — no one waiting');return;}
@@ -1442,13 +1771,105 @@ document.getElementById('regForm').addEventListener('submit',e=>{
     doc:document.getElementById('rDoc').value,
     complaint:document.getElementById('rComplaint').value.trim(),
     phone:document.getElementById('rPhone').value.trim(),
-    status:'wait'
+    ptype:document.getElementById('rType').value,
+    insurer:document.getElementById('rInsurer').value.trim(),
+    policy:document.getElementById('rPolicy').value.trim(),
+    status:'wait', reg:Date.now()
   };
   QUEUE.push(p); persist();
   document.getElementById('regForm').reset();
+  document.getElementById('rInsurerWrap').style.display='none';
+  document.getElementById('rPolicyWrap').style.display='none';
   renderQueue();
   toast(`Registered ${name} · Token ${p.tok}`);
 });
+document.getElementById('rType').addEventListener('change',function(){
+  const ins=this.value==='Insurance';
+  document.getElementById('rInsurerWrap').style.display=ins?'':'none';
+  document.getElementById('rPolicyWrap').style.display=ins?'':'none';
+});
+
+/* ---------- OPD billing (Package D) ---------- */
+const OPD_BILL_TYPES=['Consultation','Bed charge','Procedure','Lab','Pharmacy','Other'];
+function opdCollectedToday(){ const s=sodMs(); return OPD_BILLS.filter(b=>b.status==='Paid'&&tsOf(b)>=s).reduce((a,b)=>a+(Number(b.amount)||0),0); }
+function opdOutstanding(){ return OPD_BILLS.filter(b=>b.status!=='Paid').reduce((a,b)=>a+(Number(b.amount)||0),0); }
+function renderOpdBills(){
+  const body=document.getElementById('opdBillsBody'); if(!body)return;
+  const rows = OPD_BILLS.length ? OPD_BILLS.slice().reverse().map((b,i)=>{
+    const stat = b.status==='Paid'?'<span class="pill g">Paid</span>':'<span class="pill r">Unpaid</span>';
+    const ins = b.insurance?'<span class="pill b">Insurance</span>':'<span class="pill">Normal</span>';
+    const act = `<button class="btn ghost tiny" data-bill-toggle="${b.id}" style="width:auto;padding:7px 10px">${b.status==='Paid'?'Mark unpaid':'Mark paid'}</button> <button class="btn ghost tiny" data-bill-rcpt="${b.id}" style="width:auto;padding:7px 10px">Receipt</button>`;
+    return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(b.patient||'—')}</b></td><td>${genEsc(b.type||'—')}</td><td>${money(b.amount||0)}</td><td>${ins}</td><td><span class="pay">${genEsc(b.pay||'—')}</span></td><td>${stat}</td><td>${act}</td></tr>`;
+  }).join('') : `<tr><td class="tempty" colspan="8">No bills yet. Add a bill for a patient (consultation, bed, procedure…).</td></tr>`;
+  body.innerHTML=`
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="kbig"><div class="kt">Collected today</div><b>${money(opdCollectedToday())}</b><div class="ks up">paid bills</div></div>
+      <div class="kbig"><div class="kt">Outstanding</div><b>${money(opdOutstanding())}</b><div class="ks dn">unpaid</div></div>
+      <div class="kbig"><div class="kt">Total bills</div><b>${OPD_BILLS.length}</b><div class="ks">all</div></div>
+    </div>
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>Add bill</h3>
+      <p class="psub">All patient charges — consultation, bed, procedure, lab, etc. (Pharmacy bills are entered in the Pharmacy module.)</p>
+      <div class="addgrid">
+        <div class="fld"><label>Patient</label><input id="obName" placeholder="Patient name"></div>
+        <div class="fld"><label>Charge type</label><select id="obType">${OPD_BILL_TYPES.map(o=>`<option>${o}</option>`).join('')}</select></div>
+        <div class="fld"><label>Amount (₹)</label><input id="obAmt" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Payment mode</label><select id="obPay">${PAYS.map(o=>`<option>${o}</option>`).join('')}</select></div>
+        <div class="fld"><label>Status</label><select id="obStatus"><option>Paid</option><option>Unpaid</option></select></div>
+        <div class="fld"><label>Payer</label><select id="obPayer"><option>Normal</option><option>Insurance</option></select></div>
+        <div class="fld full" id="obInsurerWrap" style="display:none"><label>Insurer / policy</label><input id="obInsurer" placeholder="e.g. Star Health · Policy 123"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="obSave" style="width:auto;padding:12px 22px">Save bill</button></div>
+    </div>
+    <div class="sec-head"><div><h3>Patient bills</h3><p>${OPD_BILLS.length} bill${OPD_BILLS.length===1?'':'s'} · paid &amp; unpaid</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Type</th><th>Amount</th><th>Payer</th><th>Mode</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('obSave').onclick=addOpdBill;
+  document.getElementById('obPayer').onchange=function(){ document.getElementById('obInsurerWrap').style.display=this.value==='Insurance'?'':'none'; };
+  body.querySelectorAll('[data-bill-toggle]').forEach(x=>x.onclick=()=>opdBillToggle(x.dataset.billToggle));
+  body.querySelectorAll('[data-bill-rcpt]').forEach(x=>x.onclick=()=>printOpdReceipt(x.dataset.billRcpt));
+}
+function addOpdBill(){
+  const patient=document.getElementById('obName').value.trim();
+  if(!patient){document.getElementById('obName').focus();toast('Enter patient name');return;}
+  const payer=document.getElementById('obPayer').value;
+  OPD_BILLS.push({ id:'OB'+Date.now().toString(36), patient, type:document.getElementById('obType').value,
+    amount:Number(document.getElementById('obAmt').value)||0, pay:document.getElementById('obPay').value,
+    status:document.getElementById('obStatus').value, insurance:payer==='Insurance',
+    insurer:document.getElementById('obInsurer').value.trim(),
+    date:new Date().toISOString().slice(0,10), _ts:Date.now() });
+  persist(); renderOpdBills(); toast(`Bill added for ${patient}`);
+}
+function opdBillToggle(id){
+  const b=OPD_BILLS.find(x=>x.id===id); if(!b)return;
+  b.status = b.status==='Paid'?'Unpaid':'Paid';
+  if(b.status==='Paid') b._ts=Date.now();
+  persist(); renderOpdBills(); toast(`Bill marked ${b.status.toLowerCase()}`);
+}
+function printOpdReceipt(id){
+  const b=OPD_BILLS.find(x=>x.id===id); if(!b)return;
+  const w=window.open('','_blank'); if(!w){toast('Allow pop-ups to print the receipt');return;}
+  const esc=c=>(c==null?'':String(c)).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Receipt ${esc(b.id)}</title>
+  <style>body{font-family:Segoe UI,Arial,sans-serif;color:#0f2033;padding:26px;max-width:360px;margin:0 auto}
+  h2{color:#1f6feb;margin:0 0 2px}.sub{color:#5b6b7f;font-size:12px;margin-bottom:12px}
+  .r{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #ddd;font-size:13px}
+  .tot{font-weight:800;font-size:15px;border-top:2px solid #1f6feb;margin-top:8px;padding-top:8px}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+  .paid{background:#e9f7ee;color:#16a34a}.unpaid{background:#fdeaea;color:#dc2626}
+  .ft{margin-top:16px;color:#93a2b5;font-size:11px;text-align:center}</style></head><body>
+  <h2>MediCore Hospital</h2><div class="sub">OPD Receipt · ${esc(b.date)}</div>
+  <div class="r"><span>Receipt No</span><b>${esc(b.id)}</b></div>
+  <div class="r"><span>Patient</span><b>${esc(b.patient)}</b></div>
+  <div class="r"><span>Charge</span><b>${esc(b.type)}</b></div>
+  <div class="r"><span>Payer</span><b>${b.insurance?('Insurance'+(b.insurer?(' · '+esc(b.insurer)):'')):'Normal'}</b></div>
+  <div class="r"><span>Mode</span><b>${esc(b.pay||'—')}</b></div>
+  <div class="r tot"><span>Amount</span><b>₹${esc(Number(b.amount||0).toLocaleString('en-IN'))}</b></div>
+  <div style="text-align:center;margin-top:12px"><span class="badge ${b.status==='Paid'?'paid':'unpaid'}">${esc(b.status)}</span></div>
+  <div class="ft">Thank you · MediCore HMS</div>
+  <script>window.onload=function(){setTimeout(function(){window.print();},250);}<\/script>
+  </body></html>`);
+  w.document.close();
+}
 
 /* ===================== IPD MODULE ===================== */
 let WARDS=[
@@ -1755,7 +2176,7 @@ Object.values(MODULE_DEFS).forEach(d=>d.sections.forEach(s=>{s.rows=[];}));
 
 let genDef=null, genSec=0, genMeta=null, moduleReturn='app';
 function openGeneric(m){
-  genMeta=m; genDef=MODULE_DEFS[m.name]; genSec=0;
+  genMeta=m; genDef=MODULE_DEFS[m.name]; genSec=0; _genQuery='';
   if(!genDef){toast(`${m.name} — coming soon`);return;}
   const ico=document.getElementById('genIco');
   ico.style.background=shade(m.color); ico.style.color=m.color;
@@ -1772,7 +2193,7 @@ function renderGenSeg(){
   const seg=document.getElementById('genSeg'); seg.innerHTML='';
   genDef.sections.forEach((s,i)=>{
     const b=document.createElement('button'); b.className=(i===genSec?'active':'');
-    b.textContent=s.label; b.onclick=()=>{genSec=i;renderGenSeg();renderGenBody();};
+    b.textContent=s.label; b.onclick=()=>{genSec=i;_genQuery='';renderGenSeg();renderGenBody();};
     seg.appendChild(b);
   });
 }
@@ -1783,16 +2204,35 @@ function cellHTML(col,row){
   if(col.type==='fee') return `<span class="money">${money(v||0)}</span>`;
   return v===''?'—':v;
 }
+let _genQuery='';
+function genEsc(str){return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function genBodyRows(s){
+  const q=_genQuery.trim().toLowerCase();
+  const filtered=q ? s.rows.filter(r=>s.cols.some(c=>String(r[c.k]??'').toLowerCase().includes(q))) : s.rows;
+  if(!filtered.length){
+    const msg = q ? `No ${s.noun}s match “${genEsc(_genQuery.trim())}”.` : `No ${s.noun}s yet. Click “Add ${s.noun}”.`;
+    return {html:`<tr><td class="tempty" colspan="${s.cols.length+1}">${msg}</td></tr>`, count:0};
+  }
+  const html=filtered.map((r,i)=>`<tr><td class="sno">${i+1}</td>${s.cols.map(c=>`<td>${cellHTML(c,r)}</td>`).join('')}</tr>`).join('');
+  return {html, count:filtered.length};
+}
+function genCountLabel(s,rb){
+  return _genQuery.trim() ? `${rb.count} ${s.noun}${rb.count===1?'':'s'} found` : `${s.rows.length} ${s.noun}${s.rows.length===1?'':'s'}`;
+}
 function renderGenBody(){
   const s=genDef.sections[genSec];
   const body=document.getElementById('genBody');
   let ths='<th class="sno">S.No</th>'+s.cols.map(c=>`<th>${c.t}</th>`).join('');
-  let rows=s.rows.map((r,i)=>`<tr><td class="sno">${i+1}</td>${s.cols.map(c=>`<td>${cellHTML(c,r)}</td>`).join('')}</tr>`).join('');
-  if(!s.rows.length) rows=`<tr><td class="tempty" colspan="${s.cols.length+1}">No ${s.noun}s yet. Click “Add ${s.noun}”.</td></tr>`;
+  const rb=genBodyRows(s);
+  let rows=rb.html;
   body.innerHTML=`
     <div class="sec-head">
-      <div><h3>${s.label}</h3><p>${s.rows.length} ${s.noun}${s.rows.length===1?'':'s'}</p></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div><h3>${s.label}</h3><p id="genCount">${genCountLabel(s,rb)}</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <div style="display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:8px 11px;color:var(--muted);min-width:190px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex:none"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="genSearch" placeholder="Search ${s.noun}s…" value="${_genQuery.replace(/"/g,'&quot;')}" style="border:0;background:transparent;outline:0;width:100%;font-size:13px;color:var(--ink)">
+        </div>
         <button class="btn ghost" id="genCSV" style="width:auto;padding:9px 13px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h1M8 17h1M15 13h1M15 17h1M11.5 13h1M11.5 17h1"/></svg>CSV</button>
         <button class="btn ghost" id="genPDF" style="width:auto;padding:9px 13px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15h6M9 18h4"/></svg>PDF</button>
         <button class="btn sm" id="genAddBtn" style="width:auto;padding:10px 15px">
@@ -1815,6 +2255,13 @@ function renderGenBody(){
   document.getElementById('genSave').onclick=saveGenRecord;
   document.getElementById('genCSV').onclick=()=>{const d=genExportData();exportCSV(d.file,d.headers,d.matrix);};
   document.getElementById('genPDF').onclick=()=>{const d=genExportData();exportPDF(d.title,d.headers,d.matrix);};
+  const gs=document.getElementById('genSearch');
+  if(gs)gs.oninput=()=>{
+    _genQuery=gs.value;
+    const rb=genBodyRows(s);
+    const tb=document.querySelector('#genBody tbody'); if(tb)tb.innerHTML=rb.html;
+    const cp=document.getElementById('genCount'); if(cp)cp.textContent=genCountLabel(s,rb);
+  };
 }
 function fieldHTML(c){
   const id='gf_'+c.k;
@@ -1834,7 +2281,7 @@ function saveGenRecord(){
     if((c.type==='text'||!c.type)&&!v.trim() && c===s.cols[0]){ el.focus(); toast('Enter '+c.t); return; }
     obj[c.k]=v;
   }
-  s.rows.push(obj); persist(); renderGenBody();
+  obj._ts=Date.now(); s.rows.push(obj); persist(); renderGenBody();
   toast(`${s.noun.charAt(0).toUpperCase()+s.noun.slice(1)} added`);
 }
 function genRevenue(def){let t=0;def.sections.forEach(s=>s.rows.forEach(r=>{if(typeof r.fee==='number')t+=r.fee;}));return t;}
@@ -1844,6 +2291,8 @@ let LEDGER=[];    // income & expense entries added by admin
 let VACANCIES=[]; // staff vacancies added by admin
 function openAdmin(){
   ensureCreds();
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('rolePage').classList.add('hidden');
   document.getElementById('adRoles').textContent='2';
   document.getElementById('adMods').textContent=MODULES.length;
   renderAdminDash(); renderAdminModGrid(); renderAdminCreds();
@@ -1851,7 +2300,16 @@ function openAdmin(){
   document.getElementById('adminPage').classList.remove('hidden');
   window.scrollTo(0,0);
 }
-document.getElementById('adminRefresh').onclick=()=>{ loadState(); renderAdminDash(); renderAdminModGrid(); renderAdminCreds(); toast('Synced latest data from all departments'); };
+document.getElementById('adminRefresh').onclick=()=>{
+  const done=()=>{ renderAdminDash(); renderAdminModGrid(); renderAdminCreds(); toast('Synced latest data from all departments'); };
+  loadState();
+  if(typeof CLOUD!=='undefined' && CLOUD){
+    cloudPull().then(d=>{
+      if(d){ const rv=d._v||0; if(rv>=_stateV){ applyState(d); try{localStorage.setItem(LS_KEY,JSON.stringify(d));}catch(e){} } }
+      done();
+    });
+  } else { done(); }
+};
 document.getElementById('ledgerBtn').onclick=()=>document.getElementById('ledgerCard').classList.toggle('hidden');
 document.getElementById('ledgerCancel').onclick=()=>document.getElementById('ledgerCard').classList.add('hidden');
 document.getElementById('ledgerSave').onclick=addLedger;
@@ -1865,9 +2323,38 @@ document.getElementById('adminSeg').addEventListener('click',e=>{
   document.getElementById('adTabDash').classList.toggle('hidden',t!=='dash');
   document.getElementById('adTabMods').classList.toggle('hidden',t!=='mods');
   document.getElementById('adTabCred').classList.toggle('hidden',t!=='cred');
+  document.getElementById('adTabFeedback').classList.toggle('hidden',t!=='feedback');
   document.getElementById('adTabDanger').classList.toggle('hidden',t!=='danger');
   if(t==='danger')genDangerCode();
+  if(t==='feedback'){ renderFeedbackQR(); loadAdminFeedback(); }
 });
+/* ---------- QR feedback (Package G) ---------- */
+function feedbackURL(){ const o=location.origin; return (o && /^https?:/.test(o)) ? o+'/feedback' : ''; }
+function renderFeedbackQR(){
+  const url=feedbackURL(), box=document.getElementById('fbQR'), link=document.getElementById('fbUrl');
+  if(!box)return;
+  if(url){
+    box.innerHTML=`<img alt="Feedback QR" width="220" height="220" style="border-radius:12px;border:1px solid var(--line)" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(url)}">`;
+    if(link) link.textContent=url;
+  } else {
+    box.innerHTML='<div class="tempty">Deploy the app to a public URL (e.g. Render) to generate a scannable QR — a local file has no address to encode.</div>';
+    if(link) link.textContent='—';
+  }
+}
+function loadAdminFeedback(){
+  fetch('/api/feedback',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{
+    const body=document.getElementById('fbBody'); if(!body)return;
+    const items=(j&&j.items)||[];
+    const c=document.getElementById('fbCount'); if(c)c.textContent=items.length;
+    body.innerHTML = items.length ? items.map((it,i)=>{
+      const when=it.created_at?new Date(it.created_at).toLocaleString():'';
+      const typ=it.type||'Feedback', cls=/complaint/i.test(typ)?'r':/appreciat/i.test(typ)?'g':'b';
+      return `<tr><td class="sno">${i+1}</td><td><span class="pill ${cls}">${genEsc(typ)}</span></td><td>${genEsc(it.name||'Anonymous')}</td><td>${genEsc(it.message||'')}</td><td>${genEsc(when)}</td></tr>`;
+    }).join('') : '<tr><td class="tempty" colspan="5">No feedback yet. Share the QR so people can send feedback.</td></tr>';
+  }).catch(()=>{});
+}
+setInterval(()=>{ const ap=document.getElementById('adminPage'), ft=document.getElementById('adTabFeedback');
+  if(ap&&!ap.classList.contains('hidden')&&ft&&!ft.classList.contains('hidden')) loadAdminFeedback(); }, 5000);
 
 /* ---------- danger zone: delete all & reset ---------- */
 let dangerCode='';
@@ -1906,16 +2393,103 @@ function collectPayments(){
     });
   });
   LEDGER.filter(l=>l.type==='Income').forEach(l=>out.push({src:'Admin ledger', who:l.desc||l.category||'Income', amount:Number(l.amount)||0, pay:'—'}));
+  (typeof PHARMA_MOVES!=='undefined'?PHARMA_MOVES:[]).filter(x=>x.type==='out'&&(Number(x.amount)||0)>0).forEach(x=>out.push({src:'Pharmacy', who:x.who||x.medName||'Dispense', amount:Number(x.amount)||0, pay:x.pay||'—'}));
+  (typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).filter(b=>b.status==='Paid'&&(Number(b.amount)||0)>0).forEach(b=>out.push({src:'OPD', who:b.patient||b.type||'Bill', amount:Number(b.amount)||0, pay:b.pay||'—'}));
   return out;
 }
+/* ---------- live analytics (Package A) ---------- */
+function sodMs(){ const d=new Date(); d.setHours(0,0,0,0); return d.getTime(); }
+function tsOf(o){ return Number(o._ts)|| (o.date?Date.parse(o.date):0) || 0; }
+/* every fee-bearing record across all department modules, with amount/pay/dept/timestamp */
+function moduleFeeRows(){
+  const out=[];
+  Object.keys(MODULE_DEFS).forEach(n=>{
+    MODULE_DEFS[n].sections.forEach(s=>{
+      if(!s.cols.some(c=>c.type==='fee'))return;
+      s.rows.forEach(r=>{ const fee=Number(r.fee)||0; if(!fee)return; out.push({dept:n,amount:fee,pay:r.pay||'—',ts:tsOf(r)}); });
+    });
+  });
+  // pharmacy dispensing counts as revenue too
+  (typeof PHARMA_MOVES!=='undefined'?PHARMA_MOVES:[]).filter(x=>x.type==='out').forEach(x=>{ const a=Number(x.amount)||0; if(a) out.push({dept:'Pharmacy',amount:a,pay:x.pay||'—',ts:tsOf(x)}); });
+  // paid OPD bills count as revenue too
+  (typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).filter(b=>b.status==='Paid').forEach(b=>{ const a=Number(b.amount)||0; if(a) out.push({dept:'OPD',amount:a,pay:b.pay||'—',ts:tsOf(b)}); });
+  return out;
+}
+function ledgerIncomeRows(){ return LEDGER.filter(l=>l.type==='Income').map(l=>({amount:Number(l.amount)||0,ts:tsOf(l)})); }
+function revenueWindows(){
+  const rows=moduleFeeRows(), inc=ledgerIncomeRows(), now=Date.now(), s=sodMs();
+  const sum=(arr,a,b)=>arr.reduce((x,r)=>x+((r.ts>=a&&(b===undefined||r.ts<b))?r.amount:0),0);
+  const W=(a,b)=>sum(rows,a,b)+sum(inc,a,b);
+  return { today:W(s), yesterday:W(s-86400000,s), h48:W(now-48*3600000), week:W(now-7*86400000), month:W(now-30*86400000) };
+}
+function paymentMethods(){
+  const rows=moduleFeeRows(), m={UPI:0,Cash:0,Card:0,Insurance:0,Other:0};
+  rows.forEach(r=>{ const k=(r.pay in m)?r.pay:'Other'; m[k]+=r.amount; });
+  m.total=m.UPI+m.Cash+m.Card+m.Insurance+m.Other;
+  return m;
+}
+function deptRevenueToday(){
+  const rows=moduleFeeRows(), s=sodMs(), map={};
+  rows.forEach(r=>{ if(r.ts>=s) map[r.dept]=(map[r.dept]||0)+r.amount; });
+  return map;
+}
+function fmtMins(ms){ const m=Math.max(0,Math.round(ms/60000)); if(m<60)return m+' min'; return Math.floor(m/60)+'h '+(m%60)+'m'; }
+function opdWaitByService(){
+  const now=Date.now(), byDept={};
+  QUEUE.filter(p=>p.status==='wait'&&p.reg).forEach(p=>{ (byDept[p.dept]=byDept[p.dept]||[]).push(now-p.reg); });
+  return Object.keys(byDept).map(d=>{ const a=byDept[d]; return {dept:d,count:a.length,avg:a.reduce((x,y)=>x+y,0)/a.length,max:Math.max(...a)}; })
+    .sort((x,y)=>y.avg-x.avg);
+}
+function renderAdminAnalytics(){
+  const set=(id,v)=>{const el=document.getElementById(id); if(el)el.textContent=v;};
+  const win=revenueWindows();
+  set('winToday',money(win.today)); set('winYest',money(win.yesterday)); set('win48',money(win.h48));
+  set('winWeek',money(win.week)); set('winMonth',money(win.month));
+  // payment methods
+  const pm=paymentMethods(), pmEl=document.getElementById('adPayMethods');
+  if(pmEl){
+    const row=(label,val,color)=>{ const pct=pm.total?Math.round(val/pm.total*100):0;
+      return `<div class="brow"><span class="bn"><i style="background:${color}"></i>${label}</span><b>${money(val)} <span style="color:var(--muted);font-weight:600;font-size:11.5px">${pct}%</span></b></div>`; };
+    pmEl.innerHTML = pm.total
+      ? row('UPI',pm.UPI,'#7c3aed')+row('Cash',pm.Cash,'#16a34a')+row('Card',pm.Card,'#1f6feb')+row('Insurance (claimed)',pm.Insurance,'#d97706')+(pm.Other?row('Other',pm.Other,'#64748b'):'')
+      : '<div class="tempty">No payments recorded yet.</div>';
+  }
+  // OPD operations
+  set('adCancelled',QUEUE.filter(p=>p.status==='cancelled').length);
+  set('adNoShow',QUEUE.filter(p=>p.status==='left').length);
+  const waits=opdWaitByService();
+  set('adLongWait', waits.length?`${waits[0].dept} · ${fmtMins(waits[0].avg)}`:'—');
+  const wl=document.getElementById('adWaitList');
+  if(wl) wl.innerHTML = waits.length
+    ? waits.map(w=>`<div class="brow"><span class="bn"><i style="background:${MODULES.find(m=>m.name==='OPD')?.color||'#1f6feb'}"></i>${w.dept} <span style="color:var(--muted);font-weight:600;font-size:11.5px">· ${w.count} waiting</span></span><b>${fmtMins(w.avg)}</b></div>`).join('')
+    : '<div class="tempty">No patients waiting.</div>';
+  // staff attendance (Package B)
+  set('adOnDuty', shiftOnDuty().length);
+  const sms=sodMs();
+  set('adClockIns', SHIFTS.filter(e=>e.action==='in'&&tsOf(e)>=sms).length);
+  set('adOnLeave', SHIFTS.filter(e=>e.action==='leave'&&tsOf(e)>=sms).length);
+  const ab=document.getElementById('adAttendBody');
+  if(ab) ab.innerHTML = SHIFTS.length ? SHIFTS.slice().reverse().slice(0,15).map((e,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(e.staff)}</b></td><td>${genEsc(e.role||'—')}</td><td>${genEsc(e.dept||'—')}</td><td>${shiftActionPill(e.action)}</td><td>${genEsc(e.time||'')} · ${genEsc(e.date||'')}</td><td>${e.durationMs?fmtMins(e.durationMs):(e.action==='in'?'on duty':'—')}</td></tr>`).join('') : '<tr><td class="tempty" colspan="7">No attendance recorded yet.</td></tr>';
+  // sanitization (Package E)
+  set('adSanPending', SANITIZE.filter(t=>t.status!=='done').length);
+  set('adSanDone', SANITIZE.filter(t=>t.status==='done'&&(t.doneAt||0)>=sms).length);
+  set('adSanTotal', SANITIZE.length);
+  const sb=document.getElementById('adSanBody');
+  if(sb) sb.innerHTML = SANITIZE.length ? SANITIZE.slice().reverse().slice(0,15).map((t,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(t.area)}</b></td><td>${genEsc(t.type||'—')}</td><td>${sanPill(t.status)}</td><td>${genEsc(t.staff||'—')}</td><td>${genEsc(t.doneAt?new Date(t.doneAt).toLocaleString():(t.startedAt?new Date(t.startedAt).toLocaleString():new Date(t.raisedAt||t._ts).toLocaleString()))}</td></tr>`).join('') : '<tr><td class="tempty" colspan="6">No sanitization tasks yet.</td></tr>';
+  // OPD billing + patient mix (Package D)
+  set('adOpdCollected', money(opdCollectedToday()));
+  set('adOpdOutstanding', money(opdOutstanding()));
+  set('adOpdBills', OPD_BILLS.length);
+  set('adInsPat', QUEUE.filter(p=>p.ptype==='Insurance').length);
+  set('adNormPat', QUEUE.filter(p=>p.ptype!=='Insurance').length);
+}
 function renderAdminDash(){
-  const dmap=deptRevenueMap();
-  const modRev=Object.values(dmap).reduce((a,b)=>a+b,0);
-  const incomeExtra=LEDGER.filter(l=>l.type==='Income').reduce((a,l)=>a+Number(l.amount||0),0);
-  const revenue=modRev+incomeExtra;
-  const equip=LEDGER.filter(l=>l.type==='Expense'&&l.category==='Equipment').reduce((a,l)=>a+Number(l.amount||0),0);
-  const expenses=LEDGER.filter(l=>l.type==='Expense').reduce((a,l)=>a+Number(l.amount||0),0);
-  const purchases=LEDGER.filter(l=>l.type==='Expense').length;
+  const win=revenueWindows();
+  const revenue=win.today;            // headline figures are "today"
+  const sMs=sodMs();
+  const expenses=LEDGER.filter(l=>l.type==='Expense'&&tsOf(l)>=sMs).reduce((a,l)=>a+Number(l.amount||0),0);
+  const equip=LEDGER.filter(l=>l.type==='Expense'&&l.category==='Equipment'&&tsOf(l)>=sMs).reduce((a,l)=>a+Number(l.amount||0),0);
+  const purchases=LEDGER.filter(l=>l.type==='Expense'&&tsOf(l)>=sMs).length;
   const occ=BEDS.filter(b=>b.status==='occupied').length, total=BEDS.length;
   const vac=VACANCIES.reduce((a,v)=>a+Number(v.open||0),0);
   const net=revenue-expenses;
@@ -1942,16 +2516,17 @@ function renderAdminDash(){
       <div class="bar inc" style="height:${Math.max(4,inc[i]/max*100)}%" title="Income ${money(inc[i])}"></div>
       <div class="bar exp" style="height:${Math.max(4,exp[i]/max*100)}%" title="Expense ${money(exp[i])}"></div>
     </div><div class="barlbl">${d}</div></div>`).join('');
-  // dept revenue rows
+  // dept revenue rows (today)
   const colorOf=n=>MODULES.find(m=>m.name===n)?.color||'#1f6feb';
-  document.getElementById('adDeptRev').innerHTML=Object.entries(dmap).sort((a,b)=>b[1]-a[1]).map(([n,v])=>
-    `<div class="brow"><span class="bn"><i style="background:${colorOf(n)}"></i>${n}</span><b>${money(v)}</b></div>`).join('')||'<div class="tempty">No revenue recorded yet.</div>';
+  const dToday=deptRevenueToday();
+  document.getElementById('adDeptRev').innerHTML=Object.entries(dToday).sort((a,b)=>b[1]-a[1]).map(([n,v])=>
+    `<div class="brow"><span class="bn"><i style="background:${colorOf(n)}"></i>${n}</span><b>${money(v)}</b></div>`).join('')||'<div class="tempty">No revenue recorded today yet.</div>';
   // live payments feed
   const pays=collectPayments();
   document.getElementById('adPayments').innerHTML = pays.length
     ? pays.slice().reverse().slice(0,20).map((p,i)=>`<tr><td class="sno">${i+1}</td><td><b>${p.src}</b></td><td>${p.who}</td><td><span class="money">${money(p.amount)}</span></td><td><span class="pay">${p.pay}</span></td></tr>`).join('')
     : '<tr><td class="tempty" colspan="5">No payments recorded yet. Amounts entered in any department will appear here.</td></tr>';
-  renderLedger(); renderVac();
+  renderAdminAnalytics(); renderLedger(); renderVac();
 }
 
 /* ---------- admin: income & expense ledger ---------- */
@@ -1969,7 +2544,7 @@ function addLedger(){
   const desc=document.getElementById('ledgerDesc').value.trim();
   const amount=Number(document.getElementById('ledgerAmt').value)||0;
   if(!amount){document.getElementById('ledgerAmt').focus();toast('Enter an amount');return;}
-  LEDGER.push({type,category,desc,amount,date:new Date().toISOString().slice(0,10)}); persist();
+  LEDGER.push({type,category,desc,amount,date:new Date().toISOString().slice(0,10),_ts:Date.now()}); persist();
   document.getElementById('ledgerDesc').value='';document.getElementById('ledgerAmt').value='';document.getElementById('ledgerCat').value='';
   document.getElementById('ledgerCard').classList.add('hidden');
   renderAdminDash(); toast(type+' of '+money(amount)+' added');
@@ -2011,7 +2586,7 @@ function openInNewTab(name){
 /* ---------- module page back routing ---------- */
 function backFromModule(){
   if(moduleReturn==='close'){ window.close(); return; }
-  ['opdPage','ipdPage','genPage'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  ['opdPage','ipdPage','genPage','pharmaPage','shiftPage','sanitizePage','accountsPage'].forEach(id=>document.getElementById(id).classList.add('hidden'));
   if(moduleReturn==='admin'){
     document.getElementById('adminPage').classList.remove('hidden');
     document.querySelector('#adminSeg [data-tab="mods"]').click();
@@ -2022,25 +2597,449 @@ function backFromModule(){
 }
 document.getElementById('genBack').onclick=backFromModule;
 
-/* ===================== LIVE SHARED STATE (cross-tab) ===================== */
+/* ===================== PATIENT ACCOUNTS / MRD (Package F) ===================== */
+let _accQuery='';
+function patientAccount(name){
+  const q=(name||'').trim().toLowerCase(); const items=[];
+  (typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).filter(b=>(b.patient||'').toLowerCase().includes(q)).forEach(b=>items.push({src:'OPD',item:b.type||'Charge',amount:Number(b.amount)||0,status:b.status,pay:b.pay}));
+  (typeof PHARMA_MOVES!=='undefined'?PHARMA_MOVES:[]).filter(x=>x.type==='out'&&(x.who||'').toLowerCase().includes(q)).forEach(x=>{const med=(typeof PHARMACY!=='undefined')?PHARMACY.find(m=>m.id===x.medId):null;items.push({src:'Pharmacy',item:(med?med.name:x.medName)||'Medicine',amount:Number(x.amount)||0,status:'Paid',pay:x.pay});});
+  const billed=items.reduce((a,x)=>a+x.amount,0);
+  const paid=items.filter(x=>x.status==='Paid').reduce((a,x)=>a+x.amount,0);
+  let discharge=null;
+  const md=(typeof MODULE_DEFS!=='undefined')?MODULE_DEFS['MRD']:null;
+  if(md)md.sections.forEach(s=>s.rows.forEach(r=>{ if((r.patient||'').toLowerCase().includes(q)) discharge=r; }));
+  return {items,billed,paid,outstanding:billed-paid,discharge};
+}
+function accountsOverview(){
+  const map={};
+  const add=(k,amt,paid)=>{ if(!k)return; map[k]=map[k]||{billed:0,paid:0}; map[k].billed+=amt; if(paid)map[k].paid+=amt; };
+  (typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).forEach(b=>add(b.patient,Number(b.amount)||0,b.status==='Paid'));
+  (typeof PHARMA_MOVES!=='undefined'?PHARMA_MOVES:[]).filter(x=>x.type==='out'&&x.who).forEach(x=>add(x.who,Number(x.amount)||0,true));
+  return Object.entries(map).map(([name,v])=>({name,billed:v.billed,paid:v.paid,outstanding:v.billed-v.paid})).sort((a,b)=>b.outstanding-a.outstanding);
+}
+function openAccounts(){
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('adminPage').classList.add('hidden');
+  document.getElementById('accountsPage').classList.remove('hidden');
+  document.getElementById('accBackLbl').textContent = moduleReturn==='close'?'Close tab':(moduleReturn==='admin'?'Admin':'Modules');
+  renderAccounts(); window.scrollTo(0,0);
+}
+document.getElementById('accBack').onclick=()=>backFromModule();
+document.getElementById('accSearch').addEventListener('input',function(){ _accQuery=this.value; renderAccountsBody(); });
+function renderAccounts(){
+  const all=accountsOverview();
+  const totalOut=all.reduce((a,x)=>a+x.outstanding,0), totalPaid=all.reduce((a,x)=>a+x.paid,0);
+  document.getElementById('accStats').innerHTML=
+    `<div class="mstat"><b>${all.length}</b><span>Patients</span></div>`+
+    `<div class="mstat"><b>${money(totalPaid)}</b><span>Collected</span></div>`+
+    `<div class="mstat"><b>${money(totalOut)}</b><span>Outstanding</span></div>`;
+  renderAccountsBody();
+}
+function renderAccountsBody(){
+  const body=document.getElementById('accBody'); if(!body)return;
+  const q=_accQuery.trim();
+  if(!q){
+    const all=accountsOverview();
+    body.innerHTML = `<div class="sec-head"><div><h3>All patient accounts</h3><p>Search above for a full statement · sorted by outstanding</p></div></div>
+      <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Billed</th><th>Paid</th><th>Outstanding</th></tr></thead><tbody>${
+        all.length ? all.map((p,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(p.name)}</b></td><td>${money(p.billed)}</td><td>${money(p.paid)}</td><td>${p.outstanding>0?`<span class="pill r">${money(p.outstanding)}</span>`:'<span class="pill g">Settled</span>'}</td></tr>`).join('')
+          : '<tr><td class="tempty" colspan="5">No patient bills yet. Bills entered in OPD and Pharmacy appear here.</td></tr>'
+      }</tbody></table></div>`;
+    return;
+  }
+  const acc=patientAccount(q), d=acc.discharge;
+  const itemsHtml = acc.items.length ? acc.items.map((x,i)=>`<tr><td class="sno">${i+1}</td><td>${genEsc(x.src)}</td><td>${genEsc(x.item)}</td><td>${money(x.amount)}</td><td>${x.status==='Paid'?'<span class="pill g">Paid</span>':'<span class="pill r">Unpaid</span>'}</td></tr>`).join('') : '<tr><td class="tempty" colspan="5">No bills found for this patient.</td></tr>';
+  body.innerHTML=`
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="kbig"><div class="kt">Total billed</div><b>${money(acc.billed)}</b></div>
+      <div class="kbig"><div class="kt">Paid</div><b>${money(acc.paid)}</b></div>
+      <div class="kbig"><div class="kt">Outstanding</div><b>${money(acc.outstanding)}</b></div>
+    </div>
+    ${d?`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>Discharge summary</h3><p class="psub">${genEsc(d.dept||'')}${d.doctor?(' · '+genEsc(d.doctor)):''}${d.date?(' · '+genEsc(d.date)):''}</p><div style="font-size:14px;line-height:1.6">${genEsc(d.summary||d.status||'—')}</div></div>`:''}
+    <div class="sec-head"><div><h3>Statement — ${genEsc(q)}</h3><p>${acc.items.length} item(s) · OPD + pharmacy</p></div>
+      <button class="btn sm" id="accPrint" style="width:auto;padding:10px 15px">Print statement</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Source</th><th>Item</th><th>Amount</th><th>Status</th></tr></thead><tbody>${itemsHtml}</tbody></table></div>`;
+  const pb=document.getElementById('accPrint'); if(pb)pb.onclick=()=>printAccountStatement(q);
+}
+function printAccountStatement(name){
+  const acc=patientAccount(name);
+  const w=window.open('','_blank'); if(!w){toast('Allow pop-ups to print');return;}
+  const esc=c=>(c==null?'':String(c)).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const rows=acc.items.map(x=>`<tr><td>${esc(x.src)}</td><td>${esc(x.item)}</td><td style="text-align:right">₹${esc(Number(x.amount||0).toLocaleString('en-IN'))}</td><td>${esc(x.status)}</td></tr>`).join('');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Statement ${esc(name)}</title>
+  <style>body{font-family:Segoe UI,Arial,sans-serif;color:#0f2033;padding:28px;max-width:520px;margin:0 auto}
+  h2{color:#1f6feb;margin:0 0 2px}.sub{color:#5b6b7f;font-size:12px;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}th,td{padding:7px 8px;border-bottom:1px solid #e4ebf3;text-align:left}
+  th{background:#f0f4f9;text-transform:uppercase;font-size:10px;letter-spacing:.4px;color:#5b6b7f}
+  .tot{display:flex;justify-content:space-between;padding:8px 0;font-size:13.5px}.tot.big{font-weight:800;font-size:15px;border-top:2px solid #1f6feb;margin-top:6px;padding-top:8px}
+  .ds{background:#f7fafd;border:1px solid #e4ebf3;border-radius:10px;padding:12px 14px;margin:14px 0;font-size:13px;line-height:1.6}
+  .ft{margin-top:16px;color:#93a2b5;font-size:11px;text-align:center}</style></head><body>
+  <h2>MediCore Hospital</h2><div class="sub">Patient account statement · ${esc(name)} · ${new Date().toLocaleDateString()}</div>
+  ${acc.discharge?`<div class="ds"><b>Discharge summary:</b> ${esc(acc.discharge.summary||acc.discharge.status||'—')}</div>`:''}
+  <table><thead><tr><th>Source</th><th>Item</th><th style="text-align:right">Amount</th><th>Status</th></tr></thead><tbody>${rows||'<tr><td colspan="4">No items.</td></tr>'}</tbody></table>
+  <div style="margin-top:14px"><div class="tot"><span>Total billed</span><span>₹${esc(Number(acc.billed).toLocaleString('en-IN'))}</span></div>
+  <div class="tot"><span>Paid</span><span>₹${esc(Number(acc.paid).toLocaleString('en-IN'))}</span></div>
+  <div class="tot big"><span>Outstanding</span><span>₹${esc(Number(acc.outstanding).toLocaleString('en-IN'))}</span></div></div>
+  <div class="ft">MediCore HMS · Confidential</div>
+  <script>window.onload=function(){setTimeout(function(){window.print();},250);}<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
+/* ===================== SANITIZATION MODULE (Package E) ===================== */
+let SANITIZE=[];  // {id, area, type, staff, note, status:'pending'|'progress'|'done', raisedAt, startedAt, doneAt, _ts}
+function sanPill(s){ return s==='done'?'<span class="pill g">Cleaned</span>':s==='progress'?'<span class="pill b">In progress</span>':'<span class="pill a">Pending</span>'; }
+function openSanitize(){
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('adminPage').classList.add('hidden');
+  document.getElementById('sanitizePage').classList.remove('hidden');
+  document.getElementById('sanBackLbl').textContent = moduleReturn==='close'?'Close tab':(moduleReturn==='admin'?'Admin':'Modules');
+  renderSanitize(); window.scrollTo(0,0);
+}
+document.getElementById('sanBack').onclick=()=>backFromModule();
+function renderSanitize(){
+  const pend=SANITIZE.filter(t=>t.status==='pending').length;
+  const prog=SANITIZE.filter(t=>t.status==='progress').length;
+  const doneToday=SANITIZE.filter(t=>t.status==='done'&&(t.doneAt||0)>=sodMs()).length;
+  document.getElementById('sanStats').innerHTML=
+    `<div class="mstat"><b>${pend}</b><span>Pending</span></div>`+
+    `<div class="mstat"><b>${prog}</b><span>In progress</span></div>`+
+    `<div class="mstat"><b>${doneToday}</b><span>Cleaned today</span></div>`;
+  const awaiting=SANITIZE.filter(t=>t.status!=='done');
+  document.getElementById('sanAlert').innerHTML = awaiting.length
+    ? `<div class="ph-alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><div>${awaiting.length} area(s) awaiting sanitization: ${awaiting.map(t=>genEsc(t.area)).join(', ')}</div></div>`
+    : '';
+  const rows = SANITIZE.length ? SANITIZE.slice().reverse().map((t,i)=>{
+    const act = t.status==='pending' ? `<button class="btn ghost tiny" data-san-start="${t.id}" style="width:auto;padding:7px 11px">Start</button> <button class="btn ghost tiny" data-san-done="${t.id}" style="width:auto;padding:7px 11px;color:#16a34a;border-color:#bfe6c9">Mark cleaned</button>`
+      : t.status==='progress' ? `<button class="btn ghost tiny" data-san-done="${t.id}" style="width:auto;padding:7px 11px;color:#16a34a;border-color:#bfe6c9">Mark cleaned</button>`
+      : `<span style="color:var(--muted);font-size:12px">${t.doneAt?new Date(t.doneAt).toLocaleString():''}</span>`;
+    return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(t.area)}</b></td><td>${genEsc(t.type||'—')}</td><td>${genEsc(t.staff||'—')}</td><td>${sanPill(t.status)}</td><td>${act}</td></tr>`;
+  }).join('') : `<tr><td class="tempty" colspan="6">No sanitization tasks yet. Raise one after a discharge, OT or ICU use.</td></tr>`;
+  document.getElementById('sanBody').innerHTML=`
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>Raise sanitization task</h3>
+      <p class="psub">After a discharge, operation-theatre use or ICU use — log the area, then mark it cleaned once done.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Area / bed / room</label><input id="sanArea" placeholder="e.g. GEN-01 / OT-1 / ICU-2"></div>
+        <div class="fld"><label>Trigger</label><select id="sanType"><option>Post-discharge</option><option>Post-operation (OT)</option><option>ICU</option><option>Routine</option></select></div>
+        <div class="fld"><label>Assigned to</label><input id="sanStaff" placeholder="Housekeeping staff"></div>
+        <div class="fld" style="grid-column:1/-1"><label>Note (optional)</label><input id="sanNote" placeholder="e.g. deep clean, change linen"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="sanSave" style="width:auto;padding:12px 22px">Raise task</button></div>
+    </div>
+    <div class="sec-head"><div><h3>Sanitization tasks</h3><p>${SANITIZE.length} task${SANITIZE.length===1?'':'s'} · pending, in progress &amp; cleaned</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Area</th><th>Trigger</th><th>Assigned</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('sanSave').onclick=addSanitize;
+  document.getElementById('sanBody').querySelectorAll('[data-san-start]').forEach(b=>b.onclick=()=>sanSet(b.dataset.sanStart,'progress'));
+  document.getElementById('sanBody').querySelectorAll('[data-san-done]').forEach(b=>b.onclick=()=>sanSet(b.dataset.sanDone,'done'));
+}
+function addSanitize(){
+  const area=document.getElementById('sanArea').value.trim();
+  if(!area){document.getElementById('sanArea').focus();toast('Enter the area / bed / room');return;}
+  SANITIZE.push({ id:'SN'+Date.now().toString(36), area, type:document.getElementById('sanType').value,
+    staff:document.getElementById('sanStaff').value.trim(), note:document.getElementById('sanNote').value.trim(),
+    status:'pending', raisedAt:Date.now(), _ts:Date.now() });
+  persist(); renderSanitize(); toast(`Sanitization raised for ${area}`);
+}
+function sanSet(id,status){
+  const t=SANITIZE.find(x=>x.id===id); if(!t)return;
+  t.status=status;
+  if(status==='progress') t.startedAt=Date.now();
+  if(status==='done') t.doneAt=Date.now();
+  persist(); renderSanitize();
+  toast(status==='done'?`${t.area} marked cleaned`:`${t.area} — cleaning started`);
+}
+
+/* ===================== SHIFT MANAGEMENT (Package B) ===================== */
+let SHIFTS=[];   // attendance events: {id, staff, role, dept, action:'in'|'out'|'leave', reason, _ts, date, time}
+function shiftStaffLatest(){
+  const map={};
+  SHIFTS.forEach(e=>{ const k=(e.staff||'').toLowerCase(); if(!k)return; if(!map[k]||e._ts>=map[k]._ts) map[k]=e; });
+  return map;
+}
+function shiftOnDuty(){ return Object.values(shiftStaffLatest()).filter(e=>e.action==='in'); }
+function shiftLastOpenIn(staff){
+  const evs=SHIFTS.filter(e=>(e.staff||'').toLowerCase()===staff.toLowerCase()).sort((a,b)=>a._ts-b._ts);
+  let open=null; evs.forEach(e=>{ open = e.action==='in' ? e : null; }); return open;
+}
+function shiftActionPill(a){ return a==='in'?'<span class="pill g">Clock in</span>':a==='out'?'<span class="pill b">Clock out</span>':'<span class="pill a">Leave</span>'; }
+function openShift(){
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('adminPage').classList.add('hidden');
+  document.getElementById('shiftPage').classList.remove('hidden');
+  document.getElementById('shiftBackLbl').textContent = moduleReturn==='close'?'Close tab':(moduleReturn==='admin'?'Admin':'Modules');
+  renderShift(); window.scrollTo(0,0);
+}
+document.getElementById('shiftBack').onclick=()=>backFromModule();
+function renderShift(){
+  const onDuty=shiftOnDuty(), s=sodMs();
+  const insToday=SHIFTS.filter(e=>e.action==='in'&&tsOf(e)>=s).length;
+  const leaveToday=SHIFTS.filter(e=>e.action==='leave'&&tsOf(e)>=s).length;
+  document.getElementById('shiftStats').innerHTML=
+    `<div class="mstat"><b>${onDuty.length}</b><span>On duty</span></div>`+
+    `<div class="mstat"><b>${insToday}</b><span>Clock-ins</span></div>`+
+    `<div class="mstat"><b>${leaveToday}</b><span>On leave</span></div>`;
+  const dutyHtml = onDuty.length ? onDuty.sort((a,b)=>b._ts-a._ts).map(e=>`<div class="brow"><span class="bn"><i style="background:#16a34a"></i>${genEsc(e.staff)} <span style="color:var(--muted);font-weight:600;font-size:11.5px">· ${genEsc(e.role||'')}${e.dept?(' · '+genEsc(e.dept)):''}</span></span><b>since ${genEsc(e.time||'')}</b></div>`).join('') : '<div class="tempty">No one is clocked in right now.</div>';
+  const log = SHIFTS.length ? SHIFTS.slice().reverse().map((e,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(e.staff)}</b></td><td>${genEsc(e.role||'—')}</td><td>${genEsc(e.dept||'—')}</td><td>${shiftActionPill(e.action)}</td><td>${genEsc(e.time||'')} · ${genEsc(e.date||'')}</td><td>${e.durationMs?fmtMins(e.durationMs):(e.action==='in'?'on duty':(e.reason?genEsc(e.reason):'—'))}</td></tr>`).join('') : '<tr><td class="tempty" colspan="7">No attendance recorded yet.</td></tr>';
+  document.getElementById('shiftBody').innerHTML=`
+    <div class="dash-2" style="margin-bottom:16px">
+      <div class="panel" style="max-width:none">
+        <h3>Record attendance</h3>
+        <p class="psub">Doctors &amp; nurses clock in / out and apply leave. Times are stamped automatically.</p>
+        <div class="addgrid">
+          <div class="fld"><label>Staff name</label><input id="shName" placeholder="e.g. Dr. A. Sharma"></div>
+          <div class="fld"><label>Role</label><select id="shRole"><option>Doctor</option><option>Nurse</option><option>Technician</option><option>Reception</option><option>Other</option></select></div>
+          <div class="fld"><label>Department</label><input id="shDept" placeholder="e.g. Cardiology"></div>
+          <div class="fld"><label>Action</label><select id="shAction"><option value="in">Clock in</option><option value="out">Clock out</option><option value="leave">Leave</option></select></div>
+          <div class="fld" style="grid-column:1/-1"><label>Reason (for leave)</label><input id="shReason" placeholder="Optional — e.g. sick leave"></div>
+        </div>
+        <div class="form-actions"><button class="btn" id="shSave" style="width:auto;padding:12px 22px">Save entry</button></div>
+      </div>
+      <div class="breakdown">
+        <h3>Currently on duty</h3>
+        <p class="psub" style="margin:2px 0 12px">Live — staff who have clocked in</p>
+        ${dutyHtml}
+      </div>
+    </div>
+    <div class="sec-head"><div><h3>Attendance log</h3><p>${SHIFTS.length} entr${SHIFTS.length===1?'y':'ies'} · login, logout &amp; leave with timings</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Staff</th><th>Role</th><th>Dept</th><th>Action</th><th>Time</th><th>Duration / reason</th></tr></thead><tbody>${log}</tbody></table></div>`;
+  document.getElementById('shSave').onclick=addShift;
+}
+function addShift(){
+  const staff=document.getElementById('shName').value.trim();
+  if(!staff){document.getElementById('shName').focus();toast('Enter staff name');return;}
+  const action=document.getElementById('shAction').value;
+  const now=new Date();
+  const ev={ id:'SH'+Date.now().toString(36), staff,
+    role:document.getElementById('shRole').value,
+    dept:document.getElementById('shDept').value.trim(),
+    action, reason:(action==='leave'?document.getElementById('shReason').value.trim():''),
+    _ts:Date.now(), date:now.toISOString().slice(0,10),
+    time:now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) };
+  if(action==='out'){ const oi=shiftLastOpenIn(staff); if(oi) ev.durationMs=Date.now()-oi._ts; }
+  SHIFTS.push(ev); persist(); renderShift();
+  toast(action==='in'?`${staff} clocked in`:action==='out'?`${staff} clocked out`:`${staff} — leave recorded`);
+}
+
+/* ===================== PHARMACY MODULE (Package C) ===================== */
+let PHARMACY=[];        // medicines master with current stock
+let PHARMA_MOVES=[];    // stock in/out movements
+let pharmaTab='stock';
+function phStock(m){ return Number(m.stock)||0; }
+function phExpired(m){ return m.expiry && m.expiry < today; }
+function phExpiringSoon(m){ if(!m.expiry)return false; const days=(Date.parse(m.expiry)-Date.now())/86400000; return days>=0 && days<=30; }
+function phLow(m){ return phStock(m) <= (Number(m.need)||0); }
+function phSpentToday(){ const s=sodMs(); return PHARMA_MOVES.filter(x=>x.type==='in'&&tsOf(x)>=s).reduce((a,x)=>a+(Number(x.amount)||0),0); }
+function phEarnedToday(){ const s=sodMs(); return PHARMA_MOVES.filter(x=>x.type==='out'&&tsOf(x)>=s).reduce((a,x)=>a+(Number(x.amount)||0),0); }
+function phStockValue(){ return PHARMACY.reduce((a,m)=>a+phStock(m)*(Number(m.price)||0),0); }
+
+function openPharmacy(){
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('adminPage').classList.add('hidden');
+  document.getElementById('pharmaPage').classList.remove('hidden');
+  document.getElementById('pharmaBackLbl').textContent = moduleReturn==='close'?'Close tab':(moduleReturn==='admin'?'Admin':'Modules');
+  pharmaTab='stock';
+  document.querySelectorAll('#pharmaSeg button').forEach(x=>x.classList.toggle('active',x.dataset.ptab==='stock'));
+  renderPharma(); window.scrollTo(0,0);
+}
+document.getElementById('pharmaBack').onclick=()=>backFromModule();
+document.getElementById('pharmaSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  document.querySelectorAll('#pharmaSeg button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); pharmaTab=b.dataset.ptab; renderPharma();
+});
+function renderPharma(){
+  const low=PHARMACY.filter(phLow).length, exp=PHARMACY.filter(phExpired).length;
+  document.getElementById('pharmaStats').innerHTML=
+    `<div class="mstat"><b>${PHARMACY.length}</b><span>Medicines</span></div>`+
+    `<div class="mstat"><b>${low}</b><span>Low stock</span></div>`+
+    `<div class="mstat"><b>${money(phEarnedToday())}</b><span>Earned today</span></div>`;
+  const alerts=[];
+  PHARMACY.filter(phLow).forEach(m=>alerts.push(`<b>${genEsc(m.name)}</b> is in limited stock (${phStock(m)} left) — recharge the stock`));
+  PHARMACY.filter(phExpired).forEach(m=>alerts.push(`<b>${genEsc(m.name)}</b> (batch ${genEsc(m.batch||'—')}) has expired — remove from shelf`));
+  const alertEl=document.getElementById('pharmaAlert');
+  alertEl.innerHTML = alerts.length
+    ? `<div class="ph-alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><div>${alerts.join('<br>')}</div></div>`
+    : '';
+  if(pharmaTab==='stock') renderPharmaStock(); else renderPharmaMoves();
+}
+function renderPharmaStock(){
+  const body=document.getElementById('pharmaBody');
+  const rows = PHARMACY.length ? PHARMACY.map((m,i)=>{
+    const st=phStock(m);
+    const status = phExpired(m)?'<span class="pill r">Expired</span>' : phExpiringSoon(m)?'<span class="pill a">Expiring</span>' : phLow(m)?'<span class="pill a">Low</span>':'<span class="pill g">OK</span>';
+    return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(m.name)}</b></td><td>Rack ${genEsc(m.rack||'—')} · Box ${genEsc(m.box||'—')}</td><td><b>${st}</b></td><td>${genEsc(String(m.need||0))}</td><td>${genEsc(m.expiry||'—')}</td><td>${money(m.price||0)}</td><td>${status}</td></tr>`;
+  }).join('') : `<tr><td class="tempty" colspan="8">No medicines yet. Click “Add medicine”.</td></tr>`;
+  body.innerHTML = `
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kbig"><div class="kt">Spent today</div><b>${money(phSpentToday())}</b><div class="ks">purchases</div></div>
+      <div class="kbig"><div class="kt">Earned today</div><b>${money(phEarnedToday())}</b><div class="ks">dispensed</div></div>
+      <div class="kbig"><div class="kt">Stock value</div><b>${money(phStockValue())}</b><div class="ks">at selling price</div></div>
+      <div class="kbig"><div class="kt">Low / expired</div><b>${PHARMACY.filter(phLow).length} / ${PHARMACY.filter(phExpired).length}</b><div class="ks">need attention</div></div>
+    </div>
+    <div class="sec-head"><div><h3>Medicine inventory</h3><p>${PHARMACY.length} medicine${PHARMACY.length===1?'':'s'} · rack/box location &amp; expiry</p></div>
+      <button class="btn sm" id="phAddBtn" style="width:auto;padding:10px 15px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M12 5v14M5 12h14"/></svg>Add medicine</button></div>
+    <div class="addcard hidden" id="phAddCard">
+      <h4>Add medicine</h4>
+      <div class="addgrid">
+        <div class="fld"><label>Medicine name</label><input id="phName" placeholder="e.g. Paracetamol 650mg"></div>
+        <div class="fld"><label>Batch</label><input id="phBatch" placeholder="e.g. B1234"></div>
+        <div class="fld"><label>Rack</label><input id="phRack" placeholder="e.g. A3"></div>
+        <div class="fld"><label>Box</label><input id="phBox" placeholder="e.g. 12"></div>
+        <div class="fld"><label>Opening stock</label><input id="phStockIn" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Reorder level</label><input id="phNeed" type="number" min="0" placeholder="10"></div>
+        <div class="fld"><label>Selling price / unit (₹)</label><input id="phPrice" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Expiry date</label><input id="phExpiry" type="date"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="phSave" style="width:auto;padding:12px 20px">Save medicine</button><button class="btn ghost" id="phCancel" style="width:auto;padding:12px 20px">Cancel</button></div>
+    </div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Medicine</th><th>Location</th><th>In stock</th><th>Reorder</th><th>Expiry</th><th>Price</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('phAddBtn').onclick=()=>document.getElementById('phAddCard').classList.toggle('hidden');
+  document.getElementById('phCancel').onclick=()=>document.getElementById('phAddCard').classList.add('hidden');
+  document.getElementById('phSave').onclick=addMedicine;
+}
+function addMedicine(){
+  const name=document.getElementById('phName').value.trim();
+  if(!name){document.getElementById('phName').focus();toast('Enter medicine name');return;}
+  const m={ id:'M'+Date.now().toString(36), name,
+    batch:document.getElementById('phBatch').value.trim(),
+    rack:document.getElementById('phRack').value.trim(),
+    box:document.getElementById('phBox').value.trim(),
+    stock:Number(document.getElementById('phStockIn').value)||0,
+    need:Number(document.getElementById('phNeed').value)||0,
+    price:Number(document.getElementById('phPrice').value)||0,
+    expiry:document.getElementById('phExpiry').value||'',
+    _ts:Date.now() };
+  PHARMACY.push(m); persist(); renderPharma();
+  toast(`${name} added to inventory`);
+  if(phLow(m)) toast('Stock is in limited mode — recharge the stock');
+}
+function renderPharmaMoves(){
+  const body=document.getElementById('pharmaBody');
+  const opts=PHARMACY.map(m=>`<option value="${m.id}">${genEsc(m.name)} (stock ${phStock(m)})</option>`).join('');
+  const rows=PHARMA_MOVES.length ? PHARMA_MOVES.slice().reverse().map((x,i)=>{
+    const med=PHARMACY.find(m=>m.id===x.medId);
+    return `<tr><td class="sno">${i+1}</td><td><span class="pill ${x.type==='in'?'b':'g'}">${x.type==='in'?'Stock in':'Dispense'}</span></td><td>${genEsc(med?med.name:(x.medName||'—'))}</td><td>${x.qty}</td><td>${money(x.amount||0)}</td><td>${x.type==='out'?`<span class="pay">${genEsc(x.pay||'—')}</span>`:'—'}</td><td>${genEsc(x.who||'—')}</td><td>${genEsc(x.date||'')}</td><td>${x.type==='out'?`<button class="btn ghost tiny" data-receipt="${x.id}" style="width:auto;padding:7px 11px">Receipt</button>`:'—'}</td></tr>`;
+  }).join('') : `<tr><td class="tempty" colspan="9">No stock movements yet. Record a purchase or dispense.</td></tr>`;
+  body.innerHTML=`
+    <div class="sec-head"><div><h3>Stock in / out</h3><p>Record purchases (stock in) and dispensing (stock out) — stock updates automatically</p></div>
+      <button class="btn sm" id="phMoveBtn" style="width:auto;padding:10px 15px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M12 5v14M5 12h14"/></svg>New entry</button></div>
+    <div class="addcard hidden" id="phMoveCard">
+      <h4>Record stock movement</h4>
+      <div class="addgrid">
+        <div class="fld"><label>Type</label><select id="mvType"><option value="out">Dispense (stock out)</option><option value="in">Purchase (stock in)</option></select></div>
+        <div class="fld"><label>Medicine</label><select id="mvMed">${opts||'<option value="">— add a medicine first —</option>'}</select></div>
+        <div class="fld"><label>Quantity</label><input id="mvQty" type="number" min="1" placeholder="1"></div>
+        <div class="fld"><label>Amount (₹)</label><input id="mvAmt" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Payment mode</label><select id="mvPay">${PAYS.map(o=>`<option>${o}</option>`).join('')}</select></div>
+        <div class="fld"><label>Patient / supplier</label><input id="mvWho" placeholder="Name"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="mvSave" style="width:auto;padding:12px 20px">Save</button><button class="btn ghost" id="mvCancel" style="width:auto;padding:12px 20px">Cancel</button></div>
+    </div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Type</th><th>Medicine</th><th>Qty</th><th>Amount</th><th>Mode</th><th>Party</th><th>Date</th><th>Receipt</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('phMoveBtn').onclick=()=>document.getElementById('phMoveCard').classList.toggle('hidden');
+  document.getElementById('mvCancel').onclick=()=>document.getElementById('phMoveCard').classList.add('hidden');
+  document.getElementById('mvSave').onclick=addMove;
+  body.querySelectorAll('[data-receipt]').forEach(b=>b.onclick=()=>printPharmaReceipt(b.dataset.receipt));
+}
+function addMove(){
+  const medId=document.getElementById('mvMed').value;
+  const med=PHARMACY.find(m=>m.id===medId);
+  if(!med){toast('Add a medicine first');return;}
+  const type=document.getElementById('mvType').value;
+  const qty=Number(document.getElementById('mvQty').value)||0;
+  if(qty<=0){document.getElementById('mvQty').focus();toast('Enter quantity');return;}
+  const amount=Number(document.getElementById('mvAmt').value)||0;
+  if(type==='out' && qty>phStock(med)){ toast(`Only ${phStock(med)} in stock`); return; }
+  const mv={ id:'MV'+Date.now().toString(36), medId, medName:med.name, type, qty, amount,
+    pay:document.getElementById('mvPay').value, who:document.getElementById('mvWho').value.trim(),
+    date:new Date().toISOString().slice(0,10), _ts:Date.now() };
+  med.stock = phStock(med) + (type==='in'?qty:-qty);
+  PHARMA_MOVES.push(mv); persist(); renderPharma();
+  toast(type==='in'?`Stock added: ${med.name}`:`Dispensed ${qty} × ${med.name}`);
+  if(phLow(med)) toast(`${med.name}: stock is in limited mode — recharge the stock`);
+}
+function printPharmaReceipt(id){
+  const x=PHARMA_MOVES.find(m=>m.id===id); if(!x)return;
+  const med=PHARMACY.find(m=>m.id===x.medId);
+  const w=window.open('','_blank'); if(!w){toast('Allow pop-ups to print the receipt');return;}
+  const esc=c=>(c==null?'':String(c)).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Receipt ${esc(x.id)}</title>
+  <style>body{font-family:Segoe UI,Arial,sans-serif;color:#0f2033;padding:26px;max-width:360px;margin:0 auto}
+  h2{color:#0d9488;margin:0 0 2px} .sub{color:#5b6b7f;font-size:12px;margin-bottom:12px}
+  .r{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #ddd;font-size:13px}
+  .tot{font-weight:800;font-size:15px;border-top:2px solid #0d9488;margin-top:8px;padding-top:8px}
+  .ft{margin-top:16px;color:#93a2b5;font-size:11px;text-align:center}</style></head><body>
+  <h2>MediCore Pharmacy</h2><div class="sub">Receipt · ${esc(x.date)}</div>
+  <div class="r"><span>Receipt No</span><b>${esc(x.id)}</b></div>
+  <div class="r"><span>Medicine</span><b>${esc(med?med.name:x.medName)||'—'}</b></div>
+  <div class="r"><span>Quantity</span><b>${esc(x.qty)}</b></div>
+  <div class="r"><span>Payment</span><b>${esc(x.pay||'—')}</b></div>
+  <div class="r"><span>Party</span><b>${esc(x.who||'—')}</b></div>
+  <div class="r tot"><span>Amount</span><b>₹${esc(Number(x.amount||0).toLocaleString('en-IN'))}</b></div>
+  <div class="ft">Thank you · MediCore HMS</div>
+  <script>window.onload=function(){setTimeout(function(){window.print();},250);}<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
+/* ===================== CLOUD SYNC (Render backend + PostgreSQL) =====================
+   This page is served by its own Node/Express backend which stores all data in a
+   Render PostgreSQL database. The frontend talks to it at /api/state (same origin,
+   no keys needed). If the backend is unreachable (e.g. opened as a local file),
+   it automatically falls back to browser-only storage.                              */
+const API_STATE='/api/state';
+const CLOUD=true;
+let _cloudTimer=null, _cloudBusy=false, _online=null;
+/* show whether this device is actually reaching the server (cross-device sync) */
+function setSync(on){
+  if(_online===on)return; _online=on;
+  const el=document.getElementById('syncBadge'); if(!el)return;
+  el.className='syncbadge '+(on?'on':'off');
+  const t=el.querySelector('.sb-txt'); if(t)t.textContent = on?'Live sync on':'Offline — local only';
+}
+function cloudPush(){
+  clearTimeout(_cloudTimer);
+  _cloudTimer=setTimeout(()=>{
+    fetch(API_STATE,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:buildStateObject()})})
+      .then(r=>{ setSync(r.ok); return r.ok?r.json():null; })
+      .then(j=>{ // adopt the server's authoritative version so every client converges
+        if(j&&typeof j.version==='number'){
+          _stateV=j.version;
+          try{const o=JSON.parse(localStorage.getItem(LS_KEY)||'{}');o._v=_stateV;localStorage.setItem(LS_KEY,JSON.stringify(o));}catch(e){}
+        }
+      })
+      .catch(()=>{ setSync(false); });
+  },400);
+}
+function cloudPull(){
+  return fetch(API_STATE,{cache:'no-store'})
+    .then(r=>{ setSync(r.ok); return r.ok?r.json():null; })
+    .then(j=>(j&&j.data)?j.data:null)
+    .catch(()=>{ setSync(false); return null; });
+}
+
+/* ===================== LIVE SHARED STATE ===================== */
 const LS_KEY='medicore_hms_state';
 let _suppressPersist=false;
 let _stateV=0;
+function buildStateObject(){
+  const rows={};
+  Object.keys(MODULE_DEFS).forEach(n=>{rows[n]=MODULE_DEFS[n].sections.map(s=>s.rows);});
+  return {_v:_stateV,rows,QUEUE,TOKEN,BEDS,WARDS,LEDGER,VACANCIES,MODCREDS,ADMIN_CRED,PHARMACY,PHARMA_MOVES,SHIFTS,SANITIZE,OPD_BILLS,
+    MODULES:MODULES.map(m=>({name:m.name,desc:m.desc,icon:m.icon,color:m.color,count:m.count}))};
+}
 function persist(){
   if(_suppressPersist)return;
   try{
-    const rows={};
-    Object.keys(MODULE_DEFS).forEach(n=>{rows[n]=MODULE_DEFS[n].sections.map(s=>s.rows);});
     _stateV=Date.now();
-    const data={_v:_stateV,rows,QUEUE,TOKEN,BEDS,WARDS,LEDGER,VACANCIES,MODCREDS,ADMIN_CRED,
-      MODULES:MODULES.map(m=>({name:m.name,desc:m.desc,icon:m.icon,color:m.color,count:m.count}))};
-    localStorage.setItem(LS_KEY,JSON.stringify(data));
+    localStorage.setItem(LS_KEY,JSON.stringify(buildStateObject()));
+    cloudPush();
   }catch(e){}
 }
-function loadState(){
+function applyState(d){
+  if(!d)return false;
   try{
-    const raw=localStorage.getItem(LS_KEY); if(!raw)return false;
-    const d=JSON.parse(raw);
     if(d.rows)Object.keys(d.rows).forEach(n=>{if(MODULE_DEFS[n])d.rows[n].forEach((r,i)=>{if(MODULE_DEFS[n].sections[i])MODULE_DEFS[n].sections[i].rows=r;});});
     if(Array.isArray(d.QUEUE))QUEUE=d.QUEUE;
     if(typeof d.TOKEN==='number')TOKEN=d.TOKEN;
@@ -2048,22 +3047,53 @@ function loadState(){
     if(Array.isArray(d.WARDS))WARDS=d.WARDS;
     if(Array.isArray(d.LEDGER))LEDGER=d.LEDGER;
     if(Array.isArray(d.VACANCIES))VACANCIES=d.VACANCIES;
+    if(Array.isArray(d.PHARMACY))PHARMACY=d.PHARMACY;
+    if(Array.isArray(d.PHARMA_MOVES))PHARMA_MOVES=d.PHARMA_MOVES;
+    if(Array.isArray(d.SHIFTS))SHIFTS=d.SHIFTS;
+    if(Array.isArray(d.SANITIZE))SANITIZE=d.SANITIZE;
+    if(Array.isArray(d.OPD_BILLS))OPD_BILLS=d.OPD_BILLS;
     if(d.MODCREDS)Object.keys(d.MODCREDS).forEach(k=>MODCREDS[k]=d.MODCREDS[k]);
     if(d.ADMIN_CRED){ADMIN_CRED.user=d.ADMIN_CRED.user;ADMIN_CRED.pass=d.ADMIN_CRED.pass;}
     if(Array.isArray(d.MODULES))d.MODULES.forEach(m=>{if(!MODULES.find(x=>x.name===m.name))MODULES.push(m);});
     if(typeof d._v==='number')_stateV=d._v;
+    ensureCreds();
     return true;
   }catch(e){return false;}
 }
-/* poll shared storage so updates land within ~1.5s even if storage events don't fire */
+function loadState(){
+  try{ const raw=localStorage.getItem(LS_KEY); if(!raw)return false; return applyState(JSON.parse(raw)); }
+  catch(e){return false;}
+}
+/* pull latest from the cloud and apply if newer (cross-device) */
+function cloudSync(){
+  if(!CLOUD)return;
+  cloudPull().then(d=>{
+    if(!d)return;
+    const rv=d._v||0;
+    if(rv>_stateV){ applyState(d); try{localStorage.setItem(LS_KEY,JSON.stringify(d));}catch(e){} refreshView(); }
+    else if(rv<_stateV){ cloudPush(); }   // our data is newer -> push it up
+  });
+}
+/* poll local storage (same browser, ~1.5s) + the cloud (all devices, ~4s) */
 function pollState(){
   try{
     const raw=localStorage.getItem(LS_KEY); if(!raw)return;
     const d=JSON.parse(raw);
-    if(typeof d._v==='number' && d._v!==_stateV){ loadState(); refreshView(); }
+    if(typeof d._v==='number' && d._v!==_stateV){ applyState(d); refreshView(); }
   }catch(e){}
 }
 setInterval(pollState,1500);
+setInterval(cloudSync,2500);
+/* pull the latest immediately when this device/tab regains focus, so it never shows stale data */
+window.addEventListener('focus',cloudSync);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) cloudSync(); });
+/* sync-status badge: shows if this device is reaching the server; tap to force a sync */
+(function initSyncBadge(){
+  const el=document.getElementById('syncBadge'); if(!el)return;
+  el.onclick=()=>{ cloudSync(); toast('Syncing with server…'); };
+  if(CLOUD){ fetch(API_STATE,{cache:'no-store'}).then(r=>setSync(r.ok)).catch(()=>setSync(false)); }
+  else setSync(false);
+})();
 /* re-render whatever page is currently visible (no write-back) */
 function refreshView(){
   _suppressPersist=true;
@@ -2071,9 +3101,13 @@ function refreshView(){
     const vis=id=>!document.getElementById(id).classList.contains('hidden');
     if(vis('adminPage')){renderAdminDash();renderAdminModGrid();renderAdminCreds();}
     if(vis('app')){renderHub();renderModules();}
-    if(vis('opdPage')){renderQueue();showConsult();}
+    if(vis('opdPage')){renderQueue();showConsult(); if(!document.getElementById('tabBills').classList.contains('hidden'))renderOpdBills();}
     if(vis('ipdPage')){renderBoard();renderAdmitted();}
     if(vis('genPage')&&genDef){renderGenSeg();renderGenBody();}
+    if(vis('pharmaPage')){renderPharma();}
+    if(vis('shiftPage')){renderShift();}
+    if(vis('sanitizePage')){renderSanitize();}
+    if(vis('accountsPage')){renderAccounts();}
   }finally{_suppressPersist=false;}
 }
 /* live: when another tab saves, pull it in and refresh */
@@ -2145,9 +3179,11 @@ function ipdExport(type){
 let tt;
 function toast(msg){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200);}
 
-loadState();       // pull any shared data saved by other tabs
+loadState();       // pull any shared data saved by other tabs (local)
 ensureCreds();      // make sure every module (incl. restored custom ones) has creds
 renderModules();
+/* on a fresh device, hydrate from the cloud so previously-entered data shows */
+if(CLOUD){ cloudPull().then(d=>{ if(d && (d._v||0)>=_stateV){ applyState(d); try{localStorage.setItem(LS_KEY,JSON.stringify(d));}catch(e){} refreshView(); } }); }
 
 /* ---------- if opened as a module tab (#m=NAME), route straight in ---------- */
 (function routeModuleTab(){
