@@ -1037,6 +1037,7 @@
       <button data-tab="mods"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>All modules</button>
       <button data-tab="cred"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Credentials</button>
       <button data-tab="feedback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Feedback (QR)</button>
+      <button data-tab="master"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Master Data</button>
       <button data-tab="danger" style="color:#dc2626"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>Danger zone</button>
     </div>
 
@@ -1213,6 +1214,35 @@
           <div class="tablewrap" style="margin-top:10px"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Type</th><th>From</th><th>Message</th><th>When</th></tr></thead><tbody id="fbBody"></tbody></table></div>
         </div>
       </div>
+    </div>
+
+    <!-- MASTER DATA -->
+    <div id="adTabMaster" class="hidden">
+      <div class="seg" id="mdSeg" style="flex-wrap:wrap">
+        <button data-md="doctors" class="active">Doctors</button>
+        <button data-md="staff">Staff</button>
+        <button data-md="roles">Roles &amp; access</button>
+        <button data-md="invest">Investigations</button>
+        <button data-md="departments">Departments</button>
+        <button data-md="diagnostics">Diagnostics</button>
+        <button data-md="qualifications">Qualifications</button>
+        <button data-md="referrals">Referred doctors</button>
+        <button data-md="pathologists">Pathologists</button>
+        <button data-md="radiologists">Radiologists</button>
+        <button data-md="sonologists">Sonologists</button>
+        <button data-md="cardiologists">Cardiologists</button>
+        <button data-md="expenseHeads">Expense heads</button>
+        <button data-md="incomeHeads">Income heads</button>
+        <button data-md="outsourceLabs">Outsource labs</button>
+        <button data-md="insurance">Insurance</button>
+        <button data-md="tpa">TPA</button>
+        <button data-md="ratelists">Rate lists</button>
+        <button data-md="dischargeTypes">Discharge types</button>
+        <button data-md="roomCategories">Room categories</button>
+        <button data-md="certificates">Certificates</button>
+        <button data-md="hospital">Hospital settings</button>
+      </div>
+      <div id="mdBody"></div>
     </div>
 
     <!-- DANGER ZONE -->
@@ -2338,9 +2368,11 @@ document.getElementById('adminSeg').addEventListener('click',e=>{
   document.getElementById('adTabMods').classList.toggle('hidden',t!=='mods');
   document.getElementById('adTabCred').classList.toggle('hidden',t!=='cred');
   document.getElementById('adTabFeedback').classList.toggle('hidden',t!=='feedback');
+  document.getElementById('adTabMaster').classList.toggle('hidden',t!=='master');
   document.getElementById('adTabDanger').classList.toggle('hidden',t!=='danger');
   if(t==='danger')genDangerCode();
   if(t==='feedback'){ renderFeedbackQR(); loadAdminFeedback(); }
+  if(t==='master')renderMaster();
 });
 /* ---------- QR feedback (Package G) ---------- */
 function feedbackURL(){ const o=location.origin; return (o && /^https?:/.test(o)) ? o+'/feedback' : ''; }
@@ -2369,6 +2401,258 @@ function loadAdminFeedback(){
 }
 setInterval(()=>{ const ap=document.getElementById('adminPage'), ft=document.getElementById('adTabFeedback');
   if(ap&&!ap.classList.contains('hidden')&&ft&&!ft.classList.contains('hidden')) loadAdminFeedback(); }, 5000);
+
+/* ===================== MASTER DATA (admin) ===================== */
+let MD_DOCTORS=[], MD_STAFF=[], MD_ROLES=[], MD_INVEST=[], MD_HOSPITAL={};
+let mdTab='doctors';
+const MD_DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const MD_ROLE_MODULES=['OPD','IPD','Pathology','Sonography','Radiology','Cardiology','Doctor','Nursing','Pharmacy','Reports','Store','Accounting','Admin','MRD','Appointment'];
+function genAttr(v){return (v==null?'':String(v)).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+/* ---- generic list-style masters ---- */
+let MD_LISTS={};
+const MDL_PEOPLE=[{k:'qual',label:'Qualification'},{k:'contact',label:'Contact'}];
+const MDLIST_CONFIG={
+  departments:{title:'Departments',noun:'department'},
+  diagnostics:{title:'Diagnostic Departments',noun:'diagnostic department'},
+  qualifications:{title:'Qualifications',noun:'qualification'},
+  referrals:{title:'Referred Doctors',noun:'referral',nameLabel:'Referral name',fields:[{k:'hospital',label:'Hospital / Clinic'},{k:'contact',label:'Contact'},{k:'email',label:'Email'},{k:'shareOpd',label:'OPD %',type:'number'},{k:'shareTest',label:'Tests %',type:'number'},{k:'shareDay',label:'Daycare %',type:'number'},{k:'shareIpd',label:'IPD %',type:'number'}],cols:[{k:'hospital',label:'Hospital/Clinic'},{label:'Share %',fn:x=>`OPD ${x.shareOpd||0}% · Test ${x.shareTest||0}% · Day ${x.shareDay||0}% · IPD ${x.shareIpd||0}%`},{k:'contact',label:'Contact'}]},
+  pathologists:{title:'Pathologists',noun:'pathologist',fields:MDL_PEOPLE,cols:[{k:'qual',label:'Qualification'},{k:'contact',label:'Contact'}]},
+  radiologists:{title:'Radiologists',noun:'radiologist',fields:MDL_PEOPLE,cols:[{k:'qual',label:'Qualification'},{k:'contact',label:'Contact'}]},
+  sonologists:{title:'Sonologists',noun:'sonologist',fields:MDL_PEOPLE,cols:[{k:'qual',label:'Qualification'},{k:'contact',label:'Contact'}]},
+  cardiologists:{title:'Cardiologists',noun:'cardiologist',fields:MDL_PEOPLE,cols:[{k:'qual',label:'Qualification'},{k:'contact',label:'Contact'}]},
+  expenseHeads:{title:'Expense Heads',noun:'expense head'},
+  incomeHeads:{title:'Income Heads',noun:'income head'},
+  outsourceLabs:{title:'Outsource Labs',noun:'lab'},
+  insurance:{title:'Insurance Companies',noun:'insurance company'},
+  tpa:{title:'TPA',noun:'TPA'},
+  ratelists:{title:'Rate Lists',noun:'rate list'},
+  dischargeTypes:{title:'Discharge Types',noun:'discharge type'},
+  roomCategories:{title:'Room Categories',noun:'room category',fields:[{k:'beds',label:'No. of beds / rooms',type:'number'}],cols:[{k:'beds',label:'No. of rooms'}]},
+  certificates:{title:'Certificates',noun:'certificate',fields:[{k:'template',label:'Template text',type:'textarea'}],cols:[{label:'Template',fn:x=>((x.template||'').slice(0,60)+((x.template||'').length>60?'…':''))}]}
+};
+(function initMdSeg(){ const seg=document.getElementById('mdSeg'); if(!seg)return;
+  seg.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; mdTab=b.dataset.md; renderMaster(); }); })();
+function renderMaster(){
+  document.querySelectorAll('#mdSeg button').forEach(b=>b.classList.toggle('active',b.dataset.md===mdTab));
+  const body=document.getElementById('mdBody'); if(!body)return;
+  if(mdTab==='doctors')renderMdDoctors(body);
+  else if(mdTab==='staff')renderMdStaff(body);
+  else if(mdTab==='roles')renderMdRoles(body);
+  else if(mdTab==='invest')renderMdInvest(body);
+  else if(mdTab==='hospital')renderMdHospital(body);
+  else if(MDLIST_CONFIG[mdTab])renderMdList(mdTab,body);
+  else renderMdDoctors(body);
+}
+function renderMdList(key,body){
+  const cfg=MDLIST_CONFIG[key]; const list=MD_LISTS[key]||(MD_LISTS[key]=[]);
+  const cols=cfg.cols||[], extra=cfg.fields||[];
+  const rows=list.length ? list.map((it,i)=>{
+    const extraTds=cols.map(c=>`<td>${genEsc(c.fn?c.fn(it):(it[c.k]||'—'))}</td>`).join('');
+    return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(it.name)}</b></td>${extraTds}<td>${it.active===false?'<span class="pill r">Inactive</span>':'<span class="pill g">Active</span>'}</td><td><button class="btn ghost tiny" data-mdl="${key}::${it.id}" style="width:auto;padding:6px 10px">${it.active===false?'Activate':'Deactivate'}</button></td></tr>`;
+  }).join('') : `<tr><td class="tempty" colspan="${3+cols.length}">No ${cfg.noun}s added yet.</td></tr>`;
+  const inputs=[`<div class="fld"><label>${cfg.nameLabel||(cfg.noun.charAt(0).toUpperCase()+cfg.noun.slice(1)+' name')}</label><input id="mdlName" placeholder="Name"></div>`]
+    .concat(extra.map(f=> f.type==='textarea'
+      ? `<div class="fld full"><label>${f.label}</label><textarea id="mdl_${f.k}" placeholder="${f.label}"></textarea></div>`
+      : `<div class="fld"><label>${f.label}</label><input id="mdl_${f.k}" ${f.type==='number'?'type="number" min="0"':''} placeholder="${f.label}"></div>`)).join('');
+  body.innerHTML=`
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>Add ${genEsc(cfg.title.replace(/s$/,''))}</h3>
+      <div class="addgrid">${inputs}</div>
+      <div class="form-actions"><button class="btn" id="mdlSave" style="width:auto;padding:12px 22px">Add</button></div>
+    </div>
+    <div class="sec-head"><div><h3>${genEsc(cfg.title)}</h3><p>${list.length} ${cfg.noun}${list.length===1?'':'s'}</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Name</th>${cols.map(c=>`<th>${genEsc(c.label)}</th>`).join('')}<th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('mdlSave').onclick=()=>addMdListItem(key);
+  body.querySelectorAll('[data-mdl]').forEach(b=>b.onclick=()=>{ const p=b.dataset.mdl.split('::'); toggleMdListItem(p[0],p[1]); });
+}
+function addMdListItem(key){
+  const cfg=MDLIST_CONFIG[key];
+  const name=document.getElementById('mdlName').value.trim();
+  if(!name){document.getElementById('mdlName').focus();toast('Enter a name');return;}
+  const item={ id:'L'+Date.now().toString(36), name, active:true, _ts:Date.now() };
+  (cfg.fields||[]).forEach(f=>{ const el=document.getElementById('mdl_'+f.k); item[f.k]= el ? (f.type==='number'?(Number(el.value)||0):el.value.trim()) : ''; });
+  MD_LISTS[key]=MD_LISTS[key]||[]; MD_LISTS[key].push(item);
+  persist(); renderMaster(); toast(`${name} added`);
+}
+function toggleMdListItem(key,id){ const it=(MD_LISTS[key]||[]).find(x=>x.id===id); if(!it)return; it.active=(it.active===false); persist(); renderMaster(); }
+function renderMdDoctors(body){
+  const rows = MD_DOCTORS.length ? MD_DOCTORS.map((d,i)=>`<tr><td class="sno">${i+1}</td><td><b>Dr. ${genEsc(d.name)}</b></td><td>${genEsc(d.dept||'—')}</td><td>${genEsc(d.contact||'—')}</td><td>${genEsc(d.room||'—')}</td><td>${money(d.opdFee||0)}</td><td style="font-size:11.5px">${genEsc((d.days||[]).join(', ')||'—')}</td><td><span class="pill g">Active</span></td></tr>`).join('') : `<tr><td class="tempty" colspan="8">No doctors added yet.</td></tr>`;
+  body.innerHTML=`
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>Add Doctor</h3>
+      <p class="psub">Fees, availability and revenue share. Doctors listed here can be used across departments.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Doctor name</label><input id="dcName" placeholder="Name"></div>
+        <div class="fld"><label>Department</label><input id="dcDept" placeholder="e.g. Cardiology"></div>
+        <div class="fld"><label>Contact no.</label><input id="dcContact" placeholder="Phone"></div>
+        <div class="fld"><label>OPD room no.</label><input id="dcRoom" placeholder="Room"></div>
+        <div class="fld"><label>Qualification</label><input id="dcQual" placeholder="e.g. MBBS, MD"></div>
+        <div class="fld"><label>Blood group</label><select id="dcBlood"><option value="">—</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select></div>
+        <div class="fld"><label>OPD fee (₹)</label><input id="dcOpdFee" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Revisit fee (₹)</label><input id="dcReFee" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Emergency fee (₹)</label><input id="dcEmFee" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Revisit validity (days)</label><input id="dcReValid" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Share OPD %</label><input id="dcShareOpd" type="number" min="0" max="100" placeholder="0"></div>
+        <div class="fld"><label>Share IPD %</label><input id="dcShareIpd" type="number" min="0" max="100" placeholder="0"></div>
+      </div>
+      <div style="margin:12px 0 6px;font-size:12.5px;font-weight:700;color:#33465c">Access &amp; available days</div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;font-size:13px">
+        <label class="check"><input type="checkbox" id="dcOpd" checked> OPD charge</label>
+        <label class="check"><input type="checkbox" id="dcIpd"> IPD charge</label>
+        <span style="width:10px"></span>
+        ${MD_DAYS.map(d=>`<label class="check"><input type="checkbox" class="dc-day" value="${d}" checked> ${d}</label>`).join('')}
+      </div>
+      <div class="form-actions"><button class="btn" id="dcSave" style="width:auto;padding:12px 22px">Add doctor</button></div>
+    </div>
+    <div class="sec-head"><div><h3>Doctors</h3><p>${MD_DOCTORS.length} doctor${MD_DOCTORS.length===1?'':'s'}</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Name</th><th>Department</th><th>Contact</th><th>Room</th><th>OPD fee</th><th>Days</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('dcSave').onclick=addMdDoctor;
+}
+function addMdDoctor(){
+  const name=document.getElementById('dcName').value.trim();
+  if(!name){document.getElementById('dcName').focus();toast('Enter doctor name');return;}
+  const days=Array.from(document.querySelectorAll('.dc-day:checked')).map(x=>x.value);
+  MD_DOCTORS.push({ id:'DR'+Date.now().toString(36), name, dept:document.getElementById('dcDept').value.trim(),
+    contact:document.getElementById('dcContact').value.trim(), room:document.getElementById('dcRoom').value.trim(),
+    qual:document.getElementById('dcQual').value.trim(), blood:document.getElementById('dcBlood').value,
+    opdFee:Number(document.getElementById('dcOpdFee').value)||0, reFee:Number(document.getElementById('dcReFee').value)||0,
+    emFee:Number(document.getElementById('dcEmFee').value)||0, reValid:Number(document.getElementById('dcReValid').value)||0,
+    shareOpd:Number(document.getElementById('dcShareOpd').value)||0, shareIpd:Number(document.getElementById('dcShareIpd').value)||0,
+    opd:document.getElementById('dcOpd').checked, ipd:document.getElementById('dcIpd').checked, days, _ts:Date.now() });
+  persist(); renderMaster(); toast(`Dr. ${name} added`);
+}
+function renderMdStaff(body){
+  const rows = MD_STAFF.length ? MD_STAFF.map((s,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(s.name)}</b></td><td>${genEsc(s.dept||'—')}</td><td>${genEsc(s.designation||'—')}</td><td>${genEsc(s.contact||'—')}</td><td>${genEsc(s.doj||'—')}</td></tr>`).join('') : `<tr><td class="tempty" colspan="6">No staff added yet.</td></tr>`;
+  body.innerHTML=`
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>Add Staff</h3>
+      <div class="addgrid">
+        <div class="fld"><label>Name</label><input id="stName" placeholder="Name"></div>
+        <div class="fld"><label>Gender</label><select id="stGender"><option>Male</option><option>Female</option><option>Transgender</option><option>Other</option></select></div>
+        <div class="fld"><label>Department</label><input id="stDept" placeholder="Department"></div>
+        <div class="fld"><label>Designation</label><input id="stDesig" placeholder="e.g. Staff Nurse"></div>
+        <div class="fld"><label>Qualification</label><input id="stQual" placeholder="Qualification"></div>
+        <div class="fld"><label>Blood group</label><input id="stBlood" placeholder="Group"></div>
+        <div class="fld"><label>Age</label><input id="stAge" type="number" min="0" placeholder="Age"></div>
+        <div class="fld"><label>Date of joining</label><input id="stDoj" type="date"></div>
+        <div class="fld"><label>Contact no.</label><input id="stContact" placeholder="Phone"></div>
+        <div class="fld"><label>Alternate contact</label><input id="stAlt" placeholder="Phone"></div>
+        <div class="fld"><label>Aadhaar / Voter no.</label><input id="stId" placeholder="Number"></div>
+      </div>
+      <div style="margin:12px 0 6px;font-size:12.5px;font-weight:700;color:#33465c">Bank details</div>
+      <div class="addgrid">
+        <div class="fld"><label>Account no.</label><input id="stAcc" placeholder="Account number"></div>
+        <div class="fld"><label>Bank name</label><input id="stBank" placeholder="Bank"></div>
+        <div class="fld"><label>IFSC code</label><input id="stIfsc" placeholder="IFSC"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="stSave" style="width:auto;padding:12px 22px">Add staff</button></div>
+    </div>
+    <div class="sec-head"><div><h3>Staff</h3><p>${MD_STAFF.length} staff member${MD_STAFF.length===1?'':'s'}</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Name</th><th>Department</th><th>Designation</th><th>Contact</th><th>Joined</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('stSave').onclick=addMdStaff;
+}
+function addMdStaff(){
+  const name=document.getElementById('stName').value.trim();
+  if(!name){document.getElementById('stName').focus();toast('Enter staff name');return;}
+  MD_STAFF.push({ id:'ST'+Date.now().toString(36), name, gender:document.getElementById('stGender').value,
+    dept:document.getElementById('stDept').value.trim(), designation:document.getElementById('stDesig').value.trim(),
+    qual:document.getElementById('stQual').value.trim(), blood:document.getElementById('stBlood').value.trim(),
+    age:document.getElementById('stAge').value, doj:document.getElementById('stDoj').value,
+    contact:document.getElementById('stContact').value.trim(), alt:document.getElementById('stAlt').value.trim(),
+    idno:document.getElementById('stId').value.trim(), acc:document.getElementById('stAcc').value.trim(),
+    bank:document.getElementById('stBank').value.trim(), ifsc:document.getElementById('stIfsc').value.trim(), _ts:Date.now() });
+  persist(); renderMaster(); toast(`${name} added to staff`);
+}
+function renderMdRoles(body){
+  const rows = MD_ROLES.length ? MD_ROLES.map((r,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(r.name||'—')}</b></td><td>${genEsc(r.permission)}</td><td style="max-width:300px;font-size:11.5px">${genEsc((r.roles||[]).join(', ')||'—')}</td><td>${genEsc(r.username||'—')}</td><td><span class="pill g">Active</span></td></tr>`).join('') : `<tr><td class="tempty" colspan="6">No roles assigned yet.</td></tr>`;
+  body.innerHTML=`
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>Assign Role</h3>
+      <div class="addgrid">
+        <div class="fld"><label>User type</label><select id="rlUser"><option>Doctor</option><option>Staff</option></select></div>
+        <div class="fld"><label>Name</label><input id="rlName" placeholder="User's name"></div>
+        <div class="fld"><label>Permission</label><select id="rlPerm"><option>Executive</option><option>Master</option><option>General</option></select></div>
+        <div class="fld"><label>Back-date entry</label><select id="rlBack"><option>Disabled</option><option>Enabled</option></select></div>
+        <div class="fld"><label>Username</label><input id="rlUsername" placeholder="Login username"></div>
+        <div class="fld"><label>Password</label><input id="rlPassword" placeholder="Login password"></div>
+      </div>
+      <div style="margin:12px 0 6px;font-size:12.5px;font-weight:700;color:#33465c">Module access</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px 16px;font-size:13px">
+        <label class="check"><input type="checkbox" id="rlAll"> <b>All</b></label>
+        ${MD_ROLE_MODULES.map(m=>`<label class="check"><input type="checkbox" class="rl-mod" value="${m}"> ${m}</label>`).join('')}
+      </div>
+      <div class="form-actions"><button class="btn" id="rlSave" style="width:auto;padding:12px 22px">Assign role</button></div>
+    </div>
+    <div class="sec-head"><div><h3>Role list</h3><p>${MD_ROLES.length} assigned</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Name</th><th>Permission</th><th>Roles</th><th>Username</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('rlAll').onchange=function(){ document.querySelectorAll('.rl-mod').forEach(x=>x.checked=this.checked); };
+  document.getElementById('rlSave').onclick=addMdRole;
+}
+function addMdRole(){
+  const name=document.getElementById('rlName').value.trim();
+  if(!name){document.getElementById('rlName').focus();toast('Enter user name');return;}
+  const roles=Array.from(document.querySelectorAll('.rl-mod:checked')).map(x=>x.value);
+  MD_ROLES.push({ id:'RL'+Date.now().toString(36), user:document.getElementById('rlUser').value, name,
+    permission:document.getElementById('rlPerm').value, backdate:document.getElementById('rlBack').value,
+    username:document.getElementById('rlUsername').value.trim(), password:document.getElementById('rlPassword').value.trim(),
+    roles, _ts:Date.now() });
+  persist(); renderMaster(); toast(`Role assigned to ${name}`);
+}
+function renderMdInvest(body){
+  const rows = MD_INVEST.length ? MD_INVEST.map((v,i)=>`<tr><td class="sno">${i+1}</td><td>${genEsc(v.code||'—')}</td><td>${genEsc(v.dept||'—')}</td><td>${genEsc(v.name)}</td><td>${money(v.rate||0)}</td><td>${genEsc(v.room||'—')}</td><td>${v.active===false?'<span class="pill r">Inactive</span>':'<span class="pill g">Active</span>'}</td><td><button class="btn ghost tiny" data-inv="${v.id}" style="width:auto;padding:6px 10px">${v.active===false?'Activate':'Deactivate'}</button></td></tr>`).join('') : `<tr><td class="tempty" colspan="8">No investigations added yet.</td></tr>`;
+  body.innerHTML=`
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>Add Investigation</h3>
+      <div class="addgrid">
+        <div class="fld"><label>Code</label><input id="ivCode" placeholder="e.g. X-RAY"></div>
+        <div class="fld"><label>Department</label><input id="ivDept" placeholder="e.g. Radiology"></div>
+        <div class="fld"><label>Investigation name</label><input id="ivName" placeholder="e.g. X-Ray Chest PA"></div>
+        <div class="fld"><label>Rate (₹)</label><input id="ivRate" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Room type</label><input id="ivRoom" placeholder="e.g. Common Charges"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="ivSave" style="width:auto;padding:12px 22px">Add investigation</button></div>
+    </div>
+    <div class="sec-head"><div><h3>Investigations</h3><p>${MD_INVEST.length} item${MD_INVEST.length===1?'':'s'}</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Code</th><th>Department</th><th>Name</th><th>Rate</th><th>Room type</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('ivSave').onclick=addMdInvest;
+  body.querySelectorAll('[data-inv]').forEach(b=>b.onclick=()=>toggleMdInvest(b.dataset.inv));
+}
+function addMdInvest(){
+  const name=document.getElementById('ivName').value.trim();
+  if(!name){document.getElementById('ivName').focus();toast('Enter investigation name');return;}
+  MD_INVEST.push({ id:'IV'+Date.now().toString(36), code:document.getElementById('ivCode').value.trim(),
+    dept:document.getElementById('ivDept').value.trim(), name, rate:Number(document.getElementById('ivRate').value)||0,
+    room:document.getElementById('ivRoom').value.trim(), active:true, _ts:Date.now() });
+  persist(); renderMaster(); toast(`${name} added`);
+}
+function toggleMdInvest(id){ const v=MD_INVEST.find(x=>x.id===id); if(!v)return; v.active=(v.active===false); persist(); renderMaster(); }
+function renderMdHospital(body){
+  const h=MD_HOSPITAL||{};
+  body.innerHTML=`
+    <div class="panel" style="max-width:none">
+      <h3>About Hospital</h3>
+      <p class="psub">These details appear on receipts and reports.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Hospital name</label><input id="hoName" value="${genAttr(h.name)}" placeholder="Hospital name"></div>
+        <div class="fld"><label>Email / web</label><input id="hoEmail" value="${genAttr(h.email)}" placeholder="Email"></div>
+        <div class="fld"><label>Contact number</label><input id="hoContact" value="${genAttr(h.contact)}" placeholder="Contact"></div>
+        <div class="fld"><label>Helpline number</label><input id="hoHelpline" value="${genAttr(h.helpline)}" placeholder="Helpline"></div>
+        <div class="fld full"><label>Address</label><input id="hoAddress" value="${genAttr(h.address)}" placeholder="Address"></div>
+        <div class="fld"><label>PAN</label><input id="hoPan" value="${genAttr(h.pan)}" placeholder="PAN"></div>
+        <div class="fld"><label>GST / Service Tax no.</label><input id="hoGst" value="${genAttr(h.gst)}" placeholder="GST"></div>
+        <div class="fld"><label>Registration no.</label><input id="hoReg" value="${genAttr(h.reg)}" placeholder="Registration"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="hoSave" style="width:auto;padding:12px 22px">Save hospital info</button></div>
+    </div>`;
+  document.getElementById('hoSave').onclick=saveMdHospital;
+}
+function saveMdHospital(){
+  MD_HOSPITAL={ name:document.getElementById('hoName').value.trim(), email:document.getElementById('hoEmail').value.trim(),
+    contact:document.getElementById('hoContact').value.trim(), helpline:document.getElementById('hoHelpline').value.trim(),
+    address:document.getElementById('hoAddress').value.trim(), pan:document.getElementById('hoPan').value.trim(),
+    gst:document.getElementById('hoGst').value.trim(), reg:document.getElementById('hoReg').value.trim(), _ts:Date.now() };
+  persist(); toast('Hospital info saved');
+}
 
 /* ---------- danger zone: delete all & reset ---------- */
 let dangerCode='';
@@ -3040,7 +3324,7 @@ let _stateV=0;
 function buildStateObject(){
   const rows={};
   Object.keys(MODULE_DEFS).forEach(n=>{rows[n]=MODULE_DEFS[n].sections.map(s=>s.rows);});
-  return {_v:_stateV,rows,QUEUE,TOKEN,BEDS,WARDS,LEDGER,VACANCIES,MODCREDS,ADMIN_CRED,PHARMACY,PHARMA_MOVES,SHIFTS,SANITIZE,OPD_BILLS,
+  return {_v:_stateV,rows,QUEUE,TOKEN,BEDS,WARDS,LEDGER,VACANCIES,MODCREDS,ADMIN_CRED,PHARMACY,PHARMA_MOVES,SHIFTS,SANITIZE,OPD_BILLS,MD_DOCTORS,MD_STAFF,MD_ROLES,MD_INVEST,MD_HOSPITAL,MD_LISTS,
     MODULES:MODULES.map(m=>({name:m.name,desc:m.desc,icon:m.icon,color:m.color,count:m.count}))};
 }
 function persist(){
@@ -3066,6 +3350,12 @@ function applyState(d){
     if(Array.isArray(d.SHIFTS))SHIFTS=d.SHIFTS;
     if(Array.isArray(d.SANITIZE))SANITIZE=d.SANITIZE;
     if(Array.isArray(d.OPD_BILLS))OPD_BILLS=d.OPD_BILLS;
+    if(Array.isArray(d.MD_DOCTORS))MD_DOCTORS=d.MD_DOCTORS;
+    if(Array.isArray(d.MD_STAFF))MD_STAFF=d.MD_STAFF;
+    if(Array.isArray(d.MD_ROLES))MD_ROLES=d.MD_ROLES;
+    if(Array.isArray(d.MD_INVEST))MD_INVEST=d.MD_INVEST;
+    if(d.MD_HOSPITAL&&typeof d.MD_HOSPITAL==='object')MD_HOSPITAL=d.MD_HOSPITAL;
+    if(d.MD_LISTS&&typeof d.MD_LISTS==='object')MD_LISTS=d.MD_LISTS;
     if(d.MODCREDS)Object.keys(d.MODCREDS).forEach(k=>MODCREDS[k]=d.MODCREDS[k]);
     if(d.ADMIN_CRED){ADMIN_CRED.user=d.ADMIN_CRED.user;ADMIN_CRED.pass=d.ADMIN_CRED.pass;}
     if(Array.isArray(d.MODULES))d.MODULES.forEach(m=>{if(!MODULES.find(x=>x.name===m.name))MODULES.push(m);});
