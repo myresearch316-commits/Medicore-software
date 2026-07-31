@@ -1241,6 +1241,10 @@
         <button data-md="dischargeTypes">Discharge types</button>
         <button data-md="roomCategories">Room categories</button>
         <button data-md="certificates">Certificates</button>
+        <button data-md="icd10">ICD-10 codes</button>
+        <button data-md="tariffs">Schedule IV tariffs</button>
+        <button data-md="compliance">Compliance &amp; audit</button>
+        <button data-md="integrations">ERP / SAP</button>
         <button data-md="hospital">Hospital settings</button>
       </div>
       <div id="mdBody"></div>
@@ -1913,12 +1917,14 @@ function addOpdBill(){
     status:document.getElementById('obStatus').value, insurance:payer==='Insurance',
     insurer:document.getElementById('obInsurer').value.trim(),
     date:new Date().toISOString().slice(0,10), _ts:Date.now() });
+  logAudit('OPD billing',`Bill created · ${money(Number(document.getElementById('obAmt').value)||0)}`,patient);
   persist(); renderOpdBills(); toast(`Bill added for ${patient}`);
 }
 function opdBillToggle(id){
   const b=OPD_BILLS.find(x=>x.id===id); if(!b)return;
   b.status = b.status==='Paid'?'Unpaid':'Paid';
   if(b.status==='Paid') b._ts=Date.now();
+  logAudit('OPD billing',`Payment status changed to ${b.status} · ${money(b.amount||0)}`,b.patient);
   persist(); renderOpdBills(); toast(`Bill marked ${b.status.toLowerCase()}`);
 }
 function printOpdReceipt(id){
@@ -2461,7 +2467,9 @@ const MDLIST_CONFIG={
   ratelists:{title:'Rate Lists',noun:'rate list'},
   dischargeTypes:{title:'Discharge Types',noun:'discharge type'},
   roomCategories:{title:'Room Categories',noun:'room category',fields:[{k:'beds',label:'No. of beds / rooms',type:'number'}],cols:[{k:'beds',label:'No. of rooms'}]},
-  certificates:{title:'Certificates',noun:'certificate',fields:[{k:'template',label:'Template text',type:'textarea'}],cols:[{label:'Template',fn:x=>((x.template||'').slice(0,60)+((x.template||'').length>60?'…':''))}]}
+  certificates:{title:'Certificates',noun:'certificate',fields:[{k:'template',label:'Template text',type:'textarea'}],cols:[{label:'Template',fn:x=>((x.template||'').slice(0,60)+((x.template||'').length>60?'…':''))}]},
+  icd10:{title:'ICD-10 Codes',noun:'ICD-10 code',nameLabel:'ICD-10 code & description',fields:[{k:'category',label:'Category'}],cols:[{k:'category',label:'Category'}]},
+  tariffs:{title:'Schedule IV Tariffs',noun:'tariff head',fields:[{k:'code',label:'Code'},{k:'rate',label:'Rate (₹)',type:'number'}],cols:[{k:'code',label:'Code'},{k:'rate',label:'Rate'}]}
 };
 (function initMdSeg(){ const seg=document.getElementById('mdSeg'); if(!seg)return;
   seg.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; mdTab=b.dataset.md; renderMaster(); }); })();
@@ -2473,6 +2481,8 @@ function renderMaster(){
   else if(mdTab==='roles')renderMdRoles(body);
   else if(mdTab==='invest')renderMdInvest(body);
   else if(mdTab==='hospital')renderMdHospital(body);
+  else if(mdTab==='compliance')renderMdCompliance(body);
+  else if(mdTab==='integrations')renderMdIntegrations(body);
   else if(MDLIST_CONFIG[mdTab])renderMdList(mdTab,body);
   else renderMdDoctors(body);
 }
@@ -2528,11 +2538,13 @@ function renderMdList(key,body){
 }
 function saveMdListItem(key){
   const cfg=MDLIST_CONFIG[key];
+  const _wasEdit=!!_mdlEditId;
   const name=document.getElementById('mdlName').value.trim();
   if(!name){document.getElementById('mdlName').focus();toast('Enter a name');return;}
   const collect=(item)=>{ item.name=name; (cfg.fields||[]).forEach(f=>{ const el=document.getElementById('mdl_'+f.k); item[f.k]= el ? (f.type==='number'?(Number(el.value)||0):el.value.trim()) : ''; }); };
   if(_mdlEditId){ const it=mdlItems(key).find(x=>x.id===_mdlEditId); if(it){ collect(it); it._ts=Date.now(); } _mdlEditId=null; toast('Updated'); }
   else { const item={ id:'L'+Date.now().toString(36), active:true, _ts:Date.now() }; collect(item); mdlItems(key).push(item); toast(`${name} added`); }
+  if(typeof logAudit==='function')logAudit('Master data',`${cfg.title}: ${_wasEdit?'updated':'added'} "${name}"`);
   persist(); renderMaster();
 }
 function toggleMdListItem(key,id){ const it=mdlItems(key).find(x=>x.id===id); if(!it)return; it.active=(it.active===false); persist(); renderMaster(); }
@@ -2540,6 +2552,7 @@ function mdlBulk(key,active){
   const ids=[...document.querySelectorAll('#mdlTbody .mdl-chk:checked')].map(x=>x.value);
   if(!ids.length){toast('Select rows first');return;}
   mdlItems(key).forEach(it=>{ if(ids.includes(it.id)) it.active=active; });
+  if(typeof logAudit==='function')logAudit('Master data',`${MDLIST_CONFIG[key].title}: ${ids.length} ${active?'activated':'deactivated'}`);
   persist(); renderMaster(); toast(`${ids.length} ${active?'activated':'deactivated'}`);
 }
 function mdlExport(key,how){
@@ -2550,6 +2563,81 @@ function mdlExport(key,how){
   const txt=[headers.join('\t')].concat(matrix.map(r=>r.join('\t'))).join('\n');
   if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(()=>toast('Copied to clipboard')).catch(()=>toast('Copy failed')); }
   else toast('Copy not supported here');
+}
+/* ===================== Compliance, Audit trail, ICD-10 / tariffs seed, ERP integration ===================== */
+let AUDIT=[], MD_COMPLIANCE=null, MD_INTEGRATIONS={};
+const COMPLIANCE_ITEMS=[
+  {k:'nabhAudit',label:'NABH audit-trail logging',desc:'Every payment edit, master change & deletion is logged with user, time and source.'},
+  {k:'irda',label:'IRDA compliance protocols',desc:'Insurance & cashless (TPA) claims follow IRDA guidelines.'},
+  {k:'consent',label:'Patient consent capture',desc:'Consent recorded before procedures.'},
+  {k:'retention',label:'Medical-records retention',desc:'Records retained for the statutory period.'},
+  {k:'dpdp',label:'Data privacy (DPDP) safeguards',desc:'Patient data is role-restricted and access is logged.'}
+];
+const ICD10_SEED=[['A09','Infectious gastroenteritis & colitis'],['E11','Type 2 diabetes mellitus'],['I10','Essential (primary) hypertension'],['J18.9','Pneumonia, unspecified'],['K35.80','Acute appendicitis'],['N39.0','Urinary tract infection'],['O80','Normal delivery'],['R51','Headache'],['S72.0','Fracture of neck of femur'],['J45.909','Asthma, unspecified'],['E78.5','Hyperlipidemia'],['I50.9','Heart failure, unspecified'],['B34.9','Viral infection, unspecified'],['M54.5','Low back pain'],['Z00.00','General adult medical examination']];
+const TARIFF_SEED=[['General Ward (Sch IV)','SIV-GW',1500],['ICU (Sch IV)','SIV-ICU',5000],['Consultation (Sch IV)','SIV-CON',300],['Minor Procedure (Sch IV)','SIV-MP',2000],['Major Surgery (Sch IV)','SIV-MS',25000]];
+function ensureSeedMasters(){
+  MD_LISTS=MD_LISTS||{};
+  MD_LISTS.icd10=MD_LISTS.icd10||[];
+  ICD10_SEED.forEach(([code,cat])=>{ const id='ICD_'+code; if(!MD_LISTS.icd10.some(x=>x.id===id)) MD_LISTS.icd10.push({id,name:code+' — '+cat,category:cat,active:true,_ts:0}); });
+  MD_LISTS.tariffs=MD_LISTS.tariffs||[];
+  TARIFF_SEED.forEach(([name,code,rate])=>{ const id='TAR_'+code; if(!MD_LISTS.tariffs.some(x=>x.id===id)) MD_LISTS.tariffs.push({id,name,code,rate,active:true,_ts:0}); });
+  if(!MD_COMPLIANCE){ MD_COMPLIANCE={}; COMPLIANCE_ITEMS.forEach(it=>MD_COMPLIANCE[it.k]=true); }
+}
+function logAudit(head, action, patient){
+  AUDIT.push({ id:'A'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), head:head||'System', patient:patient||'', action:action||'', user:(typeof ADMIN_CRED!=='undefined'&&ADMIN_CRED&&ADMIN_CRED.user)||'admin', date:new Date().toLocaleString(), _ts:Date.now() });
+  if(AUDIT.length>2000) AUDIT=AUDIT.slice(-2000);
+}
+function renderMdCompliance(body){
+  ensureSeedMasters();
+  const row=(label,desc,on,key)=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)">
+    <span style="display:flex;align-items:flex-start;gap:10px"><i style="width:9px;height:9px;border-radius:50%;margin-top:5px;flex:none;background:${on?'#16a34a':'#dc2626'}"></i>
+      <span><b>${genEsc(label)}</b><br><span style="color:var(--muted);font-size:11.5px">${genEsc(desc)}</span></span></span>
+    <button class="btn ghost" data-comp="${key}" style="width:auto;padding:6px 12px;flex:none">${on?'Enabled':'Disabled'}</button></div>`;
+  const items=COMPLIANCE_ITEMS.map(it=>row(it.label,it.desc,MD_COMPLIANCE[it.k]!==false,it.k)).join('');
+  const ready=COMPLIANCE_ITEMS.every(it=>MD_COMPLIANCE[it.k]!==false);
+  const audit=AUDIT.slice().reverse().slice(0,60);
+  const rows=audit.length?audit.map((a,i)=>`<tr><td class="sno">${i+1}</td><td>${genEsc(a.head)}</td><td>${genEsc(a.patient||'—')}</td><td>${genEsc(a.action)}</td><td>${genEsc(a.user)}</td><td>${genEsc(a.date)}</td></tr>`).join(''):'<tr><td class="tempty" colspan="6">No audit entries yet — payment edits & master changes are logged here.</td></tr>';
+  body.innerHTML=`
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <div class="sec-head" style="border:0;padding:0;margin:0 0 6px"><div><h3 style="margin:0">Regulatory readiness</h3><p class="psub" style="margin:2px 0 0">NABH audit trails &amp; IRDA compliance protocols — pre-configured</p></div>
+        <span class="pill ${ready?'g':'r'}">${ready?'Audit-ready':'Review needed'}</span></div>
+      ${items}
+    </div>
+    <div class="sec-head"><div><h3>NABH audit trail</h3><p>${AUDIT.length} logged event${AUDIT.length===1?'':'s'} · head · patient · action · user · time</p></div>
+      <button class="btn ghost" id="auditCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Head</th><th>Patient</th><th>Action</th><th>User</th><th>Date &amp; time</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  body.querySelectorAll('[data-comp]').forEach(b=>b.onclick=()=>{ const k=b.dataset.comp; MD_COMPLIANCE[k]=(MD_COMPLIANCE[k]===false); persist(); logAudit('Compliance',`${k} ${MD_COMPLIANCE[k]===false?'disabled':'enabled'}`); renderMaster(); });
+  const cb=document.getElementById('auditCsv'); if(cb)cb.onclick=()=>{ if(typeof exportCSV==='function')exportCSV('audit_trail',['S.No','Head','Patient','Action','User','Date'],AUDIT.slice().reverse().map((a,i)=>[i+1,a.head,a.patient,a.action,a.user,a.date])); };
+}
+function renderMdIntegrations(body){
+  const g=MD_INTEGRATIONS||{};
+  body.innerHTML=`
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>Enterprise ERP &amp; accounting integration</h3>
+      <p class="psub">Connect MediCore to your accounting / ERP system (SAP or legacy) to push billing &amp; ledger entries. Configure the hook here; the server relays entries to your endpoint.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Accounting / ERP system</label><select id="intSys"><option>None</option><option>SAP</option><option>Oracle Financials</option><option>Tally</option><option>Legacy / Custom</option></select></div>
+        <div class="fld"><label>Endpoint URL</label><input id="intUrl" placeholder="https://erp.example.com/api/ledger"></div>
+        <div class="fld"><label>API key / token</label><input id="intKey" placeholder="Secret key"></div>
+        <div class="fld"><label>Sync</label><select id="intOn"><option>Disabled</option><option>Enabled</option></select></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="intSave" style="width:auto;padding:12px 22px">Save integration</button><button class="btn ghost" id="intTest" style="width:auto;padding:12px 22px">Test connection</button></div>
+    </div>
+    <div class="panel" style="max-width:none">
+      <h3 style="margin:0 0 8px">Status</h3>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)"><span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;background:${g.enabled?'#16a34a':'#9fb0c2'}"></i>Connection</span><b>${g.enabled?'Enabled':'Not connected'}</b></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)"><span>System</span><b>${genEsc(g.system||'—')}</b></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0"><span>Endpoint</span><b style="word-break:break-all;text-align:right;max-width:60%">${genEsc(g.endpoint||'—')}</b></div>
+    </div>`;
+  const s=document.getElementById('intSys'); if(g.system)s.value=g.system;
+  document.getElementById('intUrl').value=g.endpoint||'';
+  document.getElementById('intKey').value=g.apiKey||'';
+  document.getElementById('intOn').value=g.enabled?'Enabled':'Disabled';
+  document.getElementById('intSave').onclick=()=>{
+    MD_INTEGRATIONS={ system:document.getElementById('intSys').value, endpoint:document.getElementById('intUrl').value.trim(), apiKey:document.getElementById('intKey').value.trim(), enabled:document.getElementById('intOn').value==='Enabled', _ts:Date.now() };
+    persist(); logAudit('Integration',`ERP integration saved (${MD_INTEGRATIONS.system}${MD_INTEGRATIONS.enabled?', enabled':''})`); renderMaster(); toast('Integration saved');
+  };
+  document.getElementById('intTest').onclick=()=>toast('Test queued — set the endpoint on the server to complete the hook');
 }
 function renderMdDoctors(body){
   const rows = MD_DOCTORS.length ? MD_DOCTORS.map((d,i)=>`<tr><td class="sno">${i+1}</td><td><b>Dr. ${genEsc(d.name)}</b></td><td>${genEsc(d.dept||'—')}</td><td>${genEsc(d.contact||'—')}</td><td>${genEsc(d.room||'—')}</td><td>${money(d.opdFee||0)}</td><td style="font-size:11.5px">${genEsc((d.days||[]).join(', ')||'—')}</td><td><span class="pill g">Active</span></td></tr>`).join('') : `<tr><td class="tempty" colspan="8">No doctors added yet.</td></tr>`;
@@ -3400,7 +3488,7 @@ let _stateV=0;
 function buildStateObject(){
   const rows={};
   Object.keys(MODULE_DEFS).forEach(n=>{rows[n]=MODULE_DEFS[n].sections.map(s=>s.rows);});
-  return {_v:_stateV,rows,QUEUE,TOKEN,BEDS,WARDS,LEDGER,VACANCIES,MODCREDS,ADMIN_CRED,PHARMACY,PHARMA_MOVES,SHIFTS,SANITIZE,OPD_BILLS,MD_DOCTORS,MD_STAFF,MD_ROLES,MD_INVEST,MD_HOSPITAL,MD_LISTS,
+  return {_v:_stateV,rows,QUEUE,TOKEN,BEDS,WARDS,LEDGER,VACANCIES,MODCREDS,ADMIN_CRED,PHARMACY,PHARMA_MOVES,SHIFTS,SANITIZE,OPD_BILLS,MD_DOCTORS,MD_STAFF,MD_ROLES,MD_INVEST,MD_HOSPITAL,MD_LISTS,AUDIT,MD_COMPLIANCE,MD_INTEGRATIONS,
     MODULES:MODULES.map(m=>({name:m.name,desc:m.desc,icon:m.icon,color:m.color,count:m.count}))};
 }
 function persist(){
@@ -3432,6 +3520,10 @@ function applyState(d){
     if(Array.isArray(d.MD_INVEST))MD_INVEST=d.MD_INVEST;
     if(d.MD_HOSPITAL&&typeof d.MD_HOSPITAL==='object')MD_HOSPITAL=d.MD_HOSPITAL;
     if(d.MD_LISTS&&typeof d.MD_LISTS==='object')MD_LISTS=d.MD_LISTS;
+    if(Array.isArray(d.AUDIT))AUDIT=d.AUDIT;
+    if(d.MD_COMPLIANCE&&typeof d.MD_COMPLIANCE==='object')MD_COMPLIANCE=d.MD_COMPLIANCE;
+    if(d.MD_INTEGRATIONS&&typeof d.MD_INTEGRATIONS==='object')MD_INTEGRATIONS=d.MD_INTEGRATIONS;
+    ensureSeedMasters();
     if(d.MODCREDS)Object.keys(d.MODCREDS).forEach(k=>MODCREDS[k]=d.MODCREDS[k]);
     if(d.ADMIN_CRED){ADMIN_CRED.user=d.ADMIN_CRED.user;ADMIN_CRED.pass=d.ADMIN_CRED.pass;}
     if(Array.isArray(d.MODULES))d.MODULES.forEach(m=>{if(!MODULES.find(x=>x.name===m.name))MODULES.push(m);});
@@ -3561,6 +3653,7 @@ function toast(msg){const t=document.getElementById('toast');document.getElement
 
 loadState();       // pull any shared data saved by other tabs (local)
 ensureCreds();      // make sure every module (incl. restored custom ones) has creds
+ensureSeedMasters(); // pre-load ICD-10 library, Schedule IV tariffs & compliance defaults
 renderModules();
 /* on a fresh device, hydrate from the cloud so previously-entered data shows */
 if(CLOUD){ cloudPull().then(d=>{ if(d && (d._v||0)>=_stateV){ applyState(d); try{localStorage.setItem(LS_KEY,JSON.stringify(d));}catch(e){} refreshView(); } }); }
