@@ -767,7 +767,7 @@
               <div class="fld"><label>Consulting doctor</label>
                 <select id="rDoc"><option>Dr. A. Sharma</option><option>Dr. P. Mehta</option><option>Dr. S. Iyer</option><option>Dr. R. Nair</option></select></div>
               <div class="fld"><label>Patient type</label><select id="rType"><option>Normal</option><option>Insurance</option></select></div>
-              <div class="fld" id="rInsurerWrap" style="display:none"><label>Insurer</label><input id="rInsurer" placeholder="e.g. Star Health"></div>
+              <div class="fld" id="rInsurerWrap" style="display:none"><label>Insurer</label><input id="rInsurer" list="insurerList" placeholder="e.g. Star Health"><datalist id="insurerList"></datalist></div>
               <div class="fld" id="rPolicyWrap" style="display:none"><label>Policy no.</label><input id="rPolicy" placeholder="Policy number"></div>
               <div class="fld full"><label>Chief complaint</label><textarea id="rComplaint" placeholder="Reason for visit / symptoms…"></textarea></div>
             </div>
@@ -924,6 +924,7 @@
   <div class="gen-main">
     <div class="seg" id="genSeg"></div>
     <div id="genBody"></div>
+    <datalist id="gfInvestList"></datalist>
   </div>
 </section>
 
@@ -1299,7 +1300,7 @@
     </div>
     <div class="modal-body">
       <p class="auth-sub">Create a ward and generate its beds on the board.</p>
-      <div class="fld" style="margin-bottom:14px"><label>Ward name *</label><input id="wName" placeholder="e.g. Surgical Ward"></div>
+      <div class="fld" style="margin-bottom:14px"><label>Ward name *</label><input id="wName" list="wardCatList" placeholder="e.g. Surgical Ward"><datalist id="wardCatList"></datalist></div>
       <div class="form-grid">
         <div class="fld"><label>Short code</label><input id="wCode" placeholder="e.g. SUR" maxlength="4"></div>
         <div class="fld"><label>Number of beds</label><input id="wBeds" type="number" min="1" max="40" value="6"></div>
@@ -1697,10 +1698,41 @@ function openOPD(){
   document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('opdPage').classList.remove('hidden');
   activeTok = QUEUE.find(p=>p.status==='serving')?.tok || null;
+  populateOpdMasters();
   renderQueue(); showConsult();
   window.scrollTo(0,0);
 }
 document.getElementById('opdBack').onclick=()=>backFromModule();
+/* pull Master-Data (admin) into OPD registration dropdowns */
+function mdActive(key){ return ((typeof MD_LISTS!=='undefined'&&MD_LISTS[key])?MD_LISTS[key]:[]).filter(x=>x.active!==false); }
+function populateOpdMasters(){
+  const deps=mdActive('departments');
+  const dSel=document.getElementById('rDept');
+  if(deps.length && dSel){ const cur=dSel.value; dSel.innerHTML=deps.map(d=>`<option>${genEsc(d.name)}</option>`).join(''); if([...dSel.options].some(o=>o.value===cur))dSel.value=cur; }
+  const docs=(typeof MD_DOCTORS!=='undefined'?MD_DOCTORS:[]).filter(x=>x.opd!==false);
+  const docSel=document.getElementById('rDoc');
+  if(docs.length && docSel){ const cur=docSel.value; docSel.innerHTML=docs.map(d=>`<option>Dr. ${genEsc(d.name)}</option>`).join(''); if([...docSel.options].some(o=>o.value===cur))docSel.value=cur; }
+  const dl=document.getElementById('insurerList');
+  if(dl) dl.innerHTML=mdActive('insurance').map(i=>`<option value="${genAttr(i.name)}"></option>`).join('');
+}
+/* pull Master-Data into IPD (admitting doctor + ward categories) */
+function populateIpdMasters(){
+  let docs=(typeof MD_DOCTORS!=='undefined'?MD_DOCTORS:[]).filter(x=>x.ipd);
+  if(!docs.length) docs=(typeof MD_DOCTORS!=='undefined'?MD_DOCTORS:[]);
+  const s=document.getElementById('aDoc');
+  if(docs.length && s){ const cur=s.value; s.innerHTML=docs.map(d=>`<option>Dr. ${genEsc(d.name)}</option>`).join(''); if([...s.options].some(o=>o.value===cur))s.value=cur; }
+  const dl=document.getElementById('wardCatList');
+  if(dl) dl.innerHTML=mdActive('roomCategories').map(r=>`<option value="${genAttr(r.name)}"></option>`).join('');
+}
+/* pull Master-Data investigations into a diagnostic module's add-form */
+function populateGenInvest(moduleName){
+  const dl=document.getElementById('gfInvestList'); if(!dl)return;
+  const all=(typeof MD_INVEST!=='undefined'?MD_INVEST:[]).filter(x=>x.active!==false);
+  const mn=(moduleName||'').toLowerCase();
+  const mine=all.filter(x=>{ const dp=(x.dept||'').toLowerCase(); return dp&&(dp.includes(mn)||mn.includes(dp)); });
+  const use=mine.length?mine:all;
+  dl.innerHTML=use.map(x=>`<option value="${genAttr(x.name)}"></option>`).join('');
+}
 document.getElementById('opdCSV').onclick=()=>opdExport('csv');
 document.getElementById('opdPDF').onclick=()=>opdExport('pdf');
 
@@ -1930,6 +1962,7 @@ function openIPD(){
   document.getElementById('app').classList.add('hidden');
   document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('ipdPage').classList.remove('hidden');
+  populateIpdMasters();
   fillWardSelects(); renderBoard(); renderAdmitted();
   window.scrollTo(0,0);
 }
@@ -2220,7 +2253,7 @@ Object.values(MODULE_DEFS).forEach(d=>d.sections.forEach(s=>{s.rows=[];}));
 
 let genDef=null, genSec=0, genMeta=null, moduleReturn='app';
 function openGeneric(m){
-  genMeta=m; genDef=MODULE_DEFS[m.name]; genSec=0; _genQuery='';
+  genMeta=m; genDef=MODULE_DEFS[m.name]; genSec=0; _genQuery=''; populateGenInvest(m.name);
   if(!genDef){toast(`${m.name} — coming soon`);return;}
   const ico=document.getElementById('genIco');
   ico.style.background=shade(m.color); ico.style.color=m.color;
@@ -2314,7 +2347,7 @@ function fieldHTML(c){
   else if(c.type==='tag') inner=`<select id="${id}">${(c.opts||[]).map(o=>`<option>${o}</option>`).join('')}</select>`;
   else if(c.type==='date') inner=`<input id="${id}" type="date" value="${today}">`;
   else if(c.type==='fee'||c.type==='num') inner=`<input id="${id}" type="number" min="0" placeholder="0">`;
-  else inner=`<input id="${id}" placeholder="${c.t}">`;
+  else { const inv=/report|test|investigation|scan|result|modality|sample|finding/i.test((c.k||'')+' '+(c.t||'')); inner=`<input id="${id}" ${inv?'list="gfInvestList"':''} placeholder="${c.t}">`; }
   return `<div class="fld"><label>${c.t}</label>${inner}</div>`;
 }
 function saveGenRecord(){
@@ -2443,38 +2476,81 @@ function renderMaster(){
   else if(MDLIST_CONFIG[mdTab])renderMdList(mdTab,body);
   else renderMdDoctors(body);
 }
-function renderMdList(key,body){
-  const cfg=MDLIST_CONFIG[key]; const list=MD_LISTS[key]||(MD_LISTS[key]=[]);
-  const cols=cfg.cols||[], extra=cfg.fields||[];
-  const rows=list.length ? list.map((it,i)=>{
+let _mdlQuery='', _mdlEditId=null, _mdlLastKey=null;
+function mdlItems(key){ return MD_LISTS[key]||(MD_LISTS[key]=[]); }
+function mdlFiltered(key){ const q=_mdlQuery.trim().toLowerCase(); const items=mdlItems(key); return q? items.filter(it=>String(it.name||'').toLowerCase().includes(q)) : items; }
+function mdlRowsHTML(key){
+  const cfg=MDLIST_CONFIG[key], cols=cfg.cols||[], list=mdlFiltered(key);
+  if(!list.length) return `<tr><td class="tempty" colspan="${4+cols.length}">No ${cfg.noun}s found.</td></tr>`;
+  return list.map((it,i)=>{
     const extraTds=cols.map(c=>`<td>${genEsc(c.fn?c.fn(it):(it[c.k]||'—'))}</td>`).join('');
-    return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(it.name)}</b></td>${extraTds}<td>${it.active===false?'<span class="pill r">Inactive</span>':'<span class="pill g">Active</span>'}</td><td><button class="btn ghost tiny" data-mdl="${key}::${it.id}" style="width:auto;padding:6px 10px">${it.active===false?'Activate':'Deactivate'}</button></td></tr>`;
-  }).join('') : `<tr><td class="tempty" colspan="${3+cols.length}">No ${cfg.noun}s added yet.</td></tr>`;
-  const inputs=[`<div class="fld"><label>${cfg.nameLabel||(cfg.noun.charAt(0).toUpperCase()+cfg.noun.slice(1)+' name')}</label><input id="mdlName" placeholder="Name"></div>`]
+    return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(it.name)}</b></td>${extraTds}<td>${it.active===false?'<span class="pill r">Inactive</span>':'<span class="pill g">Active</span>'}</td><td><a href="#" class="mdl-edit" data-id="${it.id}" style="color:var(--brand);font-weight:700;text-decoration:none">Edit</a></td><td style="text-align:center"><input type="checkbox" class="mdl-chk" value="${it.id}"></td></tr>`;
+  }).join('');
+}
+function wireMdlRows(){ document.querySelectorAll('#mdlTbody .mdl-edit').forEach(a=>a.onclick=(e)=>{ e.preventDefault(); _mdlEditId=a.dataset.id; renderMaster(); }); }
+function renderMdList(key,body){
+  if(key!==_mdlLastKey){ _mdlQuery=''; _mdlEditId=null; _mdlLastKey=key; }
+  const cfg=MDLIST_CONFIG[key], cols=cfg.cols||[], extra=cfg.fields||[];
+  const editing=_mdlEditId?mdlItems(key).find(x=>x.id===_mdlEditId):null;
+  const inputs=[`<div class="fld"><label>${cfg.nameLabel||(cfg.noun.charAt(0).toUpperCase()+cfg.noun.slice(1)+' name')}</label><input id="mdlName" value="${editing?genAttr(editing.name):''}" placeholder="Name"></div>`]
     .concat(extra.map(f=> f.type==='textarea'
-      ? `<div class="fld full"><label>${f.label}</label><textarea id="mdl_${f.k}" placeholder="${f.label}"></textarea></div>`
-      : `<div class="fld"><label>${f.label}</label><input id="mdl_${f.k}" ${f.type==='number'?'type="number" min="0"':''} placeholder="${f.label}"></div>`)).join('');
+      ? `<div class="fld full"><label>${f.label}</label><textarea id="mdl_${f.k}" placeholder="${f.label}">${editing?genEsc(editing[f.k]||''):''}</textarea></div>`
+      : `<div class="fld"><label>${f.label}</label><input id="mdl_${f.k}" ${f.type==='number'?'type="number" min="0"':''} value="${editing?genAttr(editing[f.k]!=null?editing[f.k]:''):''}" placeholder="${f.label}"></div>`)).join('');
+  const total=mdlItems(key).length, shown=mdlFiltered(key).length;
   body.innerHTML=`
     <div class="panel" style="max-width:none;margin-bottom:16px">
-      <h3>Add ${genEsc(cfg.title.replace(/s$/,''))}</h3>
+      <h3>${editing?'Edit':'Add'} ${genEsc(cfg.title.replace(/s$/,''))}</h3>
       <div class="addgrid">${inputs}</div>
-      <div class="form-actions"><button class="btn" id="mdlSave" style="width:auto;padding:12px 22px">Add</button></div>
+      <div class="form-actions"><button class="btn" id="mdlSave" style="width:auto;padding:12px 22px">${editing?'Update':'Add'}</button>${editing?'<button class="btn ghost" id="mdlCancel" style="width:auto;padding:12px 22px">Cancel</button>':''}</div>
     </div>
-    <div class="sec-head"><div><h3>${genEsc(cfg.title)}</h3><p>${list.length} ${cfg.noun}${list.length===1?'':'s'}</p></div></div>
-    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Name</th>${cols.map(c=>`<th>${genEsc(c.label)}</th>`).join('')}<th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
-  document.getElementById('mdlSave').onclick=()=>addMdListItem(key);
-  body.querySelectorAll('[data-mdl]').forEach(b=>b.onclick=()=>{ const p=b.dataset.mdl.split('::'); toggleMdListItem(p[0],p[1]); });
+    <div class="sec-head">
+      <div><h3>${genEsc(cfg.title)}</h3><p id="mdlCount">${shown} of ${total} ${cfg.noun}${total===1?'':'s'}</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn ghost" id="mdlCopy" style="width:auto;padding:9px 13px">Copy</button>
+        <button class="btn ghost" id="mdlCsv" style="width:auto;padding:9px 13px">CSV</button>
+        <div style="display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:8px 11px;color:var(--muted);min-width:180px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex:none"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="mdlSearch" value="${genAttr(_mdlQuery)}" placeholder="Search by name…" style="border:0;background:transparent;outline:0;width:100%;font-size:13px;color:var(--ink)">
+        </div>
+      </div>
+    </div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Name</th>${cols.map(c=>`<th>${genEsc(c.label)}</th>`).join('')}<th>Status</th><th>Action</th><th style="text-align:center"><input type="checkbox" id="mdlAll"></th></tr></thead><tbody id="mdlTbody">${mdlRowsHTML(key)}</tbody></table></div>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn ghost" id="mdlActivate" style="width:auto;padding:9px 16px">Activate</button><button class="btn ghost" id="mdlDeactivate" style="width:auto;padding:9px 16px;color:#b45309;border-color:#f0d5ad">Deactivate</button></div>`;
+  document.getElementById('mdlSave').onclick=()=>saveMdListItem(key);
+  const cancel=document.getElementById('mdlCancel'); if(cancel)cancel.onclick=()=>{ _mdlEditId=null; renderMaster(); };
+  document.getElementById('mdlSearch').oninput=function(){ _mdlQuery=this.value; const tb=document.getElementById('mdlTbody'); if(tb)tb.innerHTML=mdlRowsHTML(key); wireMdlRows(); const c=document.getElementById('mdlCount'); if(c)c.textContent=`${mdlFiltered(key).length} of ${mdlItems(key).length} ${cfg.noun}${mdlItems(key).length===1?'':'s'}`; };
+  document.getElementById('mdlAll').onchange=function(){ document.querySelectorAll('#mdlTbody .mdl-chk').forEach(x=>x.checked=this.checked); };
+  document.getElementById('mdlActivate').onclick=()=>mdlBulk(key,true);
+  document.getElementById('mdlDeactivate').onclick=()=>mdlBulk(key,false);
+  document.getElementById('mdlCopy').onclick=()=>mdlExport(key,'copy');
+  document.getElementById('mdlCsv').onclick=()=>mdlExport(key,'csv');
+  wireMdlRows();
 }
-function addMdListItem(key){
+function saveMdListItem(key){
   const cfg=MDLIST_CONFIG[key];
   const name=document.getElementById('mdlName').value.trim();
   if(!name){document.getElementById('mdlName').focus();toast('Enter a name');return;}
-  const item={ id:'L'+Date.now().toString(36), name, active:true, _ts:Date.now() };
-  (cfg.fields||[]).forEach(f=>{ const el=document.getElementById('mdl_'+f.k); item[f.k]= el ? (f.type==='number'?(Number(el.value)||0):el.value.trim()) : ''; });
-  MD_LISTS[key]=MD_LISTS[key]||[]; MD_LISTS[key].push(item);
-  persist(); renderMaster(); toast(`${name} added`);
+  const collect=(item)=>{ item.name=name; (cfg.fields||[]).forEach(f=>{ const el=document.getElementById('mdl_'+f.k); item[f.k]= el ? (f.type==='number'?(Number(el.value)||0):el.value.trim()) : ''; }); };
+  if(_mdlEditId){ const it=mdlItems(key).find(x=>x.id===_mdlEditId); if(it){ collect(it); it._ts=Date.now(); } _mdlEditId=null; toast('Updated'); }
+  else { const item={ id:'L'+Date.now().toString(36), active:true, _ts:Date.now() }; collect(item); mdlItems(key).push(item); toast(`${name} added`); }
+  persist(); renderMaster();
 }
-function toggleMdListItem(key,id){ const it=(MD_LISTS[key]||[]).find(x=>x.id===id); if(!it)return; it.active=(it.active===false); persist(); renderMaster(); }
+function toggleMdListItem(key,id){ const it=mdlItems(key).find(x=>x.id===id); if(!it)return; it.active=(it.active===false); persist(); renderMaster(); }
+function mdlBulk(key,active){
+  const ids=[...document.querySelectorAll('#mdlTbody .mdl-chk:checked')].map(x=>x.value);
+  if(!ids.length){toast('Select rows first');return;}
+  mdlItems(key).forEach(it=>{ if(ids.includes(it.id)) it.active=active; });
+  persist(); renderMaster(); toast(`${ids.length} ${active?'activated':'deactivated'}`);
+}
+function mdlExport(key,how){
+  const cfg=MDLIST_CONFIG[key], cols=cfg.cols||[], list=mdlFiltered(key);
+  const headers=['S.No','Name',...cols.map(c=>c.label),'Status'];
+  const matrix=list.map((it,i)=>[i+1,it.name,...cols.map(c=>c.fn?c.fn(it):(it[c.k]||'')),it.active===false?'Inactive':'Active']);
+  if(how==='csv'){ if(typeof exportCSV==='function')exportCSV((cfg.title||'list').replace(/[^a-z0-9]+/gi,'_'),headers,matrix); else toast('CSV unavailable'); return; }
+  const txt=[headers.join('\t')].concat(matrix.map(r=>r.join('\t'))).join('\n');
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(()=>toast('Copied to clipboard')).catch(()=>toast('Copy failed')); }
+  else toast('Copy not supported here');
+}
 function renderMdDoctors(body){
   const rows = MD_DOCTORS.length ? MD_DOCTORS.map((d,i)=>`<tr><td class="sno">${i+1}</td><td><b>Dr. ${genEsc(d.name)}</b></td><td>${genEsc(d.dept||'—')}</td><td>${genEsc(d.contact||'—')}</td><td>${genEsc(d.room||'—')}</td><td>${money(d.opdFee||0)}</td><td style="font-size:11.5px">${genEsc((d.days||[]).join(', ')||'—')}</td><td><span class="pill g">Active</span></td></tr>`).join('') : `<tr><td class="tempty" colspan="8">No doctors added yet.</td></tr>`;
   body.innerHTML=`
