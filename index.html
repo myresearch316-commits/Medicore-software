@@ -1037,6 +1037,10 @@
     <div class="seg" id="pharmaSeg">
       <button data-ptab="stock" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 4v16"/></svg>Stock &amp; inventory</button>
       <button data-ptab="moves"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10l5-5 5 5M12 5v14"/></svg>Stock in / out</button>
+      <button data-ptab="ingredients"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v6l-6 10a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3l-6-10V2"/><path d="M8 2h8"/></svg>Ingredients</button>
+      <button data-ptab="allergies"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>Allergies</button>
+      <button data-ptab="expiry"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Expiry</button>
+      <button data-ptab="interactions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v4M16 17v4M3 8h4M17 16h4"/><circle cx="9" cy="15" r="4"/><circle cx="15" cy="9" r="4"/></svg>Interactions</button>
     </div>
     <div id="pharmaBody"></div>
   </div>
@@ -1287,6 +1291,7 @@
         <button data-md="hospital">Hospital settings</button>
       </div>
       <div id="mdBody"></div>
+      <datalist id="docNameList"></datalist>
     </div>
 
     <!-- DANGER ZONE -->
@@ -1751,7 +1756,9 @@ document.getElementById('opdBack').onclick=()=>backFromModule();
 /* pull Master-Data (admin) into OPD registration dropdowns */
 function mdActive(key){ return ((typeof MD_LISTS!=='undefined'&&MD_LISTS[key])?MD_LISTS[key]:[]).filter(x=>x.active!==false); }
 function populateOpdMasters(){
-  const deps=mdActive('departments');
+  const deps=(typeof DEPARTMENTS!=='undefined'&&DEPARTMENTS.length)
+    ? DEPARTMENTS.filter(d=>d.active!==false)
+    : mdActive('departments');
   const dSel=document.getElementById('rDept');
   if(deps.length && dSel){ const cur=dSel.value; dSel.innerHTML=deps.map(d=>`<option>${genEsc(d.name)}</option>`).join(''); if([...dSel.options].some(o=>o.value===cur))dSel.value=cur; }
   const docs=(typeof MD_DOCTORS!=='undefined'?MD_DOCTORS:[]).filter(x=>x.opd!==false);
@@ -2524,6 +2531,8 @@ function renderMaster(){
   if(!body){ if(typeof _deptHost!=='undefined'&&_deptHost){ const _h=document.getElementById(_deptHost.elId); if(_h&&DEPT_FEATURES[_deptHost.key])DEPT_FEATURES[_deptHost.key](_h); } return; }
   if(typeof _deptHost!=='undefined')_deptHost=null;
   if(typeof _deptCtx!=='undefined')_deptCtx='Admin';
+  const _dl=document.getElementById('docNameList');
+  if(_dl)_dl.innerHTML=(typeof MD_DOCTORS!=='undefined'?MD_DOCTORS:[]).map(x=>`<option value="${genAttr('Dr. '+x.name)}">`).join('');
   document.querySelectorAll('#mdSeg button').forEach(b=>b.classList.toggle('active',b.dataset.md===mdTab));
   if(mdTab==='doctors')renderMdDoctors(body);
   else if(mdTab==='staff')renderMdStaff(body);
@@ -2542,6 +2551,7 @@ function renderMaster(){
   else if(mdTab==='voice')renderMdVoice(body);
   else if(mdTab==='lis')renderMdLis(body);
   else if(mdTab==='billingAlerts')renderMdBilling(body);
+  else if(mdTab==='departments')renderMdDepartments(body);
   else if(MDLIST_CONFIG[mdTab])renderMdList(mdTab,body);
   else renderMdDoctors(body);
 }
@@ -2644,6 +2654,8 @@ function ensureSeedMasters(){
   TARIFF_SEED.forEach(([name,code,rate])=>{ const id='TAR_'+code; if(!MD_LISTS.tariffs.some(x=>x.id===id)) MD_LISTS.tariffs.push({id,name,code,rate,active:true,_ts:0}); });
   MD_LISTS.stdRates=MD_LISTS.stdRates||[];
   if(typeof STDRATE_SEED!=='undefined')STDRATE_SEED.forEach(([name,module,amount])=>{ const id='RT_'+name.replace(/[^a-z0-9]+/gi,'').toLowerCase(); if(!MD_LISTS.stdRates.some(x=>x.id===id)) MD_LISTS.stdRates.push({id,name,module,amount,active:true,_ts:0}); });
+  if(typeof seedInteractions==='function')seedInteractions();
+  if(typeof seedDepartments==='function')seedDepartments();
   if(!MD_COMPLIANCE){ MD_COMPLIANCE={}; COMPLIANCE_ITEMS.forEach(it=>MD_COMPLIANCE[it.k]=true); }
 }
 function logAudit(head, action, patient){
@@ -2802,6 +2814,326 @@ function renderMdAbha(body){
   const s=document.getElementById('abSave'); if(s)s.onclick=()=>{ const digits=(document.getElementById('abNum').value||'').replace(/\D/g,''); const name=document.getElementById('abName').value.trim(); if(digits.length!==14){toast('ABHA must be 14 digits');return;} if(!name){toast('Enter patient name');return;} const consent=document.getElementById('abConsent').value==='yes'; ABHA_REG.push({id:'AB'+Date.now().toString(36),name,abha:abhaFmt(digits),phone:document.getElementById('abPhone').value.trim(),consent,date:new Date().toISOString().slice(0,10),_ts:Date.now()}); if(consent)CONSENTS.push({id:'CN'+Date.now().toString(36),patient:name,purpose:'ABHA registration',scope:'Demographics only',granted:true,date:new Date().toISOString().slice(0,10),_ts:Date.now()}); logAudit('ABHA','Checked in via ABHA',name); persist(); renderMaster(); toast('Checked in'); };
   const v=document.getElementById('abVerify'); if(v)v.onclick=()=>toast('ABDM verification needs facility credentials configured on the server');
   const cv=document.getElementById('abCsv'); if(cv)cv.onclick=()=>exportCSV('abha_register',['Name','ABHA','Mobile','Consent','Date'],ABHA_REG.map(r=>[r.name,r.abha,r.phone,r.consent?'Yes':'No',r.date]));
+}
+/* ===================== DEPARTMENTS (full module) ===================== */
+let DEPARTMENTS=[], _dpOpen=null, _dpTab='overview', _dpEdit=null;
+const DEPT_SEED=[
+  ['General Medicine','GEN','Clinical'],['Cardiology','CARD','Clinical'],['Neurology','NEURO','Clinical'],
+  ['Orthopaedics','ORTHO','Clinical'],['Paediatrics','PAED','Clinical'],['Gynaecology','GYN','Clinical'],
+  ['ENT','ENT','Clinical'],['Dermatology','DERM','Clinical'],['Emergency','EMG','Emergency'],
+  ['ICU','ICU','Critical care'],['Laboratory','LAB','Diagnostic'],['Radiology','RAD','Diagnostic'],
+  ['Pharmacy','PHAR','Support'],['Billing','BILL','Administrative'],['Insurance','INS','Administrative'],
+  ['Operation Theatre','OT','Surgical'],['Physiotherapy','PHYSIO','Therapy']
+];
+const DEPT_TYPES=['Clinical','Emergency','Critical care','Diagnostic','Surgical','Therapy','Support','Administrative'];
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+function seedDepartments(){
+  DEPARTMENTS=DEPARTMENTS||[];
+  DEPT_SEED.forEach(([name,code,type])=>{
+    const id='DP_'+code;
+    if(!DEPARTMENTS.some(d=>d.id===id)) DEPARTMENTS.push({
+      id,name,code,type,head:'',floor:'',room:'',
+      days:['Mon','Tue','Wed','Thu','Fri','Sat'],open:'09:00',close:'17:00',
+      emergency:(type==='Emergency'||type==='Critical care'),
+      limit:50,tokenPrefix:code.slice(0,3),tokenStart:1,
+      services:[],rooms:[],equipment:[],active:true,_ts:0
+    });
+  });
+}
+const deptFind=id=>DEPARTMENTS.find(d=>d.id===id)||null;
+function deptDoctors(d){ return (typeof MD_DOCTORS!=='undefined'?MD_DOCTORS:[]).filter(x=>_norm(x.dept)===_norm(d.name)); }
+function deptStaff(d){ return (typeof MD_STAFF!=='undefined'?MD_STAFF:[]).filter(x=>_norm(x.dept)===_norm(d.name)); }
+function deptQueue(d){ return (typeof QUEUE!=='undefined'?QUEUE:[]).filter(q=>_norm(q.dept)===_norm(d.name)); }
+function deptWaiting(d){ return deptQueue(d).filter(q=>q.status==='waiting').length; }
+function deptCompleted(d){ return deptQueue(d).filter(q=>q.status==='done').length; }
+function deptCancelled(d){ return deptQueue(d).filter(q=>q.status==='cancelled'||q.status==='noshow').length; }
+function deptRevenue(d){
+  const fromBills=(typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).filter(b=>_norm(b.dept)===_norm(d.name)).reduce((a,b)=>a+(Number(b.amount)||0),0);
+  const fromCharges=(typeof CHARGES!=='undefined'?CHARGES:[]).filter(c=>_norm(c.module)===_norm(d.name)||_norm(c.source)===_norm(d.name)).reduce((a,c)=>a+(Number(c.amount)||0),0);
+  return fromBills+fromCharges;
+}
+function deptNextToken(d){ return (d.tokenPrefix||'T')+'-'+((Number(d.tokenStart)||1)+deptQueue(d).length); }
+function deptSlotsLeft(d){ return Math.max(0,(Number(d.limit)||0)-deptQueue(d).length); }
+function deptOpenNow(d){
+  if(!d.active) return false;
+  const now=new Date(), day=DAYS[(now.getDay()+6)%7];
+  const hhmm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  if(!(d.days||[]).includes(day)) return false;
+  return hhmm>=String(d.open||'00:00') && hhmm<=String(d.close||'23:59');
+}
+function deptServiceTotal(d){ return (d.services||[]).filter(s=>s.active!==false).reduce((a,s)=>a+(Number(s.charge)||0),0); }
+/* per-doctor timings inside a department (falls back to department hours) */
+function docTiming(d,docName){
+  const t=(d.docTimings||{})[_norm(docName)];
+  return t||{days:(d.days||[]).slice(),open:d.open||'09:00',close:d.close||'17:00',slot:15,inherit:true};
+}
+function setDocTiming(d,docName,t){
+  d.docTimings=d.docTimings||{};
+  d.docTimings[_norm(docName)]={days:t.days||[],open:t.open||'',close:t.close||'',slot:Number(t.slot)||15,inherit:false};
+}
+function clearDocTiming(d,docName){ if(d.docTimings) delete d.docTimings[_norm(docName)]; }
+function docSlots(d,docName){
+  const t=docTiming(d,docName);
+  const o=String(t.open||'').split(':').map(Number), c=String(t.close||'').split(':').map(Number);
+  if(o.length<2||c.length<2||isNaN(o[0])||isNaN(c[0])) return 0;
+  const mins=(c[0]*60+(c[1]||0))-(o[0]*60+(o[1]||0)); const per=Number(t.slot)||15;
+  return mins>0?Math.floor(mins/per):0;
+}
+function docAvailableOn(d,docName,day){
+  if(d.active===false) return false;
+  return (docTiming(d,docName).days||[]).includes(day);
+}
+
+function renderMdDepartments(body){
+  if(_dpOpen){ renderDeptPage(body); return; }
+  const q=_norm(_mdlQuery);
+  const list=q?DEPARTMENTS.filter(d=>_norm(d.name).includes(q)||_norm(d.code).includes(q)):DEPARTMENTS;
+  const rows=list.length?list.map((d,i)=>`<tr>
+      <td class="sno">${i+1}</td>
+      <td><b>${genEsc(d.name)}</b><br><span style="color:var(--muted);font-size:11px">${genEsc(d.code)}</span></td>
+      <td>${genEsc(d.type||'—')}</td><td>${genEsc(d.head||'—')}</td>
+      <td>${genEsc(d.floor?('Floor '+d.floor):'—')}${d.room?' · Rm '+genEsc(d.room):''}</td>
+      <td>${deptDoctors(d).length} / ${deptStaff(d).length}</td>
+      <td>${d.emergency?'<span class="pill r">24×7</span>':'<span class="pill b">'+genEsc(d.open||'')+'–'+genEsc(d.close||'')+'</span>'}</td>
+      <td><b>${deptWaiting(d)}</b></td><td>${money(deptRevenue(d))}</td>
+      <td>${d.active===false?'<span class="pill r">Inactive</span>':(deptOpenNow(d)?'<span class="pill g">Open now</span>':'<span class="pill a">Closed</span>')}</td>
+      <td><a href="#" class="dp-open" data-dp="${d.id}" style="color:var(--brand);font-weight:700;text-decoration:none">Open</a></td>
+    </tr>`).join(''):'<tr><td class="tempty" colspan="11">No departments found.</td></tr>';
+  const tot={docs:0,waiting:0,rev:0};
+  DEPARTMENTS.forEach(d=>{ tot.docs+=deptDoctors(d).length; tot.waiting+=deptWaiting(d); tot.rev+=deptRevenue(d); });
+  body.innerHTML=`
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kbig"><div class="kt">Departments</div><b>${DEPARTMENTS.length}</b><div class="ks">${DEPARTMENTS.filter(d=>d.active!==false).length} active</div></div>
+      <div class="kbig"><div class="kt">Doctors mapped</div><b>${tot.docs}</b><div class="ks">across departments</div></div>
+      <div class="kbig"><div class="kt">Patients waiting</div><b>${tot.waiting}</b><div class="ks">live queue</div></div>
+      <div class="kbig"><div class="kt">Total revenue</div><b>${money(tot.rev)}</b><div class="ks">bills + charges</div></div>
+    </div>
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>${_dpEdit?'Edit department':'Add department'}</h3>
+      <div class="addgrid">
+        <div class="fld"><label>Department name</label><input id="dpName" value="${_dpEdit?genAttr(_dpEdit.name):''}" placeholder="e.g. Cardiology"></div>
+        <div class="fld"><label>Code</label><input id="dpCode" value="${_dpEdit?genAttr(_dpEdit.code):''}" placeholder="e.g. CARD"></div>
+        <div class="fld"><label>Type</label><select id="dpType">${DEPT_TYPES.map(t=>`<option ${_dpEdit&&_dpEdit.type===t?'selected':''}>${t}</option>`).join('')}</select></div>
+        <div class="fld"><label>Department head</label><input id="dpHead" list="docNameList" value="${_dpEdit?genAttr(_dpEdit.head||''):''}" placeholder="Doctor name"></div>
+        <div class="fld"><label>Floor</label><input id="dpFloor" value="${_dpEdit?genAttr(_dpEdit.floor||''):''}" placeholder="e.g. 2"></div>
+        <div class="fld"><label>Room number</label><input id="dpRoom" value="${_dpEdit?genAttr(_dpEdit.room||''):''}" placeholder="e.g. 204"></div>
+        <div class="fld"><label>Opens</label><input id="dpOpenT" type="time" value="${_dpEdit?genAttr(_dpEdit.open||'09:00'):'09:00'}"></div>
+        <div class="fld"><label>Closes</label><input id="dpCloseT" type="time" value="${_dpEdit?genAttr(_dpEdit.close||'17:00'):'17:00'}"></div>
+        <div class="fld"><label>Daily patient limit</label><input id="dpLimit" type="number" min="0" value="${_dpEdit?genAttr(String(_dpEdit.limit||50)):'50'}"></div>
+        <div class="fld"><label>Token prefix</label><input id="dpTokP" value="${_dpEdit?genAttr(_dpEdit.tokenPrefix||''):''}" placeholder="e.g. CAR"></div>
+        <div class="fld"><label>Token starts at</label><input id="dpTokS" type="number" min="1" value="${_dpEdit?genAttr(String(_dpEdit.tokenStart||1)):'1'}"></div>
+        <div class="fld"><label>Emergency service</label><select id="dpEmg"><option value="no" ${_dpEdit&&!_dpEdit.emergency?'selected':''}>Not available</option><option value="yes" ${_dpEdit&&_dpEdit.emergency?'selected':''}>Available 24×7</option></select></div>
+        <div class="fld full"><label>Working days</label><div style="display:flex;gap:10px;flex-wrap:wrap;padding:4px 0">${DAYS.map(dd=>`<label style="display:flex;align-items:center;gap:5px;font-weight:600;font-size:12.5px"><input type="checkbox" class="dp-day" value="${dd}" ${(!_dpEdit||(_dpEdit.days||[]).includes(dd))&&(_dpEdit||dd!=='Sun')?'checked':''}>${dd}</label>`).join('')}</div></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="dpSave" style="width:auto;padding:12px 22px">${_dpEdit?'Update department':'Add department'}</button>${_dpEdit?'<button class="btn ghost" id="dpCancel" style="width:auto;padding:12px 22px">Cancel</button>':''}</div>
+    </div>
+    <div class="sec-head">
+      <div><h3>Departments</h3><p>${list.length} of ${DEPARTMENTS.length} · click <b>Open</b> for the full department page</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn ghost" id="dpCsv" style="width:auto;padding:9px 13px">CSV</button>
+        <input id="mdlSearch" value="${genAttr(_mdlQuery)}" placeholder="Search department…" style="border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13px;background:var(--bg);color:var(--ink)">
+      </div>
+    </div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Department</th><th>Type</th><th>Head</th><th>Location</th><th>Doc/Staff</th><th>Timings</th><th>Waiting</th><th>Revenue</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const srch=document.getElementById('mdlSearch'); if(srch)srch.oninput=function(){ _mdlQuery=this.value; renderMaster(); setTimeout(()=>{const s=document.getElementById('mdlSearch'); if(s){s.focus();s.setSelectionRange(s.value.length,s.value.length);} },0); };
+  body.querySelectorAll('.dp-open').forEach(a=>a.onclick=e=>{ e.preventDefault(); _dpOpen=a.dataset.dp; _dpTab='overview'; renderMaster(); });
+  const sv=document.getElementById('dpSave'); if(sv)sv.onclick=()=>{
+    const name=document.getElementById('dpName').value.trim(); if(!name){toast('Enter department name');return;}
+    const days=[...document.querySelectorAll('.dp-day:checked')].map(x=>x.value);
+    const vals={ name, code:document.getElementById('dpCode').value.trim()||name.slice(0,4).toUpperCase(),
+      type:document.getElementById('dpType').value, head:document.getElementById('dpHead').value.trim(),
+      floor:document.getElementById('dpFloor').value.trim(), room:document.getElementById('dpRoom').value.trim(),
+      open:document.getElementById('dpOpenT').value, close:document.getElementById('dpCloseT').value,
+      limit:Number(document.getElementById('dpLimit').value)||0, tokenPrefix:document.getElementById('dpTokP').value.trim(),
+      tokenStart:Number(document.getElementById('dpTokS').value)||1, emergency:document.getElementById('dpEmg').value==='yes', days };
+    if(_dpEdit){ Object.assign(_dpEdit,vals); _dpEdit._ts=Date.now(); toast('Department updated'); logAudit('Department','Updated · '+name); _dpEdit=null; }
+    else { DEPARTMENTS.push(Object.assign({id:'DP'+Date.now().toString(36),services:[],rooms:[],equipment:[],active:true,_ts:Date.now()},vals)); toast(name+' added'); logAudit('Department','Added · '+name); }
+    persist(); renderMaster();
+  };
+  const cn=document.getElementById('dpCancel'); if(cn)cn.onclick=()=>{ _dpEdit=null; renderMaster(); };
+  const cv=document.getElementById('dpCsv'); if(cv)cv.onclick=()=>exportCSV('departments',['Name','Code','Type','Head','Floor','Room','Days','Open','Close','Emergency','Limit','Doctors','Staff','Waiting','Revenue','Status'],
+    DEPARTMENTS.map(d=>[d.name,d.code,d.type,d.head,d.floor,d.room,(d.days||[]).join(' '),d.open,d.close,d.emergency?'Yes':'No',d.limit,deptDoctors(d).length,deptStaff(d).length,deptWaiting(d),deptRevenue(d),d.active===false?'Inactive':'Active']));
+}
+
+const DP_TABS=[['overview','Overview'],['doctors','Doctors'],['staff','Staff'],['services','Services'],['queue','Queue'],['billing','Billing'],['reports','Reports'],['settings','Settings']];
+function renderDeptPage(body){
+  const d=deptFind(_dpOpen); if(!d){ _dpOpen=null; renderMaster(); return; }
+  const seg=DP_TABS.map(([k,l])=>`<button data-dptab="${k}" class="${_dpTab===k?'active':''}">${l}</button>`).join('');
+  body.innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="btn ghost" id="dpBack" style="width:auto;padding:9px 14px">← All departments</button>
+      <div><h2 style="margin:0;font-size:20px">${genEsc(d.name)} <span style="color:var(--muted);font-size:13px">(${genEsc(d.code)})</span></h2>
+        <p class="psub" style="margin:2px 0 0">${genEsc(d.type||'')} · ${d.floor?'Floor '+genEsc(d.floor):'—'}${d.room?' · Room '+genEsc(d.room):''} · Head: ${genEsc(d.head||'not set')}</p></div>
+      <span style="margin-left:auto">${d.active===false?'<span class="pill r">Inactive</span>':(deptOpenNow(d)?'<span class="pill g">Open now</span>':'<span class="pill a">Closed</span>')}${d.emergency?' <span class="pill r">Emergency 24×7</span>':''}</span>
+    </div>
+    <div class="seg" style="flex-wrap:wrap">${seg}</div>
+    <div id="dpBody"></div>`;
+  document.getElementById('dpBack').onclick=()=>{ _dpOpen=null; renderMaster(); };
+  body.querySelectorAll('[data-dptab]').forEach(b=>b.onclick=()=>{ _dpTab=b.dataset.dptab; renderMaster(); });
+  renderDeptTab(d,document.getElementById('dpBody'));
+}
+function renderDeptTab(d,el){
+  if(!el)return;
+  const kpi=(t,v,s)=>`<div class="kbig"><div class="kt">${t}</div><b>${v}</b><div class="ks">${s||''}</div></div>`;
+  if(_dpTab==='overview'){
+    el.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+        ${kpi('Waiting',deptWaiting(d),'in queue now')}${kpi('Completed',deptCompleted(d),'consultations')}
+        ${kpi('Cancelled',deptCancelled(d),'no-show / cancelled')}${kpi('Revenue',money(deptRevenue(d)),'bills + charges')}</div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-top:12px">
+        ${kpi('Doctors',deptDoctors(d).length,'assigned')}${kpi('Staff',deptStaff(d).length,'assigned')}
+        ${kpi('Slots left',deptSlotsLeft(d),'of '+(d.limit||0)+' daily limit')}${kpi('Next token',genEsc(deptNextToken(d)),'auto-generated')}</div>
+      <div class="panel" style="max-width:none;margin-top:16px"><h3>Department details</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
+          <div><span class="psub">Working days</span><br><b>${(d.days||[]).join(', ')||'—'}</b></div>
+          <div><span class="psub">Timings</span><br><b>${genEsc(d.open||'—')} – ${genEsc(d.close||'—')}</b></div>
+          <div><span class="psub">Emergency</span><br><b>${d.emergency?'Available 24×7':'Not available'}</b></div>
+          <div><span class="psub">Daily limit</span><br><b>${d.limit||0} patients</b></div>
+          <div><span class="psub">Token format</span><br><b>${genEsc(d.tokenPrefix||'T')}-${d.tokenStart||1}…</b></div>
+          <div><span class="psub">Services</span><br><b>${(d.services||[]).length} · ${money(deptServiceTotal(d))} total</b></div>
+          <div><span class="psub">Rooms</span><br><b>${(d.rooms||[]).length}</b></div>
+          <div><span class="psub">Equipment</span><br><b>${(d.equipment||[]).length}</b></div>
+        </div></div>`;
+  }
+  else if(_dpTab==='doctors'||_dpTab==='staff'){
+    const isDoc=_dpTab==='doctors', list=isDoc?deptDoctors(d):deptStaff(d);
+    const rows=list.length?list.map((x,i)=>{
+      if(!isDoc) return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(x.name)}</b></td><td>${genEsc(x.role||'—')}</td><td>${genEsc(x.contact||x.phone||'—')}</td><td>${genEsc(x.shift||(d.open+'–'+d.close))}</td><td>${x.active===false?'<span class="pill r">Inactive</span>':'<span class="pill g">Active</span>'}</td></tr>`;
+      const t=docTiming(d,x.name);
+      return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(x.name)}</b></td><td>${genEsc(x.qual||'—')}</td><td>${genEsc(x.contact||x.phone||'—')}</td>
+        <td>${genEsc((t.days||[]).join(', ')||'—')}</td>
+        <td>${genEsc(t.open||'—')}–${genEsc(t.close||'—')} ${t.inherit?'<span class="pill b">dept</span>':'<span class="pill g">custom</span>'}</td>
+        <td>${docSlots(d,x.name)} × ${t.slot||15}m</td>
+        <td><button class="btn ghost tiny" data-dtedit="${genAttr(x.name)}" style="width:auto;padding:6px 10px">Set timings</button>${t.inherit?'':` <button class="btn ghost tiny" data-dtclear="${genAttr(x.name)}" style="width:auto;padding:6px 10px">Reset</button>`}</td></tr>`;
+    }).join(''):`<tr><td class="tempty" colspan="${isDoc?8:6}">No ${isDoc?'doctors':'staff'} mapped to ${genEsc(d.name)}. Add them in Master data → ${isDoc?'Doctors':'Staff'} with department “${genEsc(d.name)}”.</td></tr>`;
+    const head=isDoc
+      ? '<th class="sno">S.No</th><th>Doctor</th><th>Qualification</th><th>Contact</th><th>Working days</th><th>Timings</th><th>Slots</th><th>Action</th>'
+      : '<th class="sno">S.No</th><th>Name</th><th>Role</th><th>Contact</th><th>Shift</th><th>Status</th>';
+    el.innerHTML=`<div class="sec-head"><div><h3>${isDoc?'Doctors':'Staff'} — ${genEsc(d.name)}</h3><p>${list.length} ${isDoc?'doctor':'member'}${list.length===1?'':'s'}${isDoc?' · set individual timings or inherit department hours':''}</p></div>
+        <button class="btn ghost" id="dpPeopleCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+      <div class="tablewrap"><table class="dtable"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>
+      ${isDoc?`<div class="panel hidden" id="dtCard" style="max-width:none;margin-top:16px">
+        <h3>Timings — <span id="dtWho"></span></h3>
+        <p class="psub">Override this doctor's schedule inside ${genEsc(d.name)}. Leave as department hours by clicking Reset.</p>
+        <div class="addgrid">
+          <div class="fld"><label>Starts</label><input id="dtOpen" type="time"></div>
+          <div class="fld"><label>Ends</label><input id="dtClose" type="time"></div>
+          <div class="fld"><label>Slot length (minutes)</label><input id="dtSlot" type="number" min="5" step="5" value="15"></div>
+        </div>
+        <div class="fld full"><label>Working days</label><div style="display:flex;gap:10px;flex-wrap:wrap;padding:4px 0">${DAYS.map(dd=>`<label style="display:flex;align-items:center;gap:5px;font-weight:600;font-size:12.5px"><input type="checkbox" class="dt-day" value="${dd}">${dd}</label>`).join('')}</div></div>
+        <div class="form-actions"><button class="btn" id="dtSave" style="width:auto;padding:12px 20px">Save doctor timings</button><button class="btn ghost" id="dtCancel" style="width:auto;padding:12px 20px">Cancel</button></div></div>`:''}`;
+    const cv=document.getElementById('dpPeopleCsv');
+    if(cv)cv.onclick=()=>isDoc
+      ? exportCSV(d.code+'_doctors',['Doctor','Qualification','Contact','Days','Open','Close','SlotMins','Slots','Source'],list.map(x=>{const t=docTiming(d,x.name);return [x.name,x.qual||'',x.contact||x.phone||'',(t.days||[]).join(' '),t.open,t.close,t.slot||15,docSlots(d,x.name),t.inherit?'Department':'Custom'];}))
+      : exportCSV(d.code+'_staff',['Name','Role','Contact','Shift'],list.map(x=>[x.name,x.role||'',x.contact||x.phone||'',x.shift||'']));
+    let _dtWho=null;
+    el.querySelectorAll('[data-dtedit]').forEach(b=>b.onclick=()=>{
+      _dtWho=b.dataset.dtedit; const t=docTiming(d,_dtWho);
+      document.getElementById('dtWho').textContent=_dtWho;
+      document.getElementById('dtOpen').value=t.open||''; document.getElementById('dtClose').value=t.close||'';
+      document.getElementById('dtSlot').value=t.slot||15;
+      el.querySelectorAll('.dt-day').forEach(c=>c.checked=(t.days||[]).includes(c.value));
+      document.getElementById('dtCard').classList.remove('hidden');
+      document.getElementById('dtCard').scrollIntoView({behavior:'smooth',block:'nearest'});
+    });
+    el.querySelectorAll('[data-dtclear]').forEach(b=>b.onclick=()=>{ clearDocTiming(d,b.dataset.dtclear); logAudit('Department','Doctor timings reset · '+b.dataset.dtclear); persist(); renderMaster(); });
+    const dc=document.getElementById('dtCancel'); if(dc)dc.onclick=()=>document.getElementById('dtCard').classList.add('hidden');
+    const ds=document.getElementById('dtSave'); if(ds)ds.onclick=()=>{
+      if(!_dtWho)return;
+      const days=[...el.querySelectorAll('.dt-day:checked')].map(x=>x.value);
+      if(!days.length){toast('Select at least one working day');return;}
+      setDocTiming(d,_dtWho,{days,open:document.getElementById('dtOpen').value,close:document.getElementById('dtClose').value,slot:Number(document.getElementById('dtSlot').value)||15});
+      logAudit('Department',`Doctor timings set · ${_dtWho} (${d.name})`); persist(); renderMaster(); toast('Timings saved');
+    };
+  }
+  else if(_dpTab==='services'){
+    const rows=(d.services||[]).length?d.services.map((s,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(s.name)}</b></td><td>${money(s.charge)}</td><td>${s.active===false?'<span class="pill r">Inactive</span>':'<span class="pill g">Active</span>'}</td><td><button class="btn ghost tiny" data-svtog="${s.id}" style="width:auto;padding:6px 10px">${s.active===false?'Activate':'Deactivate'}</button> <button class="btn ghost tiny" data-svdel="${s.id}" style="width:auto;padding:6px 10px">Remove</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="5">No services yet. Add one below.</td></tr>';
+    el.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>Add service &amp; charge</h3>
+        <p class="psub">Services offered by ${genEsc(d.name)} with their standard charge.</p>
+        <div class="addgrid">
+          <div class="fld"><label>Service name</label><input id="svName" placeholder="e.g. ECHO"></div>
+          <div class="fld"><label>Charge (₹)</label><input id="svAmt" type="number" min="0" placeholder="0"></div>
+        </div>
+        <div class="form-actions"><button class="btn" id="svAdd" style="width:auto;padding:12px 20px">Add service</button></div></div>
+      <div class="sec-head"><div><h3>Services</h3><p>${(d.services||[]).length} service${(d.services||[]).length===1?'':'s'} · ${money(deptServiceTotal(d))} combined</p></div>
+        <button class="btn ghost" id="svCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+      <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Service</th><th>Charge</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    document.getElementById('svAdd').onclick=()=>{ const n=document.getElementById('svName').value.trim(); if(!n){toast('Enter service name');return;}
+      d.services=d.services||[]; d.services.push({id:'SV'+Date.now().toString(36),name:n,charge:Number(document.getElementById('svAmt').value)||0,active:true});
+      logAudit('Department',`Service added · ${n} (${d.name})`); persist(); renderMaster(); toast('Service added'); };
+    el.querySelectorAll('[data-svtog]').forEach(b=>b.onclick=()=>{ const s=(d.services||[]).find(x=>x.id===b.dataset.svtog); if(s){s.active=(s.active===false); persist(); renderMaster();} });
+    el.querySelectorAll('[data-svdel]').forEach(b=>b.onclick=()=>{ d.services=(d.services||[]).filter(x=>x.id!==b.dataset.svdel); persist(); renderMaster(); });
+    const cv=document.getElementById('svCsv'); if(cv)cv.onclick=()=>exportCSV(d.code+'_services',['Service','Charge','Status'],(d.services||[]).map(s=>[s.name,s.charge,s.active===false?'Inactive':'Active']));
+  }
+  else if(_dpTab==='queue'){
+    const q=deptQueue(d);
+    const rows=q.length?q.slice().reverse().map((x,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(x.tok||'—')}</b></td><td>${genEsc(x.name||x.patient||'—')}</td><td>${genEsc(x.doc||'—')}</td><td><span class="pill ${x.status==='done'?'g':x.status==='waiting'?'b':'r'}">${genEsc(x.status||'—')}</span></td></tr>`).join(''):'<tr><td class="tempty" colspan="5">No patients in this department\'s queue.</td></tr>';
+    el.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+        ${kpi('Waiting',deptWaiting(d),'now')}${kpi('Completed',deptCompleted(d),'today')}${kpi('Cancelled',deptCancelled(d),'no-show')}${kpi('Slots left',deptSlotsLeft(d),'of '+(d.limit||0))}</div>
+      <div class="panel" style="max-width:none;margin-top:16px"><h3>Token &amp; queue settings</h3>
+        <div class="addgrid">
+          <div class="fld"><label>Token prefix</label><input id="qTokP" value="${genAttr(d.tokenPrefix||'')}"></div>
+          <div class="fld"><label>Token starts at</label><input id="qTokS" type="number" min="1" value="${genAttr(String(d.tokenStart||1))}"></div>
+          <div class="fld"><label>Daily patient limit</label><input id="qLimit" type="number" min="0" value="${genAttr(String(d.limit||0))}"></div>
+          <div class="fld"><label>Next token</label><input value="${genAttr(deptNextToken(d))}" disabled></div>
+        </div>
+        <div class="form-actions"><button class="btn" id="qSave" style="width:auto;padding:12px 20px">Save queue settings</button></div></div>
+      <div class="sec-head" style="margin-top:16px"><div><h3>Queue</h3><p>${q.length} token${q.length===1?'':'s'} issued</p></div></div>
+      <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Token</th><th>Patient</th><th>Doctor</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    document.getElementById('qSave').onclick=()=>{ d.tokenPrefix=document.getElementById('qTokP').value.trim(); d.tokenStart=Number(document.getElementById('qTokS').value)||1; d.limit=Number(document.getElementById('qLimit').value)||0; persist(); renderMaster(); toast('Queue settings saved'); };
+  }
+  else if(_dpTab==='billing'){
+    const bills=(typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).filter(b=>_norm(b.dept)===_norm(d.name));
+    const chgs=(typeof CHARGES!=='undefined'?CHARGES:[]).filter(c=>_norm(c.module)===_norm(d.name)||_norm(c.source)===_norm(d.name));
+    const all=bills.map(b=>({who:b.patient,item:b.type||b.item||'OPD bill',amt:b.amount,date:b.date,src:'OPD bill'}))
+      .concat(chgs.map(c=>({who:c.patient,item:c.item,amt:c.amount,date:c.date,src:c.source})));
+    const rows=all.length?all.slice().reverse().map((x,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(x.who||'—')}</b></td><td>${genEsc(x.item||'—')}</td><td><span class="pill b">${genEsc(x.src)}</span></td><td>${money(x.amt)}</td><td>${genEsc(x.date||'')}</td></tr>`).join(''):'<tr><td class="tempty" colspan="6">No billing entries for this department yet.</td></tr>';
+    el.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+        ${kpi('Department revenue',money(deptRevenue(d)),'all sources')}${kpi('Entries',all.length,'bills + charges')}${kpi('Service catalogue',money(deptServiceTotal(d)),(d.services||[]).length+' services')}</div>
+      <div class="sec-head" style="margin-top:16px"><div><h3>Billing entries</h3><p>Everything billed under ${genEsc(d.name)}</p></div>
+        <button class="btn ghost" id="dpBillCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+      <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Item</th><th>Source</th><th>Amount</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    const cv=document.getElementById('dpBillCsv'); if(cv)cv.onclick=()=>exportCSV(d.code+'_billing',['Patient','Item','Source','Amount','Date'],all.map(x=>[x.who,x.item,x.src,x.amt,x.date]));
+  }
+  else if(_dpTab==='reports'){
+    const totalSeen=deptCompleted(d)+deptCancelled(d)+deptWaiting(d);
+    const pct=(n)=>totalSeen?Math.round(n/totalSeen*100):0;
+    const bar=(label,n,color)=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:3px"><span>${label}</span><b>${n} (${pct(n)}%)</b></div><div style="height:9px;background:var(--bg);border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct(n)}%;background:${color}"></div></div></div>`;
+    el.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+        ${kpi('Total patients',totalSeen,'all statuses')}${kpi('Completed',deptCompleted(d),pct(deptCompleted(d))+'%')}
+        ${kpi('Cancelled',deptCancelled(d),pct(deptCancelled(d))+'%')}${kpi('Revenue / patient',money(totalSeen?Math.round(deptRevenue(d)/totalSeen):0),'average')}</div>
+      <div class="panel" style="max-width:none;margin-top:16px"><h3>Patient flow</h3>
+        ${bar('Completed',deptCompleted(d),'#16a34a')}${bar('Waiting',deptWaiting(d),'#1f6feb')}${bar('Cancelled / no-show',deptCancelled(d),'#dc2626')}</div>
+      <div class="panel" style="max-width:none;margin-top:16px"><h3>Capacity</h3>
+        ${bar('Slots used',(Number(d.limit)||0)-deptSlotsLeft(d),'#7c3aed')}
+        <p class="psub" style="margin:6px 0 0">${deptSlotsLeft(d)} of ${d.limit||0} daily slots remaining · ${deptDoctors(d).length} doctor(s) on this department.</p></div>`;
+  }
+  else if(_dpTab==='settings'){
+    const rr=(d.rooms||[]).length?d.rooms.map((r,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(r.name)}</b></td><td>${genEsc(r.kind||'—')}</td><td><button class="btn ghost tiny" data-rmdel="${r.id}" style="width:auto;padding:6px 10px">Remove</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="4">No rooms added.</td></tr>';
+    const eq=(d.equipment||[]).length?d.equipment.map((r,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(r.name)}</b></td><td>${genEsc(r.serial||'—')}</td><td>${genEsc(r.status||'Working')}</td><td><button class="btn ghost tiny" data-eqdel="${r.id}" style="width:auto;padding:6px 10px">Remove</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="5">No equipment added.</td></tr>';
+    el.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px">
+        <div class="sec-head" style="border:0;padding:0;margin:0 0 8px"><div><h3 style="margin:0">Department status</h3><p class="psub" style="margin:2px 0 0">Inactive departments are hidden from registration and never show as open.</p></div>
+          <button class="btn ghost" id="dpToggle" style="width:auto;padding:8px 16px">${d.active===false?'Activate':'Deactivate'}</button></div>
+        <div class="form-actions"><button class="btn ghost" id="dpEditBtn" style="width:auto;padding:10px 18px">Edit department details</button></div></div>
+      <div class="panel" style="max-width:none;margin-bottom:16px"><h3>Rooms</h3>
+        <div class="addgrid"><div class="fld"><label>Room name / number</label><input id="rmName" placeholder="e.g. Consult 1"></div>
+          <div class="fld"><label>Type</label><select id="rmKind"><option>Consultation</option><option>Procedure</option><option>Ward</option><option>Theatre</option><option>Store</option></select></div></div>
+        <div class="form-actions"><button class="btn" id="rmAdd" style="width:auto;padding:12px 20px">Add room</button></div>
+        <div class="tablewrap" style="margin-top:10px"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Room</th><th>Type</th><th>Action</th></tr></thead><tbody>${rr}</tbody></table></div></div>
+      <div class="panel" style="max-width:none"><h3>Equipment</h3>
+        <div class="addgrid"><div class="fld"><label>Equipment</label><input id="eqName" placeholder="e.g. ECG machine"></div>
+          <div class="fld"><label>Serial / asset no.</label><input id="eqSerial" placeholder="Optional"></div>
+          <div class="fld"><label>Status</label><select id="eqStatus"><option>Working</option><option>Under maintenance</option><option>Out of order</option></select></div></div>
+        <div class="form-actions"><button class="btn" id="eqAdd" style="width:auto;padding:12px 20px">Add equipment</button></div>
+        <div class="tablewrap" style="margin-top:10px"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Equipment</th><th>Serial</th><th>Status</th><th>Action</th></tr></thead><tbody>${eq}</tbody></table></div></div>`;
+    document.getElementById('dpToggle').onclick=()=>{ d.active=(d.active===false); logAudit('Department',(d.active?'Activated':'Deactivated')+' · '+d.name); persist(); renderMaster(); };
+    document.getElementById('dpEditBtn').onclick=()=>{ _dpEdit=d; _dpOpen=null; renderMaster(); };
+    document.getElementById('rmAdd').onclick=()=>{ const n=document.getElementById('rmName').value.trim(); if(!n){toast('Enter room name');return;}
+      d.rooms=d.rooms||[]; d.rooms.push({id:'RM'+Date.now().toString(36),name:n,kind:document.getElementById('rmKind').value}); persist(); renderMaster(); toast('Room added'); };
+    document.getElementById('eqAdd').onclick=()=>{ const n=document.getElementById('eqName').value.trim(); if(!n){toast('Enter equipment name');return;}
+      d.equipment=d.equipment||[]; d.equipment.push({id:'EQ'+Date.now().toString(36),name:n,serial:document.getElementById('eqSerial').value.trim(),status:document.getElementById('eqStatus').value}); persist(); renderMaster(); toast('Equipment added'); };
+    el.querySelectorAll('[data-rmdel]').forEach(b=>b.onclick=()=>{ d.rooms=(d.rooms||[]).filter(x=>x.id!==b.dataset.rmdel); persist(); renderMaster(); });
+    el.querySelectorAll('[data-eqdel]').forEach(b=>b.onclick=()=>{ d.equipment=(d.equipment||[]).filter(x=>x.id!==b.dataset.eqdel); persist(); renderMaster(); });
+  }
 }
 /* ===================== Department tools: admin features embedded inside modules ===================== */
 let _deptHost=null;
@@ -3497,6 +3829,230 @@ function phLow(m){ return phStock(m) <= (Number(m.need)||0); }
 function phSpentToday(){ const s=sodMs(); return PHARMA_MOVES.filter(x=>x.type==='in'&&tsOf(x)>=s).reduce((a,x)=>a+(Number(x.amount)||0),0); }
 function phEarnedToday(){ const s=sodMs(); return PHARMA_MOVES.filter(x=>x.type==='out'&&tsOf(x)>=s).reduce((a,x)=>a+(Number(x.amount)||0),0); }
 function phStockValue(){ return PHARMACY.reduce((a,m)=>a+phStock(m)*(Number(m.price)||0),0); }
+/* ---------- Ingredients / salt, allergies, expiry & compounding ---------- */
+let PH_ALLERGIES=[], PH_INGREDIENTS=[], PH_COMPOUNDS=[];
+function phSalt(m){ return String(m&&m.salt||'').trim(); }
+function phSaltKey(m){ return _norm(phSalt(m)); }
+function phSubstitutes(med){
+  const k=phSaltKey(med); if(!k) return [];
+  return PHARMACY.filter(m=>m.id!==med.id && phSaltKey(m)===k && phStock(m)>0 && !phExpired(m))
+    .sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0));
+}
+function phAllergyHit(patient,med){
+  const p=_norm(patient); if(!p) return null;
+  const salt=phSaltKey(med), name=_norm(med&&med.name);
+  return PH_ALLERGIES.find(a=>_norm(a.patient)===p && a.ingredient && (
+    (salt && salt.includes(_norm(a.ingredient))) || name.includes(_norm(a.ingredient))
+  )) || null;
+}
+function ingStock(x){ return Number(x&&x.stock)||0; }
+function ingLow(x){ return ingStock(x) <= (Number(x&&x.need)||0); }
+function ingFind(name){ return PH_INGREDIENTS.find(i=>_norm(i.name)===_norm(name))||null; }
+/* ---- drug–drug interaction checking ---- */
+let PH_INTERACTIONS=[];
+const INTERACTION_SEED=[
+  ['warfarin','aspirin','Severe','Greatly increased bleeding risk'],
+  ['warfarin','ibuprofen','Severe','Increased bleeding risk (GI)'],
+  ['aspirin','ibuprofen','Moderate','Reduced cardioprotection; GI irritation'],
+  ['metformin','alcohol','Severe','Risk of lactic acidosis'],
+  ['clopidogrel','omeprazole','Moderate','Reduced antiplatelet effect'],
+  ['amoxicillin','methotrexate','Moderate','Increased methotrexate toxicity'],
+  ['ciprofloxacin','tizanidine','Severe','Severe hypotension / sedation'],
+  ['simvastatin','clarithromycin','Severe','Risk of rhabdomyolysis'],
+  ['digoxin','furosemide','Moderate','Hypokalaemia increases digoxin toxicity'],
+  ['tramadol','sertraline','Severe','Serotonin syndrome risk'],
+  ['ace inhibitor','spironolactone','Moderate','Hyperkalaemia risk'],
+  ['methotrexate','trimethoprim','Severe','Bone-marrow suppression']
+];
+function seedInteractions(){
+  PH_INTERACTIONS=PH_INTERACTIONS||[];
+  INTERACTION_SEED.forEach(([a,b,sev,note])=>{
+    const id='IX_'+a.replace(/\W/g,'')+'_'+b.replace(/\W/g,'');
+    if(!PH_INTERACTIONS.some(x=>x.id===id)) PH_INTERACTIONS.push({id,a,b,severity:sev,note,active:true,_ts:0});
+  });
+}
+function phActiveMeds(patient, days){
+  const cutoff=Date.now()-((days||30)*86400000);
+  const p=_norm(patient); if(!p) return [];
+  const names={};
+  PHARMA_MOVES.filter(x=>x.type==='out' && _norm(x.who)===p && (x._ts||0)>=cutoff).forEach(x=>{
+    const med=PHARMACY.find(m=>m.id===x.medId);
+    const key=med?(phSalt(med)||med.name):(x.medName||'');
+    if(key) names[_norm(key)]={label:key, date:x.date};
+  });
+  return Object.values(names);
+}
+function _hasTerm(text, term){ return _norm(text).includes(_norm(term)); }
+function phInteractionCheck(patient, med, days){
+  const active=phActiveMeds(patient, days||30);
+  if(!active.length) return [];
+  const candText=(phSalt(med)||'')+' '+((med&&med.name)||'');
+  const hits=[];
+  (PH_INTERACTIONS||[]).filter(x=>x.active!==false).forEach(x=>{
+    [[x.a,x.b],[x.b,x.a]].forEach(([p1,p2])=>{
+      if(_hasTerm(candText,p1)){
+        active.forEach(am=>{ if(_hasTerm(am.label,p2) && !hits.some(h=>h.with===am.label && h.id===x.id))
+          hits.push({id:x.id, with:am.label, severity:x.severity, note:x.note, pair:`${x.a} + ${x.b}`}); });
+      }
+    });
+  });
+  return hits;
+}
+function dispenseGuard(med, qty, patient){
+  const problems=[];
+  if(phExpired(med)) problems.push({type:'expired',msg:`${med.name} expired on ${med.expiry} — cannot dispense.`,block:true});
+  if(qty>phStock(med)) problems.push({type:'stock',msg:`Only ${phStock(med)} in stock.`,block:true});
+  const hit=phAllergyHit(patient,med);
+  if(hit) problems.push({type:'allergy',msg:`⚠ ${patient} is allergic to ${hit.ingredient} (${hit.severity}).`,block:hit.severity==='Severe'});
+  (typeof phInteractionCheck==='function'?phInteractionCheck(patient,med,30):[]).forEach(ix=>{
+    problems.push({type:'interaction',msg:`⚠ Interaction (${ix.severity}): ${med.name} with ${ix.with} — ${ix.note}.`,block:ix.severity==='Severe'});
+  });
+  return problems;
+}
+function renderPharmaInteractions(){
+  const body=document.getElementById('pharmaBody');
+  const rows=PH_INTERACTIONS.length?PH_INTERACTIONS.map((x,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(x.a)}</b></td><td><b>${genEsc(x.b)}</b></td><td>${x.severity==='Severe'?'<span class="pill r">Severe</span>':x.severity==='Mild'?'<span class="pill g">Mild</span>':'<span class="pill a">Moderate</span>'}</td><td>${genEsc(x.note||'—')}</td><td>${x.active===false?'<span class="pill r">Off</span>':'<span class="pill g">On</span>'}</td><td><button class="btn ghost tiny" data-ixtog="${x.id}" style="width:auto;padding:6px 10px">${x.active===false?'Enable':'Disable'}</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="7">No interaction rules.</td></tr>';
+  body.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>Drug–drug interaction rules</h3>
+      <p class="psub">When dispensing, MediCore checks the medicine against everything the patient received in the last 30 days. <b>Severe</b> interactions block the dispense; others warn.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Drug / salt A</label><input id="ixA" placeholder="e.g. warfarin"></div>
+        <div class="fld"><label>Drug / salt B</label><input id="ixB" placeholder="e.g. aspirin"></div>
+        <div class="fld"><label>Severity</label><select id="ixSev"><option>Mild</option><option selected>Moderate</option><option>Severe</option></select></div>
+        <div class="fld full"><label>Clinical note</label><input id="ixNote" placeholder="Why it matters"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="ixSave" style="width:auto;padding:12px 20px">Add rule</button></div></div>
+    <div class="panel" style="max-width:none;margin-bottom:16px"><h3>Check a patient</h3>
+      <p class="psub">See a patient's active medicines and any conflicts with a medicine you're about to give.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Patient</label><input id="ixPatient" placeholder="Name"></div>
+        <div class="fld"><label>Medicine to give</label><select id="ixMed">${PHARMACY.map(m=>`<option value="${m.id}">${genEsc(m.name)}</option>`).join('')||'<option value="">— add a medicine first —</option>'}</select></div>
+      </div>
+      <div class="form-actions"><button class="btn ghost" id="ixCheck" style="width:auto;padding:12px 20px">Check interactions</button></div>
+      <div id="ixResult" style="margin-top:10px;font-size:13px"></div></div>
+    <div class="sec-head"><div><h3>Interaction rules</h3><p>${PH_INTERACTIONS.length} rule${PH_INTERACTIONS.length===1?'':'s'}</p></div>
+      <button class="btn ghost" id="ixCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Drug A</th><th>Drug B</th><th>Severity</th><th>Note</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const s=document.getElementById('ixSave'); if(s)s.onclick=()=>{ const a=document.getElementById('ixA').value.trim(), b=document.getElementById('ixB').value.trim();
+    if(!a||!b){toast('Enter both drugs');return;}
+    PH_INTERACTIONS.push({id:'IX'+Date.now().toString(36),a,b,severity:document.getElementById('ixSev').value,note:document.getElementById('ixNote').value.trim(),active:true,_ts:Date.now()});
+    if(typeof logAudit==='function')logAudit('Pharmacy',`Interaction rule added · ${a} + ${b}`); persist(); renderPharma(); toast('Rule added'); };
+  body.querySelectorAll('[data-ixtog]').forEach(b=>b.onclick=()=>{ const x=PH_INTERACTIONS.find(y=>y.id===b.dataset.ixtog); if(!x)return; x.active=(x.active===false); persist(); renderPharma(); });
+  const ck=document.getElementById('ixCheck'); if(ck)ck.onclick=()=>{
+    const p=document.getElementById('ixPatient').value.trim(); const med=PHARMACY.find(m=>m.id===document.getElementById('ixMed').value);
+    const out=document.getElementById('ixResult'); if(!p||!med||!out){toast('Enter patient and medicine');return;}
+    const act=phActiveMeds(p,30), hits=phInteractionCheck(p,med,30);
+    out.innerHTML=`<div style="color:var(--muted);margin-bottom:6px"><b>Active medicines (30 days):</b> ${act.length?act.map(a=>genEsc(a.label)).join(', '):'none on record'}</div>`+
+      (hits.length?hits.map(h=>`<div style="padding:8px 11px;border-radius:9px;margin-bottom:6px;background:${h.severity==='Severe'?'#fdeaea':'#fff7e6'};color:${h.severity==='Severe'?'#b91c1c':'#b45309'}"><b>${h.severity}</b> — with <b>${genEsc(h.with)}</b>: ${genEsc(h.note)} <span style="opacity:.7">(${genEsc(h.pair)})</span></div>`).join('')
+        :'<div style="padding:8px 11px;border-radius:9px;background:#e7f6ec;color:#15803d"><b>No known interactions.</b></div>');
+  };
+  const cv=document.getElementById('ixCsv'); if(cv)cv.onclick=()=>exportCSV('interactions',['Drug A','Drug B','Severity','Note','Active'],PH_INTERACTIONS.map(x=>[x.a,x.b,x.severity,x.note,x.active===false?'No':'Yes']));
+}
+function phCompound(recipeName, parts, units, opts){
+  const missing=[];
+  parts.forEach(p=>{ const ing=ingFind(p.name); const need=(Number(p.qty)||0)*(Number(units)||0);
+    if(!ing || ingStock(ing)<need) missing.push(p.name+' (need '+need+(ing?', have '+ingStock(ing):', not stocked')+')'); });
+  if(missing.length) return {ok:false, missing};
+  parts.forEach(p=>{ const ing=ingFind(p.name); ing.stock=ingStock(ing)-(Number(p.qty)||0)*(Number(units)||0); });
+  let med=PHARMACY.find(m=>_norm(m.name)===_norm(recipeName));
+  if(med) med.stock=phStock(med)+Number(units||0);
+  else { med={id:'M'+Date.now().toString(36),name:recipeName,salt:(opts&&opts.salt)||'',stock:Number(units)||0,need:0,price:(opts&&opts.price)||0,expiry:(opts&&opts.expiry)||'',batch:(opts&&opts.batch)||'',compounded:true,_ts:Date.now()}; PHARMACY.push(med); }
+  PH_COMPOUNDS.push({id:'CP'+Date.now().toString(36),name:recipeName,units:Number(units)||0,parts:parts.map(p=>p.name+'×'+p.qty).join(', '),date:new Date().toISOString().slice(0,10),_ts:Date.now()});
+  if(typeof logAudit==='function')logAudit('Pharmacy',`Compounded ${units} × ${recipeName}`);
+  return {ok:true, med};
+}
+function renderPharmaIngredients(){
+  const body=document.getElementById('pharmaBody');
+  const rows=PH_INGREDIENTS.length?PH_INGREDIENTS.map((x,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(x.name)}</b></td><td>${genEsc(x.unit||'')}</td><td><b>${ingStock(x)}</b></td><td>${genEsc(String(x.need||0))}</td><td>${ingLow(x)?'<span class="pill a">Low</span>':'<span class="pill g">OK</span>'}</td></tr>`).join(''):'<tr><td class="tempty" colspan="6">No raw ingredients yet. Add one to enable in-house compounding.</td></tr>';
+  const clog=PH_COMPOUNDS.length?PH_COMPOUNDS.slice().reverse().map((c,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(c.name)}</b></td><td>${c.units}</td><td>${genEsc(c.parts)}</td><td>${genEsc(c.date)}</td></tr>`).join(''):'<tr><td class="tempty" colspan="5">No preparations made yet.</td></tr>';
+  const ingOpts=PH_INGREDIENTS.map(x=>`<option value="${genAttr(x.name)}">`).join('');
+  body.innerHTML=`<datalist id="ingDL">${ingOpts}</datalist>
+    <div class="panel" style="max-width:none;margin-bottom:16px"><h3>Add raw ingredient</h3>
+      <p class="psub">Raw materials (APIs, excipients) used for in-house preparations.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Ingredient name</label><input id="igName" placeholder="e.g. Paracetamol API"></div>
+        <div class="fld"><label>Unit</label><select id="igUnit"><option>g</option><option>mg</option><option>ml</option><option>L</option><option>units</option></select></div>
+        <div class="fld"><label>Stock</label><input id="igStock" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Reorder level</label><input id="igNeed" type="number" min="0" placeholder="0"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="igSave" style="width:auto;padding:12px 20px">Add ingredient</button></div></div>
+    <div class="sec-head"><div><h3>Raw ingredients</h3><p>${PH_INGREDIENTS.length} item${PH_INGREDIENTS.length===1?'':'s'}</p></div>
+      <button class="btn ghost" id="igCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Ingredient</th><th>Unit</th><th>Stock</th><th>Reorder</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>Compound a preparation</h3>
+      <p class="psub">Deducts raw ingredients and adds the finished medicine to inventory.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Preparation name</label><input id="cpName" placeholder="e.g. Syrup PCM 100ml"></div>
+        <div class="fld"><label>Salt / composition</label><input id="cpSalt" placeholder="e.g. Paracetamol 250mg/5ml"></div>
+        <div class="fld"><label>Units to make</label><input id="cpUnits" type="number" min="1" placeholder="10"></div>
+        <div class="fld"><label>Price / unit (₹)</label><input id="cpPrice" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Expiry</label><input id="cpExpiry" type="date"></div>
+      </div>
+      <p class="psub" style="margin:8px 0 4px"><b>Recipe per unit</b> — ingredient &amp; quantity</p>
+      <div class="addgrid">
+        <div class="fld"><label>Ingredient 1</label><input id="cpI1" list="ingDL" placeholder="Ingredient"></div>
+        <div class="fld"><label>Qty 1</label><input id="cpQ1" type="number" min="0" step="any" placeholder="0"></div>
+        <div class="fld"><label>Ingredient 2</label><input id="cpI2" list="ingDL" placeholder="Optional"></div>
+        <div class="fld"><label>Qty 2</label><input id="cpQ2" type="number" min="0" step="any" placeholder="0"></div>
+        <div class="fld"><label>Ingredient 3</label><input id="cpI3" list="ingDL" placeholder="Optional"></div>
+        <div class="fld"><label>Qty 3</label><input id="cpQ3" type="number" min="0" step="any" placeholder="0"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="cpMake" style="width:auto;padding:12px 20px">Make preparation</button></div></div>
+    <div class="sec-head"><div><h3>Compounding log</h3><p>${PH_COMPOUNDS.length} batch${PH_COMPOUNDS.length===1?'':'es'}</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Preparation</th><th>Units</th><th>Ingredients used</th><th>Date</th></tr></thead><tbody>${clog}</tbody></table></div>`;
+  const s=document.getElementById('igSave'); if(s)s.onclick=()=>{ const n=document.getElementById('igName').value.trim(); if(!n){toast('Enter ingredient name');return;}
+    PH_INGREDIENTS.push({id:'IG'+Date.now().toString(36),name:n,unit:document.getElementById('igUnit').value,stock:Number(document.getElementById('igStock').value)||0,need:Number(document.getElementById('igNeed').value)||0,_ts:Date.now()});
+    if(typeof logAudit==='function')logAudit('Pharmacy','Ingredient added · '+n); persist(); renderPharma(); toast(n+' added'); };
+  const cv=document.getElementById('igCsv'); if(cv)cv.onclick=()=>exportCSV('ingredients',['Ingredient','Unit','Stock','Reorder'],PH_INGREDIENTS.map(x=>[x.name,x.unit,ingStock(x),x.need||0]));
+  const mk=document.getElementById('cpMake'); if(mk)mk.onclick=()=>{
+    const nm=document.getElementById('cpName').value.trim(); if(!nm){toast('Enter preparation name');return;}
+    const units=Number(document.getElementById('cpUnits').value)||0; if(units<=0){toast('Enter units to make');return;}
+    const parts=[[ 'cpI1','cpQ1' ],[ 'cpI2','cpQ2' ],[ 'cpI3','cpQ3' ]].map(([a,b])=>({name:document.getElementById(a).value.trim(),qty:Number(document.getElementById(b).value)||0})).filter(p=>p.name&&p.qty>0);
+    if(!parts.length){toast('Add at least one ingredient with quantity');return;}
+    const r=phCompound(nm,parts,units,{salt:document.getElementById('cpSalt').value.trim(),price:Number(document.getElementById('cpPrice').value)||0,expiry:document.getElementById('cpExpiry').value||''});
+    if(!r.ok){ toast('Not enough: '+r.missing.join('; ')); return; }
+    persist(); renderPharma(); toast(`${units} × ${nm} prepared`);
+  };
+}
+function renderPharmaAllergies(){
+  const body=document.getElementById('pharmaBody');
+  const rows=PH_ALLERGIES.length?PH_ALLERGIES.slice().reverse().map((a,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(a.patient)}</b></td><td>${genEsc(a.ingredient)}</td><td>${a.severity==='Severe'?'<span class="pill r">Severe</span>':a.severity==='Mild'?'<span class="pill g">Mild</span>':'<span class="pill a">Moderate</span>'}</td><td>${genEsc(a.note||'—')}</td><td><button class="btn ghost tiny" data-delal="${a.id}" style="width:auto;padding:6px 10px">Remove</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="6">No allergies recorded. Add one to enable dispensing alerts.</td></tr>';
+  body.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>Patient allergy register</h3>
+      <p class="psub">Record an allergy to an ingredient/salt. Dispensing a medicine containing it warns the pharmacist — <b>Severe</b> allergies block the dispense.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Patient</label><input id="alPatient" placeholder="Name"></div>
+        <div class="fld"><label>Ingredient / salt</label><input id="alIng" placeholder="e.g. Penicillin"></div>
+        <div class="fld"><label>Severity</label><select id="alSev"><option>Mild</option><option selected>Moderate</option><option>Severe</option></select></div>
+        <div class="fld"><label>Note</label><input id="alNote" placeholder="Reaction / remarks"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="alSave" style="width:auto;padding:12px 20px">Record allergy</button></div></div>
+    <div class="sec-head"><div><h3>Recorded allergies</h3><p>${PH_ALLERGIES.length} record${PH_ALLERGIES.length===1?'':'s'}</p></div>
+      <button class="btn ghost" id="alCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Ingredient</th><th>Severity</th><th>Note</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const s=document.getElementById('alSave'); if(s)s.onclick=()=>{ const p=document.getElementById('alPatient').value.trim(), ing=document.getElementById('alIng').value.trim();
+    if(!p||!ing){toast('Enter patient and ingredient');return;}
+    PH_ALLERGIES.push({id:'AL'+Date.now().toString(36),patient:p,ingredient:ing,severity:document.getElementById('alSev').value,note:document.getElementById('alNote').value.trim(),_ts:Date.now()});
+    if(typeof logAudit==='function')logAudit('Pharmacy',`Allergy recorded · ${ing}`,p); persist(); renderPharma(); toast('Allergy recorded'); };
+  body.querySelectorAll('[data-delal]').forEach(b=>b.onclick=()=>{ PH_ALLERGIES=PH_ALLERGIES.filter(x=>x.id!==b.dataset.delal); persist(); renderPharma(); });
+  const cv=document.getElementById('alCsv'); if(cv)cv.onclick=()=>exportCSV('allergies',['Patient','Ingredient','Severity','Note'],PH_ALLERGIES.map(a=>[a.patient,a.ingredient,a.severity,a.note]));
+}
+function renderPharmaExpiry(){
+  const body=document.getElementById('pharmaBody');
+  const expired=PHARMACY.filter(phExpired), soon=PHARMACY.filter(phExpiringSoon);
+  const val=(l)=>l.reduce((a,m)=>a+phStock(m)*(Number(m.price)||0),0);
+  const mk=(list,empty)=>list.length?list.slice().sort((a,b)=>String(a.expiry).localeCompare(String(b.expiry))).map((m,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(m.name)}</b></td><td>${genEsc(phSalt(m)||'—')}</td><td>${genEsc(m.batch||'—')}</td><td>${phStock(m)}</td><td>${genEsc(m.expiry||'—')}</td><td>${money(phStock(m)*(Number(m.price)||0))}</td></tr>`).join(''):`<tr><td class="tempty" colspan="7">${empty}</td></tr>`;
+  body.innerHTML=`
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="kbig"><div class="kt">Expired</div><b>${expired.length}</b><div class="ks">${money(val(expired))} value</div></div>
+      <div class="kbig"><div class="kt">Expiring ≤30 days</div><b>${soon.length}</b><div class="ks">${money(val(soon))} value</div></div>
+      <div class="kbig"><div class="kt">Total batches</div><b>${PHARMACY.length}</b><div class="ks">tracked</div></div>
+    </div>
+    <div class="sec-head"><div><h3>Expired stock</h3><p>Blocked from dispensing — quarantine &amp; write off</p></div>
+      <button class="btn ghost" id="exCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Medicine</th><th>Salt</th><th>Batch</th><th>Stock</th><th>Expiry</th><th>Value</th></tr></thead><tbody>${mk(expired,'No expired stock. 👍')}</tbody></table></div>
+    <div class="sec-head" style="margin-top:16px"><div><h3>Expiring soon (≤30 days)</h3><p>Use or return to supplier first</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Medicine</th><th>Salt</th><th>Batch</th><th>Stock</th><th>Expiry</th><th>Value</th></tr></thead><tbody>${mk(soon,'Nothing expiring in the next 30 days.')}</tbody></table></div>`;
+  const cv=document.getElementById('exCsv'); if(cv)cv.onclick=()=>exportCSV('expiry_report',['Medicine','Salt','Batch','Stock','Expiry','Status'],expired.map(m=>[m.name,phSalt(m),m.batch,phStock(m),m.expiry,'Expired']).concat(soon.map(m=>[m.name,phSalt(m),m.batch,phStock(m),m.expiry,'Expiring soon'])));
+}
 
 function openPharmacy(){
   document.getElementById('app').classList.add('hidden');
@@ -3526,16 +4082,24 @@ function renderPharma(){
   alertEl.innerHTML = alerts.length
     ? `<div class="ph-alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><div>${alerts.join('<br>')}</div></div>`
     : '';
-  if(pharmaTab==='stock') renderPharmaStock(); else renderPharmaMoves();
+  if(pharmaTab==='stock') renderPharmaStock();
+  else if(pharmaTab==='ingredients') renderPharmaIngredients();
+  else if(pharmaTab==='allergies') renderPharmaAllergies();
+  else if(pharmaTab==='expiry') renderPharmaExpiry();
+  else if(pharmaTab==='interactions') renderPharmaInteractions();
+  else renderPharmaMoves();
 }
 function renderPharmaStock(){
   const body=document.getElementById('pharmaBody');
   const rows = PHARMACY.length ? PHARMACY.map((m,i)=>{
     const st=phStock(m);
     const status = phExpired(m)?'<span class="pill r">Expired</span>' : phExpiringSoon(m)?'<span class="pill a">Expiring</span>' : phLow(m)?'<span class="pill a">Low</span>':'<span class="pill g">OK</span>';
-    return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(m.name)}</b></td><td>Rack ${genEsc(m.rack||'—')} · Box ${genEsc(m.box||'—')}</td><td><b>${st}</b></td><td>${genEsc(String(m.need||0))}</td><td>${genEsc(m.expiry||'—')}</td><td>${money(m.price||0)}</td><td>${status}</td></tr>`;
-  }).join('') : `<tr><td class="tempty" colspan="8">No medicines yet. Click “Add medicine”.</td></tr>`;
-  body.innerHTML = `
+    const subs=phSubstitutes(m);
+    const subCell = subs.length?`<button class="btn ghost tiny" data-sub="${m.id}" style="width:auto;padding:6px 10px">${subs.length} substitute${subs.length===1?'':'s'}</button>`:'—';
+    return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(m.name)}</b>${m.compounded?' <span class="pill b">made in-house</span>':''}</td><td>${genEsc(phSalt(m)||'—')}</td><td>Rack ${genEsc(m.rack||'—')} · Box ${genEsc(m.box||'—')}</td><td><b>${st}</b></td><td>${genEsc(String(m.need||0))}</td><td>${genEsc(m.expiry||'—')}</td><td>${money(m.price||0)}</td><td>${status}</td><td>${subCell}</td></tr>`;
+  }).join('') : `<tr><td class="tempty" colspan="10">No medicines yet. Click “Add medicine”.</td></tr>`;
+  const saltOpts=[...new Set(PHARMACY.map(phSalt).filter(Boolean))].map(s=>`<option value="${genAttr(s)}">`).join('');
+  body.innerHTML = `<datalist id="saltDL">${saltOpts}</datalist>
     <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
       <div class="kbig"><div class="kt">Spent today</div><b>${money(phSpentToday())}</b><div class="ks">purchases</div></div>
       <div class="kbig"><div class="kt">Earned today</div><b>${money(phEarnedToday())}</b><div class="ks">dispensed</div></div>
@@ -3547,7 +4111,8 @@ function renderPharmaStock(){
     <div class="addcard hidden" id="phAddCard">
       <h4>Add medicine</h4>
       <div class="addgrid">
-        <div class="fld"><label>Medicine name</label><input id="phName" placeholder="e.g. Paracetamol 650mg"></div>
+        <div class="fld"><label>Medicine name</label><input id="phName" placeholder="e.g. Dolo 650"></div>
+        <div class="fld"><label>Ingredient / salt composition</label><input id="phSalt" list="saltDL" placeholder="e.g. Paracetamol 650mg"></div>
         <div class="fld"><label>Batch</label><input id="phBatch" placeholder="e.g. B1234"></div>
         <div class="fld"><label>Rack</label><input id="phRack" placeholder="e.g. A3"></div>
         <div class="fld"><label>Box</label><input id="phBox" placeholder="e.g. 12"></div>
@@ -3558,15 +4123,21 @@ function renderPharmaStock(){
       </div>
       <div class="form-actions"><button class="btn" id="phSave" style="width:auto;padding:12px 20px">Save medicine</button><button class="btn ghost" id="phCancel" style="width:auto;padding:12px 20px">Cancel</button></div>
     </div>
-    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Medicine</th><th>Location</th><th>In stock</th><th>Reorder</th><th>Expiry</th><th>Price</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Medicine</th><th>Ingredient / salt</th><th>Location</th><th>In stock</th><th>Reorder</th><th>Expiry</th><th>Price</th><th>Status</th><th>Generic</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   document.getElementById('phAddBtn').onclick=()=>document.getElementById('phAddCard').classList.toggle('hidden');
   document.getElementById('phCancel').onclick=()=>document.getElementById('phAddCard').classList.add('hidden');
   document.getElementById('phSave').onclick=addMedicine;
+  body.querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>{
+    const med=PHARMACY.find(m=>m.id===b.dataset.sub); if(!med)return;
+    const subs=phSubstitutes(med);
+    toast(`Same salt (${phSalt(med)}): `+subs.map(s=>`${s.name} ${money(s.price||0)} (stock ${phStock(s)})`).join(' · '));
+  });
 }
 function addMedicine(){
   const name=document.getElementById('phName').value.trim();
   if(!name){document.getElementById('phName').focus();toast('Enter medicine name');return;}
   const m={ id:'M'+Date.now().toString(36), name,
+    salt:(document.getElementById('phSalt')?document.getElementById('phSalt').value.trim():''),
     batch:document.getElementById('phBatch').value.trim(),
     rack:document.getElementById('phRack').value.trim(),
     box:document.getElementById('phBox').value.trim(),
@@ -3615,6 +4186,15 @@ function addMove(){
   const qty=Number(document.getElementById('mvQty').value)||0;
   if(qty<=0){document.getElementById('mvQty').focus();toast('Enter quantity');return;}
   const amount=Number(document.getElementById('mvAmt').value)||0;
+  const _who=document.getElementById('mvWho').value.trim();
+  if(type==='out' && typeof dispenseGuard==='function'){
+    const probs=dispenseGuard(med,qty,_who);
+    const blocking=probs.filter(p=>p.block);
+    if(blocking.length){ toast(blocking[0].msg); if(typeof logAudit==='function')logAudit('Pharmacy','Dispense blocked · '+blocking[0].type,_who); return; }
+    const warns=probs.filter(p=>p.type==='allergy'||p.type==='interaction');
+    if(warns.length && !confirm(warns.map(w=>w.msg).join('\n')+'\n\nContinue dispensing anyway?')){ if(typeof logAudit==='function')logAudit('Pharmacy','Dispense cancelled after safety warning',_who); return; }
+    if(warns.length && typeof logAudit==='function')logAudit('Pharmacy','Dispensed despite warning · '+med.name,_who);
+  }
   if(type==='out' && qty>phStock(med)){ toast(`Only ${phStock(med)} in stock`); return; }
   const mv={ id:'MV'+Date.now().toString(36), medId, medName:med.name, type, qty, amount,
     pay:document.getElementById('mvPay').value, who:document.getElementById('mvWho').value.trim(),
@@ -3694,7 +4274,7 @@ function buildStateObject(){
   const rows={};
   Object.keys(MODULE_DEFS).forEach(n=>{rows[n]=MODULE_DEFS[n].sections.map(s=>s.rows);});
   return {_v:_stateV,rows,QUEUE,TOKEN,BEDS,WARDS,LEDGER,VACANCIES,MODCREDS,ADMIN_CRED,PHARMACY,PHARMA_MOVES,SHIFTS,SANITIZE,OPD_BILLS,MD_DOCTORS,MD_STAFF,MD_ROLES,MD_INVEST,MD_HOSPITAL,MD_LISTS,AUDIT,MD_COMPLIANCE,MD_INTEGRATIONS,
-    ABHA_REG,NABH_METRICS,CONSENTS,CHARGES,CLAIMS,DISCOUNTS,LIS_RESULTS,EMR_NOTES,DISCHARGE_LOCK,DISCHARGE_CLEARED,VARIANCE_ALERTS,
+    ABHA_REG,NABH_METRICS,CONSENTS,CHARGES,CLAIMS,DISCOUNTS,LIS_RESULTS,EMR_NOTES,DISCHARGE_LOCK,DISCHARGE_CLEARED,VARIANCE_ALERTS,PH_ALLERGIES,PH_INGREDIENTS,PH_COMPOUNDS,PH_INTERACTIONS,DEPARTMENTS,
     MODULES:MODULES.map(m=>({name:m.name,desc:m.desc,icon:m.icon,color:m.color,count:m.count}))};
 }
 function persist(){
@@ -3740,6 +4320,11 @@ function applyState(d){
     if(d.DISCHARGE_LOCK&&typeof d.DISCHARGE_LOCK==='object')DISCHARGE_LOCK=d.DISCHARGE_LOCK;
     if(d.DISCHARGE_CLEARED&&typeof d.DISCHARGE_CLEARED==='object')DISCHARGE_CLEARED=d.DISCHARGE_CLEARED;
     if(Array.isArray(d.VARIANCE_ALERTS))VARIANCE_ALERTS=d.VARIANCE_ALERTS;
+    if(Array.isArray(d.PH_ALLERGIES))PH_ALLERGIES=d.PH_ALLERGIES;
+    if(Array.isArray(d.PH_INGREDIENTS))PH_INGREDIENTS=d.PH_INGREDIENTS;
+    if(Array.isArray(d.PH_COMPOUNDS))PH_COMPOUNDS=d.PH_COMPOUNDS;
+    if(Array.isArray(d.PH_INTERACTIONS))PH_INTERACTIONS=d.PH_INTERACTIONS;
+    if(Array.isArray(d.DEPARTMENTS))DEPARTMENTS=d.DEPARTMENTS;
     ensureSeedMasters();
     if(d.MODCREDS)Object.keys(d.MODCREDS).forEach(k=>MODCREDS[k]=d.MODCREDS[k]);
     if(d.ADMIN_CRED){ADMIN_CRED.user=d.ADMIN_CRED.user;ADMIN_CRED.pass=d.ADMIN_CRED.pass;}
