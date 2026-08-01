@@ -822,6 +822,10 @@
 
       <!-- BILLING TAB -->
       <div id="tabBills" class="hidden"><div id="opdBillsBody"></div></div>
+
+      <!-- DEPARTMENT TOOLS (admin features embedded) -->
+      <div class="panel" style="max-width:none;margin-top:14px"><div style="font-weight:800;font-size:14px;margin-bottom:8px">Department tools</div><div id="opdToolBar" style="display:flex;flex-wrap:wrap;gap:8px"></div></div>
+      <div id="opdToolHost"></div>
     </div>
   </div>
 </section>
@@ -905,6 +909,10 @@
       </div>
       <div class="adm-list" id="admList"></div>
     </div>
+
+    <!-- DEPARTMENT TOOLS (admin features embedded) -->
+    <div class="panel" style="max-width:none;margin-top:14px"><div style="font-weight:800;font-size:14px;margin-bottom:8px">Department tools</div><div id="ipdToolBar" style="display:flex;flex-wrap:wrap;gap:8px"></div></div>
+    <div id="ipdToolHost"></div>
   </div>
 </section>
 
@@ -923,7 +931,9 @@
   </div>
   <div class="gen-main">
     <div class="seg" id="genSeg"></div>
+    <div id="genToolBar" style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px"></div>
     <div id="genBody"></div>
+    <div id="genToolHost"></div>
     <datalist id="gfInvestList"></datalist>
   </div>
 </section>
@@ -1713,6 +1723,7 @@ function openOPD(){
   activeTok = QUEUE.find(p=>p.status==='serving')?.tok || null;
   populateOpdMasters();
   renderQueue(); showConsult();
+  renderDeptTools('OPD','opdToolBar','opdToolHost');
   window.scrollTo(0,0);
 }
 document.getElementById('opdBack').onclick=()=>backFromModule();
@@ -1979,6 +1990,7 @@ function openIPD(){
   document.getElementById('ipdPage').classList.remove('hidden');
   populateIpdMasters();
   fillWardSelects(); renderBoard(); renderAdmitted();
+  renderDeptTools('IPD','ipdToolBar','ipdToolHost');
   window.scrollTo(0,0);
 }
 document.getElementById('ipdBack').onclick=()=>backFromModule();
@@ -2280,7 +2292,7 @@ function openGeneric(m){
   document.getElementById('app').classList.add('hidden');
   document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('genPage').classList.remove('hidden');
-  renderGenSeg(); renderGenBody(); window.scrollTo(0,0);
+  renderGenSeg(); renderGenBody(); renderDeptTools(m.name,'genToolBar','genToolHost'); window.scrollTo(0,0);
 }
 function renderGenSeg(){
   const seg=document.getElementById('genSeg'); seg.innerHTML='';
@@ -2484,8 +2496,10 @@ const MDLIST_CONFIG={
 (function initMdSeg(){ const seg=document.getElementById('mdSeg'); if(!seg)return;
   seg.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; mdTab=b.dataset.md; renderMaster(); }); })();
 function renderMaster(){
+  const body=document.getElementById('mdBody');
+  if(!body){ if(typeof _deptHost!=='undefined'&&_deptHost){ const _h=document.getElementById(_deptHost.elId); if(_h&&DEPT_FEATURES[_deptHost.key])DEPT_FEATURES[_deptHost.key](_h); } return; }
+  if(typeof _deptHost!=='undefined')_deptHost=null;
   document.querySelectorAll('#mdSeg button').forEach(b=>b.classList.toggle('active',b.dataset.md===mdTab));
-  const body=document.getElementById('mdBody'); if(!body)return;
   if(mdTab==='doctors')renderMdDoctors(body);
   else if(mdTab==='staff')renderMdStaff(body);
   else if(mdTab==='roles')renderMdRoles(body);
@@ -2748,6 +2762,31 @@ function renderMdAbha(body){
   const s=document.getElementById('abSave'); if(s)s.onclick=()=>{ const digits=(document.getElementById('abNum').value||'').replace(/\D/g,''); const name=document.getElementById('abName').value.trim(); if(digits.length!==14){toast('ABHA must be 14 digits');return;} if(!name){toast('Enter patient name');return;} const consent=document.getElementById('abConsent').value==='yes'; ABHA_REG.push({id:'AB'+Date.now().toString(36),name,abha:abhaFmt(digits),phone:document.getElementById('abPhone').value.trim(),consent,date:new Date().toISOString().slice(0,10),_ts:Date.now()}); if(consent)CONSENTS.push({id:'CN'+Date.now().toString(36),patient:name,purpose:'ABHA registration',scope:'Demographics only',granted:true,date:new Date().toISOString().slice(0,10),_ts:Date.now()}); logAudit('ABHA','Checked in via ABHA',name); persist(); renderMaster(); toast('Checked in'); };
   const v=document.getElementById('abVerify'); if(v)v.onclick=()=>toast('ABDM verification needs facility credentials configured on the server');
   const cv=document.getElementById('abCsv'); if(cv)cv.onclick=()=>exportCSV('abha_register',['Name','ABHA','Mobile','Consent','Date'],ABHA_REG.map(r=>[r.name,r.abha,r.phone,r.consent?'Yes':'No',r.date]));
+}
+/* ===================== Department tools: admin features embedded inside modules ===================== */
+let _deptHost=null;
+const DEPT_FEATURES={abha:renderMdAbha,voice:renderMdVoice,charges:renderMdCharges,claims:renderMdClaims,discounts:renderMdDiscounts,consent:renderMdConsent,lis:renderMdLis,dischargeLock:renderMdDischargeLock,nabh:renderMdNabh};
+const DEPT_TOOL_LABELS={abha:'ABHA check-in',voice:'Voice-to-EMR',charges:'Charge capture',claims:'TPA / cashless claim',discounts:'Discount request',consent:'DPDP consent',lis:'LIS results',dischargeLock:'Discharge clearance',nabh:'NABH metrics'};
+function deptToolsFor(name){
+  const n=(name||'').toLowerCase();
+  if(n.includes('opd')||n.includes('consult')) return ['abha','voice','charges','claims','discounts','consent'];
+  if(n.includes('doctor')) return ['voice','charges','claims','consent'];
+  if(n.includes('ipd')||n.includes('ward')||n.includes('inpatient')) return ['charges','claims','dischargeLock','discounts','consent'];
+  if(n.includes('lab')||n.includes('patho')||n.includes('diagn')) return ['lis','charges','consent'];
+  if(n.includes('radio')||n.includes('imaging')||n.includes('scan')||n.includes('sono')) return ['lis','charges','consent'];
+  if(n.includes('pharm')) return ['charges','consent'];
+  if(n.includes('nurs')) return ['charges','voice','dischargeLock'];
+  if(n.includes('mrd')||n.includes('record')) return ['consent','abha','nabh'];
+  if(n.includes('account')||n.includes('billing')||n.includes('finance')||n.includes('revenue')) return ['charges','claims','discounts'];
+  if(n.includes('quality')||n.includes('nabh')) return ['nabh','consent'];
+  return ['abha','charges','claims','consent','voice'];
+}
+function renderDeptTools(name,barId,hostId){
+  const bar=document.getElementById(barId); if(!bar)return;
+  _deptHost=null; const host=document.getElementById(hostId); if(host)host.innerHTML='';
+  const tools=deptToolsFor(name);
+  bar.innerHTML='<span style="font-weight:800;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);align-self:center;margin-right:4px">Tools</span>'+tools.map(k=>`<button data-tool="${k}" class="btn ghost" style="width:auto;padding:8px 13px">${DEPT_TOOL_LABELS[k]||k}</button>`).join('');
+  bar.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{ const k=b.dataset.tool; const h=document.getElementById(hostId); if(!h||!DEPT_FEATURES[k])return; _deptHost={key:k,elId:hostId}; DEPT_FEATURES[k](h); bar.querySelectorAll('[data-tool]').forEach(x=>x.classList.toggle('active',x===b)); h.scrollIntoView({behavior:'smooth',block:'nearest'}); });
 }
 function renderMdDoctors(body){
   const rows = MD_DOCTORS.length ? MD_DOCTORS.map((d,i)=>`<tr><td class="sno">${i+1}</td><td><b>Dr. ${genEsc(d.name)}</b></td><td>${genEsc(d.dept||'—')}</td><td>${genEsc(d.contact||'—')}</td><td>${genEsc(d.room||'—')}</td><td>${money(d.opdFee||0)}</td><td style="font-size:11.5px">${genEsc((d.days||[]).join(', ')||'—')}</td><td><span class="pill g">Active</span></td></tr>`).join('') : `<tr><td class="tempty" colspan="8">No doctors added yet.</td></tr>`;
