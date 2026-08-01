@@ -951,6 +951,7 @@
     <div class="seg" id="genSeg"></div>
     <div id="genToolBar" style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px"></div>
     <div id="genBody"></div>
+    <div id="modCustomHost"></div>
     <div id="genToolHost"></div>
     <datalist id="gfInvestList"></datalist>
   </div>
@@ -1041,6 +1042,11 @@
       <button data-ptab="allergies"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>Allergies</button>
       <button data-ptab="expiry"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Expiry</button>
       <button data-ptab="interactions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v4M16 17v4M3 8h4M17 16h4"/><circle cx="9" cy="15" r="4"/><circle cx="15" cy="9" r="4"/></svg>Interactions</button>
+      <button data-ptab="rx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l5 5v13H6z"/><path d="M9 12h6M9 16h4"/></svg>Prescriptions</button>
+      <button data-ptab="suppliers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h13v10H3z"/><path d="M16 10h3l2 3v4h-5z"/><circle cx="7" cy="19" r="2"/><circle cx="18" cy="19" r="2"/></svg>Suppliers &amp; POs</button>
+      <button data-ptab="returns"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Returns</button>
+      <button data-ptab="audit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Stock audit</button>
+      <button data-ptab="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>Analytics</button>
     </div>
     <div id="pharmaBody"></div>
   </div>
@@ -2321,7 +2327,37 @@ function openGeneric(m){
   document.getElementById('app').classList.add('hidden');
   document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('genPage').classList.remove('hidden');
-  renderGenSeg(); renderGenBody(); renderDeptTools(m.name,'genToolBar','genToolHost'); window.scrollTo(0,0);
+  renderGenSeg(); renderGenBody(); renderDeptTools(m.name,'genToolBar','genToolHost'); renderModCustom(m.name); window.scrollTo(0,0);
+}
+/* ---------- per-module customization: custom fields, daily target, notes ---------- */
+let MODULE_CFG={};
+function modCfg(name){ return MODULE_CFG[name]||(MODULE_CFG[name]={fields:[],target:0,note:''}); }
+function modRowCount(name){ const def=MODULE_DEFS[name]; return def?def.sections.reduce((a,s)=>a+s.rows.length,0):0; }
+function renderModCustom(name){
+  const host=document.getElementById('modCustomHost'); if(!host)return;
+  const c=modCfg(name), done=modRowCount(name);
+  const pct=c.target?Math.min(100,Math.round(done/c.target*100)):0;
+  const fRows=(c.fields||[]).length?c.fields.map((f,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(f.label)}</b></td><td>${genEsc(f.type)}</td><td><button class="btn ghost tiny" data-mfdel="${f.id}" style="width:auto;padding:6px 10px">Remove</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="4">No custom fields for this module yet.</td></tr>';
+  host.innerHTML=`<div class="panel" style="max-width:none;margin-top:16px">
+      <div class="sec-head" style="border:0;padding:0;margin:0 0 8px"><div><h3 style="margin:0">Customise ${genEsc(name)}</h3>
+        <p class="psub" style="margin:2px 0 0">Add your own fields, set a daily target and keep department notes — specific to this module.</p></div></div>
+      ${c.target?`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px"><span>Daily target</span><b>${done} / ${c.target} (${pct}%)</b></div>
+        <div style="height:10px;background:var(--bg);border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${pct>=100?'#16a34a':'#1f6feb'}"></div></div></div>`:''}
+      <div class="addgrid">
+        <div class="fld"><label>Custom field label</label><input id="mfLabel" placeholder="e.g. Referred by"></div>
+        <div class="fld"><label>Field type</label><select id="mfType"><option>text</option><option>number</option><option>date</option><option>select</option></select></div>
+        <div class="fld"><label>Daily target (records)</label><input id="mfTarget" type="number" min="0" value="${genAttr(String(c.target||0))}"></div>
+        <div class="fld full"><label>Module note</label><input id="mfNote" value="${genAttr(c.note||'')}" placeholder="Anything the team should see"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="mfAdd" style="width:auto;padding:12px 20px">Add field</button><button class="btn ghost" id="mfSave" style="width:auto;padding:12px 20px">Save target &amp; note</button></div>
+      <div class="tablewrap" style="margin-top:10px"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Custom field</th><th>Type</th><th>Action</th></tr></thead><tbody>${fRows}</tbody></table></div>
+      ${c.note?`<p class="psub" style="margin-top:10px"><b>Note:</b> ${genEsc(c.note)}</p>`:''}</div>`;
+  document.getElementById('mfAdd').onclick=()=>{ const l=document.getElementById('mfLabel').value.trim(); if(!l){toast('Enter a field label');return;}
+    c.fields.push({id:'F'+Date.now().toString(36),label:l,type:document.getElementById('mfType').value});
+    logAudit('Module',`Custom field added · ${l} (${name})`); persist(); renderModCustom(name); toast('Field added'); };
+  document.getElementById('mfSave').onclick=()=>{ c.target=Number(document.getElementById('mfTarget').value)||0; c.note=document.getElementById('mfNote').value.trim();
+    persist(); renderModCustom(name); toast('Saved'); };
+  host.querySelectorAll('[data-mfdel]').forEach(b=>b.onclick=()=>{ c.fields=c.fields.filter(x=>x.id!==b.dataset.mfdel); persist(); renderModCustom(name); });
 }
 function renderGenSeg(){
   const seg=document.getElementById('genSeg'); seg.innerHTML='';
@@ -3135,21 +3171,492 @@ function renderDeptTab(d,el){
     el.querySelectorAll('[data-eqdel]').forEach(b=>b.onclick=()=>{ d.equipment=(d.equipment||[]).filter(x=>x.id!==b.dataset.eqdel); persist(); renderMaster(); });
   }
 }
+/* ===================== Appointments · Vitals & nursing notes · Lab samples ===================== */
+let APPOINTMENTS=[], VITALS=[], NURSE_NOTES=[], LAB_SAMPLES=[];
+const LAB_FLOW=['Collected','In process','Reported','Rejected'];
+function apptSlotsFor(deptName,docName,dateStr){
+  const d=DEPARTMENTS.find(x=>_norm(x.name)===_norm(deptName)); if(!d||!dateStr)return [];
+  const dt=new Date(dateStr+'T00:00:00'); if(isNaN(dt))return [];
+  const day=DAYS[(dt.getDay()+6)%7];
+  const t=docTiming(d,docName);
+  if(!(t.days||[]).includes(day))return [];
+  const o=String(t.open||'').split(':').map(Number), c=String(t.close||'').split(':').map(Number);
+  if(isNaN(o[0])||isNaN(c[0]))return [];
+  const step=Number(t.slot)||15, out=[];
+  for(let m=o[0]*60+(o[1]||0); m+step<=c[0]*60+(c[1]||0); m+=step)
+    out.push(String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'));
+  return out;
+}
+function apptTaken(deptName,docName,dateStr){ return APPOINTMENTS.filter(a=>a.status!=='Cancelled'&&_norm(a.dept)===_norm(deptName)&&_norm(a.doctor)===_norm(docName)&&a.date===dateStr).map(a=>a.time); }
+function apptFree(deptName,docName,dateStr){ const t=apptTaken(deptName,docName,dateStr); return apptSlotsFor(deptName,docName,dateStr).filter(s=>!t.includes(s)); }
+function apptBook(patient,phone,deptName,docName,dateStr,time){
+  if(!patient)return {ok:false,msg:'Enter patient name'};
+  if(!apptFree(deptName,docName,dateStr).includes(time))return {ok:false,msg:'That slot is not available'};
+  const a={id:'AP'+Date.now().toString(36),patient,phone:phone||'',dept:deptName,doctor:docName,date:dateStr,time,status:'Booked',_ts:Date.now()};
+  APPOINTMENTS.push(a); if(typeof logAudit==='function')logAudit('Appointment',`Booked ${dateStr} ${time} · ${deptName}`,patient); return {ok:true,appt:a};
+}
+function vitalFlags(v){
+  const f=[]; const t=Number(v.temp)||0, p=Number(v.pulse)||0, s=Number(v.spo2)||0;
+  const bp=String(v.bp||'').split('/').map(Number);
+  if(t>=100.4)f.push('Fever');
+  if(p>100)f.push('Tachycardia'); if(p>0&&p<60)f.push('Bradycardia');
+  if(s>0&&s<94)f.push('Low SpO₂');
+  if(bp[0]>=140)f.push('High BP'); else if(bp[0]>0&&bp[0]<90)f.push('Low BP');
+  return f;
+}
+function vitalsFor(p){ return VITALS.filter(x=>_norm(x.patient)===_norm(p)).sort((a,b)=>(a._ts||0)-(b._ts||0)); }
+function notesFor(p){ return NURSE_NOTES.filter(x=>_norm(x.patient)===_norm(p)); }
+function sampleAdd(patient,test,type,by){
+  const s={id:'S'+String(LAB_SAMPLES.length+1).padStart(5,'0'),patient,test,type:type||'Blood',status:'Collected',by:by||'',date:new Date().toISOString().slice(0,10),_ts:Date.now()};
+  LAB_SAMPLES.push(s); if(typeof logAudit==='function')logAudit('Laboratory',`Sample ${s.id} collected · ${test}`,patient); return s;
+}
+function sampleAdvance(id){
+  const s=LAB_SAMPLES.find(x=>x.id===id); if(!s)return {ok:false};
+  if(s.status==='Reported'||s.status==='Rejected')return {ok:false};
+  s.status=LAB_FLOW[Math.min(LAB_FLOW.indexOf(s.status)+1,2)];
+  if(s.status==='Reported')s.reportedTs=Date.now();
+  if(typeof logAudit==='function')logAudit('Laboratory',`Sample ${s.id} → ${s.status}`,s.patient); return {ok:true,status:s.status};
+}
+function labPending(){ return LAB_SAMPLES.filter(s=>s.status==='Collected'||s.status==='In process').length; }
+function labTAT(){ const d=LAB_SAMPLES.filter(s=>s.status==='Reported'&&s.reportedTs); return d.length?Math.round(d.reduce((a,s)=>a+(s.reportedTs-s._ts),0)/d.length/3600000*10)/10:0; }
+
+function renderApptTool(host){
+  const depts=DEPARTMENTS.filter(d=>d.active!==false);
+  const upcoming=APPOINTMENTS.filter(a=>a.status==='Booked').sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const rows=APPOINTMENTS.length?APPOINTMENTS.slice().reverse().map((a,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(a.patient)}</b><br><span style="color:var(--muted);font-size:11px">${genEsc(a.phone||'')}</span></td><td>${genEsc(a.dept)}</td><td>${genEsc(a.doctor||'—')}</td><td>${genEsc(a.date)} ${genEsc(a.time)}</td><td><span class="pill ${a.status==='Booked'?'b':a.status==='Arrived'?'g':'r'}">${genEsc(a.status)}</span></td><td>${a.status==='Booked'?`<button class="btn ghost tiny" data-apa="${a.id}" style="width:auto;padding:6px 10px">Arrived</button> <button class="btn ghost tiny" data-apc="${a.id}" style="width:auto;padding:6px 10px;color:#b45309">Cancel</button>`:'—'}</td></tr>`).join(''):'<tr><td class="tempty" colspan="7">No appointments yet.</td></tr>';
+  host.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>Book an appointment</h3>
+      <p class="psub">Slots come from the doctor's timings inside the department. Booked slots disappear automatically.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Patient</label><input id="apPat" placeholder="Name"></div>
+        <div class="fld"><label>Phone</label><input id="apPhone" placeholder="Mobile"></div>
+        <div class="fld"><label>Department</label><select id="apDept">${depts.map(d=>`<option>${genEsc(d.name)}</option>`).join('')}</select></div>
+        <div class="fld"><label>Doctor</label><input id="apDoc" list="docNameList" placeholder="Doctor name"></div>
+        <div class="fld"><label>Date</label><input id="apDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+        <div class="fld"><label>Slot</label><select id="apSlot"><option value="">— pick date &amp; doctor —</option></select></div>
+      </div>
+      <div class="form-actions"><button class="btn ghost" id="apFind" style="width:auto;padding:12px 20px">Find free slots</button><button class="btn" id="apBook" style="width:auto;padding:12px 20px">Book appointment</button></div></div>
+    <div class="sec-head"><div><h3>Appointments</h3><p>${upcoming.length} upcoming · ${APPOINTMENTS.length} total</p></div>
+      <button class="btn ghost" id="apCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Department</th><th>Doctor</th><th>When</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const fill=()=>{ const free=apptFree(document.getElementById('apDept').value,document.getElementById('apDoc').value.trim(),document.getElementById('apDate').value);
+    const sel=document.getElementById('apSlot'); sel.innerHTML=free.length?free.map(s=>`<option>${s}</option>`).join(''):'<option value="">No free slots</option>';
+    if(!free.length)toast('No free slots — check the doctor’s working days'); };
+  document.getElementById('apFind').onclick=fill;
+  document.getElementById('apBook').onclick=()=>{
+    const r=apptBook(document.getElementById('apPat').value.trim(),document.getElementById('apPhone').value.trim(),document.getElementById('apDept').value,document.getElementById('apDoc').value.trim(),document.getElementById('apDate').value,document.getElementById('apSlot').value);
+    if(!r.ok){toast(r.msg);return;} persist(); renderMaster(); toast('Appointment booked'); };
+  host.querySelectorAll('[data-apa]').forEach(b=>b.onclick=()=>{ const a=APPOINTMENTS.find(x=>x.id===b.dataset.apa); if(a){a.status='Arrived'; persist(); renderMaster();} });
+  host.querySelectorAll('[data-apc]').forEach(b=>b.onclick=()=>{ const a=APPOINTMENTS.find(x=>x.id===b.dataset.apc); if(a){a.status='Cancelled'; persist(); renderMaster();} });
+  const cv=document.getElementById('apCsv'); if(cv)cv.onclick=()=>exportCSV('appointments',['Patient','Phone','Department','Doctor','Date','Time','Status'],APPOINTMENTS.map(a=>[a.patient,a.phone,a.dept,a.doctor,a.date,a.time,a.status]));
+}
+function renderVitalsTool(host){
+  const pats=[...new Set((typeof BEDS!=='undefined'?BEDS:[]).filter(b=>b.patient).map(b=>b.patient.name))];
+  const rows=VITALS.length?VITALS.slice().reverse().slice(0,40).map((v,i)=>{const f=vitalFlags(v);return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(v.patient)}</b></td><td>${genEsc(String(v.temp||'—'))}</td><td>${genEsc(v.bp||'—')}</td><td>${genEsc(String(v.pulse||'—'))}</td><td>${genEsc(String(v.spo2||'—'))}</td><td>${f.length?f.map(x=>`<span class="pill r" style="margin:1px">${genEsc(x)}</span>`).join(' '):'<span class="pill g">Normal</span>'}</td><td>${genEsc(v.date)}</td></tr>`;}).join(''):'<tr><td class="tempty" colspan="8">No vitals recorded yet.</td></tr>';
+  const nRows=NURSE_NOTES.length?NURSE_NOTES.slice().reverse().slice(0,25).map((n,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(n.patient)}</b></td><td>${genEsc(n.shift||'—')}</td><td>${genEsc(n.by||'—')}</td><td style="max-width:340px">${genEsc(n.text)}</td><td>${genEsc(n.date)}</td></tr>`).join(''):'<tr><td class="tempty" colspan="6">No nursing notes yet.</td></tr>';
+  host.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>Record vitals</h3>
+      <p class="psub">Abnormal readings are flagged automatically (fever, tachycardia, low SpO₂, BP).</p>
+      <div class="addgrid">
+        <div class="fld"><label>Patient</label><input id="vtPat" list="admList" placeholder="Name"></div>
+        <div class="fld"><label>Temp (°F)</label><input id="vtTemp" type="number" step="0.1" placeholder="98.6"></div>
+        <div class="fld"><label>BP (mmHg)</label><input id="vtBp" placeholder="120/80"></div>
+        <div class="fld"><label>Pulse (bpm)</label><input id="vtPulse" type="number" placeholder="76"></div>
+        <div class="fld"><label>SpO₂ (%)</label><input id="vtSpo2" type="number" placeholder="98"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="vtSave" style="width:auto;padding:12px 20px">Save vitals</button></div>
+      <datalist id="admList">${pats.map(p=>`<option value="${genAttr(p)}">`).join('')}</datalist></div>
+    <div class="sec-head"><div><h3>Vitals log</h3><p>${VITALS.length} reading${VITALS.length===1?'':'s'} · latest 40 shown</p></div>
+      <button class="btn ghost" id="vtCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Temp</th><th>BP</th><th>Pulse</th><th>SpO₂</th><th>Flags</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>Nursing note</h3>
+      <div class="addgrid">
+        <div class="fld"><label>Patient</label><input id="nnPat" list="admList" placeholder="Name"></div>
+        <div class="fld"><label>Shift</label><select id="nnShift"><option>Morning</option><option>Evening</option><option>Night</option></select></div>
+        <div class="fld"><label>Nurse</label><input id="nnBy" placeholder="Your name"></div>
+        <div class="fld full"><label>Note</label><textarea id="nnText" placeholder="Observations, care given, handover…"></textarea></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="nnSave" style="width:auto;padding:12px 20px">Save note</button></div></div>
+    <div class="sec-head"><div><h3>Nursing notes</h3><p>${NURSE_NOTES.length} note${NURSE_NOTES.length===1?'':'s'}</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Shift</th><th>By</th><th>Note</th><th>Date</th></tr></thead><tbody>${nRows}</tbody></table></div>`;
+  document.getElementById('vtSave').onclick=()=>{ const p=document.getElementById('vtPat').value.trim(); if(!p){toast('Enter patient');return;}
+    VITALS.push({id:'VT'+Date.now().toString(36),patient:p,temp:document.getElementById('vtTemp').value,bp:document.getElementById('vtBp').value.trim(),pulse:document.getElementById('vtPulse').value,spo2:document.getElementById('vtSpo2').value,date:new Date().toISOString().slice(0,10),_ts:Date.now()});
+    const f=vitalFlags(VITALS[VITALS.length-1]);
+    if(f.length)logAudit('Nursing','Abnormal vitals · '+f.join(', '),p);
+    persist(); renderMaster(); toast(f.length?('Saved — '+f.join(', ')):'Vitals saved'); };
+  document.getElementById('nnSave').onclick=()=>{ const p=document.getElementById('nnPat').value.trim(), t=document.getElementById('nnText').value.trim();
+    if(!p||!t){toast('Enter patient and note');return;}
+    NURSE_NOTES.push({id:'NN'+Date.now().toString(36),patient:p,by:document.getElementById('nnBy').value.trim(),shift:document.getElementById('nnShift').value,text:t,date:new Date().toISOString().slice(0,10),_ts:Date.now()});
+    logAudit('Nursing','Note recorded',p); persist(); renderMaster(); toast('Note saved'); };
+  const cv=document.getElementById('vtCsv'); if(cv)cv.onclick=()=>exportCSV('vitals',['Patient','Temp','BP','Pulse','SpO2','Flags','Date'],VITALS.map(v=>[v.patient,v.temp,v.bp,v.pulse,v.spo2,vitalFlags(v).join(' '),v.date]));
+}
+function renderSamplesTool(host){
+  const rows=LAB_SAMPLES.length?LAB_SAMPLES.slice().reverse().map((s,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(s.id)}</b></td><td>${genEsc(s.patient)}</td><td>${genEsc(s.test)}</td><td>${genEsc(s.type)}</td><td><span class="pill ${s.status==='Reported'?'g':s.status==='Rejected'?'r':'b'}">${genEsc(s.status)}</span></td><td>${genEsc(s.date)}</td><td>${(s.status==='Reported'||s.status==='Rejected')?genEsc(s.reason||'—'):`<button class="btn ghost tiny" data-sadv="${s.id}" style="width:auto;padding:6px 10px">→ ${genEsc(LAB_FLOW[Math.min(LAB_FLOW.indexOf(s.status)+1,2)])}</button> <button class="btn ghost tiny" data-srej="${s.id}" style="width:auto;padding:6px 10px;color:#b45309">Reject</button>`}</td></tr>`).join(''):'<tr><td class="tempty" colspan="8">No samples collected yet.</td></tr>';
+  host.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kbig"><div class="kt">Pending</div><b>${labPending()}</b><div class="ks">collected / in process</div></div>
+      <div class="kbig"><div class="kt">Reported</div><b>${LAB_SAMPLES.filter(s=>s.status==='Reported').length}</b><div class="ks">completed</div></div>
+      <div class="kbig"><div class="kt">Rejected</div><b>${LAB_SAMPLES.filter(s=>s.status==='Rejected').length}</b><div class="ks">re-collect needed</div></div>
+      <div class="kbig"><div class="kt">Avg TAT</div><b>${labTAT()}h</b><div class="ks">collection → report</div></div></div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>Collect a sample</h3>
+      <p class="psub">Each sample gets a tracking ID and moves Collected → In process → Reported.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Patient</label><input id="smPat" placeholder="Name"></div>
+        <div class="fld"><label>Test</label><input id="smTest" list="gfInvestList" placeholder="e.g. CBC"></div>
+        <div class="fld"><label>Sample type</label><select id="smType"><option>Blood</option><option>Urine</option><option>Stool</option><option>Swab</option><option>Tissue</option><option>Other</option></select></div>
+        <div class="fld"><label>Collected by</label><input id="smBy" placeholder="Technician"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="smAdd" style="width:auto;padding:12px 20px">Collect sample</button></div></div>
+    <div class="sec-head"><div><h3>Sample tracking</h3><p>${LAB_SAMPLES.length} sample${LAB_SAMPLES.length===1?'':'s'}</p></div>
+      <button class="btn ghost" id="smCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Sample ID</th><th>Patient</th><th>Test</th><th>Type</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('smAdd').onclick=()=>{ const p=document.getElementById('smPat').value.trim(); if(!p){toast('Enter patient');return;}
+    sampleAdd(p,document.getElementById('smTest').value.trim()||'Test',document.getElementById('smType').value,document.getElementById('smBy').value.trim());
+    persist(); renderMaster(); toast('Sample collected'); };
+  host.querySelectorAll('[data-sadv]').forEach(b=>b.onclick=()=>{ const r=sampleAdvance(b.dataset.sadv); if(r.ok){persist(); renderMaster(); toast('Moved to '+r.status);} });
+  host.querySelectorAll('[data-srej]').forEach(b=>b.onclick=()=>{ const s=LAB_SAMPLES.find(x=>x.id===b.dataset.srej); if(!s)return;
+    const why=(typeof prompt!=='undefined'?prompt('Rejection reason:'):'')||'Rejected'; s.status='Rejected'; s.reason=why;
+    logAudit('Laboratory',`Sample ${s.id} rejected · ${why}`,s.patient); persist(); renderMaster(); });
+  const cv=document.getElementById('smCsv'); if(cv)cv.onclick=()=>exportCSV('lab_samples',['Sample','Patient','Test','Type','Status','Date'],LAB_SAMPLES.map(s=>[s.id,s.patient,s.test,s.type,s.status,s.date]));
+}
+/* ===================== OT scheduling · Radiology orders · Package billing ===================== */
+let OT_BOOKINGS=[], RAD_ORDERS=[], RAD_TEMPLATES=[], PKG_PLANS=[], PKG_BILLS=[];
+const OT_ROOMS=['OT-1','OT-2','OT-3'];
+const RAD_FLOW=['Ordered','Scheduled','Performed','Reported'];
+const RAD_MODALITIES=['X-Ray','CT','MRI','Ultrasound','Mammography','Fluoroscopy'];
+const _toMin=t=>{const p=String(t||'').split(':').map(Number);return (p[0]||0)*60+(p[1]||0);};
+function otOverlaps(room,date,start,mins,ignoreId){
+  const s=_toMin(start), e=s+(Number(mins)||0);
+  return OT_BOOKINGS.some(b=>b.id!==ignoreId&&b.status!=='Cancelled'&&b.room===room&&b.date===date&&
+    (s<_toMin(b.start)+(Number(b.mins)||0))&&(_toMin(b.start)<e));
+}
+function otBook(o){
+  if(!o.patient)return {ok:false,msg:'Enter patient name'};
+  if(!o.date||!o.start)return {ok:false,msg:'Pick a date and start time'};
+  if(otOverlaps(o.room,o.date,o.start,o.mins))return {ok:false,msg:'That theatre is already booked in this slot'};
+  const b=Object.assign({id:'OT'+Date.now().toString(36),status:'Scheduled',_ts:Date.now()},o);
+  OT_BOOKINGS.push(b); if(typeof logAudit==='function')logAudit('OT',`Scheduled ${o.procedure||'procedure'} · ${o.room} ${o.date} ${o.start}`,o.patient); return {ok:true,booking:b};
+}
+function otUtilisation(room,date){ return OT_BOOKINGS.filter(b=>b.room===room&&b.date===date&&b.status!=='Cancelled').reduce((a,b)=>a+(Number(b.mins)||0),0); }
+function radOrder(patient,modality,study,doctor){
+  const o={id:'R'+String(RAD_ORDERS.length+1).padStart(5,'0'),patient,modality,study,doctor:doctor||'',status:'Ordered',report:'',date:new Date().toISOString().slice(0,10),_ts:Date.now()};
+  RAD_ORDERS.push(o); if(typeof logAudit==='function')logAudit('Radiology',`${modality} ordered · ${study}`,patient); return o;
+}
+function radAdvance(id){
+  const o=RAD_ORDERS.find(x=>x.id===id); if(!o||o.status==='Reported')return {ok:false};
+  o.status=RAD_FLOW[Math.min(RAD_FLOW.indexOf(o.status)+1,3)];
+  if(o.status==='Reported')o.reportedTs=Date.now();
+  if(typeof logAudit==='function')logAudit('Radiology',`${o.id} → ${o.status}`,o.patient); return {ok:true,status:o.status};
+}
+function tplFor(modality){ return RAD_TEMPLATES.filter(t=>_norm(t.modality)===_norm(modality)); }
+function pkgBill(patient,pkgId,installments,paidNow){
+  const p=PKG_PLANS.find(x=>x.id===pkgId); if(!p)return {ok:false,msg:'Select a package'};
+  const n=Math.max(1,Number(installments)||1), per=Math.round(p.total/n);
+  const sched=[]; let left=p.total;
+  for(let i=0;i<n;i++){ const amt=(i===n-1)?left:per; sched.push({no:i+1,amount:amt,paid:false}); left-=amt; }
+  const bill={id:'PB'+Date.now().toString(36),patient,pkgId,pkgName:p.name,total:p.total,sched,date:new Date().toISOString().slice(0,10),_ts:Date.now()};
+  if(Number(paidNow)>0){ let rem=Number(paidNow); bill.sched.forEach(s=>{ if(!s.paid&&rem>=s.amount){s.paid=true;s.paidOn=bill.date;rem-=s.amount;} }); }
+  PKG_BILLS.push(bill);
+  if(typeof captureCharge==='function')captureCharge(patient,'Billing',p.name,p.total,{module:'Billing'});
+  if(typeof logAudit==='function')logAudit('Billing',`Package billed · ${p.name} ${money(p.total)}`,patient); return {ok:true,bill};
+}
+function pkgPaid(b){ return b.sched.filter(s=>s.paid).reduce((a,s)=>a+s.amount,0); }
+function pkgDue(b){ return b.total-pkgPaid(b); }
+
+function renderOtTool(host){
+  const day=new Date().toISOString().slice(0,10);
+  const rows=OT_BOOKINGS.length?OT_BOOKINGS.slice().reverse().map((b,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(b.patient)}</b></td><td>${genEsc(b.procedure||'—')}</td><td>${genEsc(b.surgeon||'—')}</td><td>${genEsc(b.room)}</td><td>${genEsc(b.date)} ${genEsc(b.start)} · ${b.mins}m</td><td><span class="pill ${b.status==='Completed'?'g':b.status==='Cancelled'?'r':'b'}">${genEsc(b.status)}</span></td><td>${b.status==='Scheduled'||b.status==='In progress'?`<button class="btn ghost tiny" data-otadv="${b.id}" style="width:auto;padding:6px 10px">${b.status==='Scheduled'?'Start':'Complete'}</button> <button class="btn ghost tiny" data-otcan="${b.id}" style="width:auto;padding:6px 10px;color:#b45309">Cancel</button>`:'—'}</td></tr>`).join(''):'<tr><td class="tempty" colspan="8">No surgeries scheduled.</td></tr>';
+  const util=OT_ROOMS.map(r=>`<div class="kbig"><div class="kt">${r} today</div><b>${Math.round(otUtilisation(r,day)/60*10)/10}h</b><div class="ks">${OT_BOOKINGS.filter(b=>b.room===r&&b.date===day&&b.status!=='Cancelled').length} case(s)</div></div>`).join('');
+  host.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">${util}</div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>Schedule surgery</h3>
+      <p class="psub">Double-booking a theatre is blocked automatically.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Patient</label><input id="otPat" placeholder="Name"></div>
+        <div class="fld"><label>Procedure</label><input id="otProc" placeholder="e.g. Appendectomy"></div>
+        <div class="fld"><label>Surgeon</label><input id="otSurg" list="docNameList" placeholder="Doctor"></div>
+        <div class="fld"><label>Theatre</label><select id="otRoom">${OT_ROOMS.map(r=>`<option>${r}</option>`).join('')}</select></div>
+        <div class="fld"><label>Date</label><input id="otDate" type="date" value="${day}"></div>
+        <div class="fld"><label>Start time</label><input id="otStart" type="time" value="09:00"></div>
+        <div class="fld"><label>Duration (minutes)</label><input id="otMins" type="number" min="15" step="15" value="60"></div>
+        <div class="fld"><label>Anaesthesia</label><select id="otAnes"><option>General</option><option>Spinal</option><option>Local</option><option>Sedation</option></select></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="otSave" style="width:auto;padding:12px 20px">Schedule surgery</button></div></div>
+    <div class="sec-head"><div><h3>Surgery schedule</h3><p>${OT_BOOKINGS.filter(b=>b.status==='Scheduled').length} scheduled · ${OT_BOOKINGS.length} total</p></div>
+      <button class="btn ghost" id="otCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Procedure</th><th>Surgeon</th><th>Theatre</th><th>When</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('otSave').onclick=()=>{
+    const r=otBook({patient:document.getElementById('otPat').value.trim(),procedure:document.getElementById('otProc').value.trim(),surgeon:document.getElementById('otSurg').value.trim(),room:document.getElementById('otRoom').value,date:document.getElementById('otDate').value,start:document.getElementById('otStart').value,mins:Number(document.getElementById('otMins').value)||60,anes:document.getElementById('otAnes').value});
+    if(!r.ok){toast(r.msg);return;} persist(); renderMaster(); toast('Surgery scheduled'); };
+  host.querySelectorAll('[data-otadv]').forEach(b=>b.onclick=()=>{ const x=OT_BOOKINGS.find(y=>y.id===b.dataset.otadv); if(!x)return; x.status=x.status==='Scheduled'?'In progress':'Completed'; logAudit('OT',x.status+' · '+(x.procedure||''),x.patient); persist(); renderMaster(); });
+  host.querySelectorAll('[data-otcan]').forEach(b=>b.onclick=()=>{ const x=OT_BOOKINGS.find(y=>y.id===b.dataset.otcan); if(x){x.status='Cancelled'; persist(); renderMaster();} });
+  const cv=document.getElementById('otCsv'); if(cv)cv.onclick=()=>exportCSV('ot_schedule',['Patient','Procedure','Surgeon','Theatre','Date','Start','Minutes','Status'],OT_BOOKINGS.map(b=>[b.patient,b.procedure,b.surgeon,b.room,b.date,b.start,b.mins,b.status]));
+}
+function renderRadTool(host){
+  const rows=RAD_ORDERS.length?RAD_ORDERS.slice().reverse().map((o,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(o.id)}</b></td><td>${genEsc(o.patient)}</td><td>${genEsc(o.modality)}</td><td>${genEsc(o.study)}</td><td><span class="pill ${o.status==='Reported'?'g':'b'}">${genEsc(o.status)}</span></td><td style="max-width:260px">${genEsc((o.report||'').slice(0,80))}${(o.report||'').length>80?'…':''}</td><td>${o.status!=='Reported'?`<button class="btn ghost tiny" data-radv="${o.id}" style="width:auto;padding:6px 10px">→ ${genEsc(RAD_FLOW[Math.min(RAD_FLOW.indexOf(o.status)+1,3)])}</button> <button class="btn ghost tiny" data-rrep="${o.id}" style="width:auto;padding:6px 10px">Report</button>`:'—'}</td></tr>`).join(''):'<tr><td class="tempty" colspan="8">No imaging orders yet.</td></tr>';
+  const tRows=RAD_TEMPLATES.length?RAD_TEMPLATES.map((t,i)=>`<tr><td class="sno">${i+1}</td><td>${genEsc(t.modality)}</td><td><b>${genEsc(t.name)}</b></td><td style="max-width:320px">${genEsc((t.body||'').slice(0,90))}${(t.body||'').length>90?'…':''}</td><td><button class="btn ghost tiny" data-tpdel="${t.id}" style="width:auto;padding:6px 10px">Remove</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="5">No report templates yet.</td></tr>';
+  host.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kbig"><div class="kt">Pending</div><b>${RAD_ORDERS.filter(o=>o.status!=='Reported').length}</b><div class="ks">not yet reported</div></div>
+      <div class="kbig"><div class="kt">Reported</div><b>${RAD_ORDERS.filter(o=>o.status==='Reported').length}</b><div class="ks">completed</div></div>
+      <div class="kbig"><div class="kt">Templates</div><b>${RAD_TEMPLATES.length}</b><div class="ks">report presets</div></div>
+      <div class="kbig"><div class="kt">Total orders</div><b>${RAD_ORDERS.length}</b><div class="ks">all time</div></div></div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>New imaging order</h3>
+      <div class="addgrid">
+        <div class="fld"><label>Patient</label><input id="rdPat" placeholder="Name"></div>
+        <div class="fld"><label>Modality</label><select id="rdMod">${RAD_MODALITIES.map(m=>`<option>${m}</option>`).join('')}</select></div>
+        <div class="fld"><label>Study</label><input id="rdStudy" placeholder="e.g. Chest PA"></div>
+        <div class="fld"><label>Referring doctor</label><input id="rdDoc" list="docNameList" placeholder="Doctor"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="rdAdd" style="width:auto;padding:12px 20px">Create order</button></div></div>
+    <div class="sec-head"><div><h3>Imaging orders</h3><p>Ordered → Scheduled → Performed → Reported</p></div>
+      <button class="btn ghost" id="rdCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Order</th><th>Patient</th><th>Modality</th><th>Study</th><th>Status</th><th>Report</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>Report templates</h3>
+      <p class="psub">Save standard findings per modality — pick one when reporting to fill the text instantly.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Modality</label><select id="tpMod">${RAD_MODALITIES.map(m=>`<option>${m}</option>`).join('')}</select></div>
+        <div class="fld"><label>Template name</label><input id="tpName" placeholder="e.g. Normal chest"></div>
+        <div class="fld full"><label>Report body</label><textarea id="tpBody" placeholder="Findings…"></textarea></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="tpAdd" style="width:auto;padding:12px 20px">Save template</button></div>
+      <div class="tablewrap" style="margin-top:10px"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Modality</th><th>Template</th><th>Body</th><th>Action</th></tr></thead><tbody>${tRows}</tbody></table></div></div>`;
+  document.getElementById('rdAdd').onclick=()=>{ const p=document.getElementById('rdPat').value.trim(); if(!p){toast('Enter patient');return;}
+    radOrder(p,document.getElementById('rdMod').value,document.getElementById('rdStudy').value.trim()||'Study',document.getElementById('rdDoc').value.trim());
+    persist(); renderMaster(); toast('Imaging order created'); };
+  document.getElementById('tpAdd').onclick=()=>{ const n=document.getElementById('tpName').value.trim(); if(!n){toast('Enter template name');return;}
+    RAD_TEMPLATES.push({id:'TP'+Date.now().toString(36),modality:document.getElementById('tpMod').value,name:n,body:document.getElementById('tpBody').value.trim()});
+    persist(); renderMaster(); toast('Template saved'); };
+  host.querySelectorAll('[data-tpdel]').forEach(b=>b.onclick=()=>{ RAD_TEMPLATES=RAD_TEMPLATES.filter(x=>x.id!==b.dataset.tpdel); persist(); renderMaster(); });
+  host.querySelectorAll('[data-radv]').forEach(b=>b.onclick=()=>{ const r=radAdvance(b.dataset.radv); if(r.ok){persist(); renderMaster(); toast('Moved to '+r.status);} });
+  host.querySelectorAll('[data-rrep]').forEach(b=>b.onclick=()=>{ const o=RAD_ORDERS.find(x=>x.id===b.dataset.rrep); if(!o)return;
+    const tpls=tplFor(o.modality);
+    const preset=tpls.length&&confirm(`Use template "${tpls[0].name}"?`)?tpls[0].body:'';
+    const txt=(typeof prompt!=='undefined'?prompt('Report findings:',preset||o.report||''):'')||'';
+    if(!txt)return; o.report=txt; o.status='Reported'; o.reportedTs=Date.now();
+    logAudit('Radiology',`${o.id} reported`,o.patient); persist(); renderMaster(); toast('Report saved'); });
+  const cv=document.getElementById('rdCsv'); if(cv)cv.onclick=()=>exportCSV('imaging_orders',['Order','Patient','Modality','Study','Status','Report','Date'],RAD_ORDERS.map(o=>[o.id,o.patient,o.modality,o.study,o.status,o.report,o.date]));
+}
+function renderPkgTool(host){
+  const pRows=PKG_PLANS.length?PKG_PLANS.map((p,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(p.name)}</b></td><td>${money(p.total)}</td><td>${(p.items||[]).map(genEsc).join(', ')||'—'}</td><td>${p.active===false?'<span class="pill r">Inactive</span>':'<span class="pill g">Active</span>'}</td><td><button class="btn ghost tiny" data-pkdel="${p.id}" style="width:auto;padding:6px 10px">Remove</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="6">No packages yet.</td></tr>';
+  const bRows=PKG_BILLS.length?PKG_BILLS.slice().reverse().map((b,i)=>{
+    const paid=pkgPaid(b), due=pkgDue(b), pct=b.total?Math.round(paid/b.total*100):0;
+    return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(b.patient)}</b></td><td>${genEsc(b.pkgName)}</td><td>${money(b.total)}</td>
+      <td>${money(paid)}<div style="height:6px;background:var(--bg);border-radius:99px;overflow:hidden;margin-top:3px"><div style="height:100%;width:${pct}%;background:${due===0?'#16a34a':'#1f6feb'}"></div></div></td>
+      <td style="${due?'color:#b91c1c;font-weight:700':''}">${money(due)}</td>
+      <td>${b.sched.filter(s=>s.paid).length}/${b.sched.length}</td>
+      <td>${due>0?`<button class="btn ghost tiny" data-pkpay="${b.id}" style="width:auto;padding:6px 10px">Pay next</button>`:'<span class="pill g">Settled</span>'}</td></tr>`;
+  }).join(''):'<tr><td class="tempty" colspan="8">No package bills yet.</td></tr>';
+  const totalDue=PKG_BILLS.reduce((a,b)=>a+pkgDue(b),0);
+  host.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kbig"><div class="kt">Packages</div><b>${PKG_PLANS.length}</b><div class="ks">defined</div></div>
+      <div class="kbig"><div class="kt">Package bills</div><b>${PKG_BILLS.length}</b><div class="ks">issued</div></div>
+      <div class="kbig"><div class="kt">Collected</div><b>${money(PKG_BILLS.reduce((a,b)=>a+pkgPaid(b),0))}</b><div class="ks">so far</div></div>
+      <div class="kbig"><div class="kt">Outstanding</div><b>${money(totalDue)}</b><div class="ks">across plans</div></div></div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>Create a package</h3>
+      <p class="psub">Bundle services into one price — e.g. Maternity, Dialysis, Health check.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Package name</label><input id="pkName" placeholder="e.g. Maternity Package"></div>
+        <div class="fld"><label>Total price (₹)</label><input id="pkTotal" type="number" min="0" placeholder="0"></div>
+        <div class="fld full"><label>Included items (comma separated)</label><input id="pkItems" placeholder="Delivery, Room 3 days, Newborn care"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="pkAdd" style="width:auto;padding:12px 20px">Add package</button></div></div>
+    <div class="sec-head"><div><h3>Packages</h3><p>${PKG_PLANS.length} package${PKG_PLANS.length===1?'':'s'}</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Package</th><th>Price</th><th>Includes</th><th>Status</th><th>Action</th></tr></thead><tbody>${pRows}</tbody></table></div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>Bill a package (with payment plan)</h3>
+      <p class="psub">Split the package into instalments — the schedule and outstanding balance are tracked automatically.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Patient</label><input id="pbPat" placeholder="Name"></div>
+        <div class="fld"><label>Package</label><select id="pbPkg">${PKG_PLANS.map(p=>`<option value="${p.id}">${genEsc(p.name)} — ${money(p.total)}</option>`).join('')||'<option value="">— add a package first —</option>'}</select></div>
+        <div class="fld"><label>Instalments</label><input id="pbInst" type="number" min="1" value="1"></div>
+        <div class="fld"><label>Paid now (₹)</label><input id="pbPaid" type="number" min="0" placeholder="0"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="pbSave" style="width:auto;padding:12px 20px">Create package bill</button></div></div>
+    <div class="sec-head"><div><h3>Package bills &amp; payment plans</h3><p>${money(totalDue)} outstanding</p></div>
+      <button class="btn ghost" id="pbCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Package</th><th>Total</th><th>Paid</th><th>Due</th><th>Instalments</th><th>Action</th></tr></thead><tbody>${bRows}</tbody></table></div>`;
+  document.getElementById('pkAdd').onclick=()=>{ const n=document.getElementById('pkName').value.trim(); if(!n){toast('Enter package name');return;}
+    PKG_PLANS.push({id:'PK'+Date.now().toString(36),name:n,total:Number(document.getElementById('pkTotal').value)||0,items:document.getElementById('pkItems').value.split(',').map(s=>s.trim()).filter(Boolean),active:true});
+    logAudit('Billing','Package created · '+n); persist(); renderMaster(); toast('Package added'); };
+  host.querySelectorAll('[data-pkdel]').forEach(b=>b.onclick=()=>{ PKG_PLANS=PKG_PLANS.filter(x=>x.id!==b.dataset.pkdel); persist(); renderMaster(); });
+  document.getElementById('pbSave').onclick=()=>{ const p=document.getElementById('pbPat').value.trim(); if(!p){toast('Enter patient');return;}
+    const r=pkgBill(p,document.getElementById('pbPkg').value,document.getElementById('pbInst').value,document.getElementById('pbPaid').value);
+    if(!r.ok){toast(r.msg);return;} persist(); renderMaster(); toast('Package bill created'); };
+  host.querySelectorAll('[data-pkpay]').forEach(b=>b.onclick=()=>{ const bill=PKG_BILLS.find(x=>x.id===b.dataset.pkpay); if(!bill)return;
+    const nxt=bill.sched.find(s=>!s.paid); if(!nxt){toast('Already settled');return;}
+    nxt.paid=true; nxt.paidOn=new Date().toISOString().slice(0,10);
+    logAudit('Billing',`Instalment ${nxt.no} paid · ${money(nxt.amount)}`,bill.patient); persist(); renderMaster(); toast('Payment recorded'); });
+  const cv=document.getElementById('pbCsv'); if(cv)cv.onclick=()=>exportCSV('package_bills',['Patient','Package','Total','Paid','Due','Instalments','Date'],PKG_BILLS.map(b=>[b.patient,b.pkgName,b.total,pkgPaid(b),pkgDue(b),b.sched.length,b.date]));
+}
+/* ===================== Physiotherapy · Insurance policies · MRD file tracking ===================== */
+let PHYSIO_PLANS=[], PHYSIO_SESSIONS=[], INS_POLICIES=[], MRD_FILES=[], MRD_MOVES=[];
+function ptDone(planId){ return PHYSIO_SESSIONS.filter(s=>s.planId===planId&&s.status==='Attended').length; }
+function ptLeft(p){ return Math.max(0,(Number(p.total)||0)-ptDone(p.id)); }
+function ptMark(planId,status,note){
+  const p=PHYSIO_PLANS.find(x=>x.id===planId); if(!p)return {ok:false,msg:'Plan not found'};
+  if(status==='Attended'&&ptLeft(p)<=0)return {ok:false,msg:'All sessions already completed'};
+  PHYSIO_SESSIONS.push({id:'PS'+Date.now().toString(36),planId,patient:p.patient,status,note:note||'',date:new Date().toISOString().slice(0,10),_ts:Date.now()});
+  if(status==='Attended'){ if(typeof captureCharge==='function'&&Number(p.rate)>0)captureCharge(p.patient,'Physiotherapy','Physio session · '+(p.condition||''),p.rate,{module:'Physiotherapy'});
+    if(ptLeft(p)<=0)p.status='Completed'; }
+  if(typeof logAudit==='function')logAudit('Physiotherapy','Session '+status,p.patient);
+  return {ok:true,left:ptLeft(p)};
+}
+function ptAdherence(planId){ const all=PHYSIO_SESSIONS.filter(s=>s.planId===planId); return all.length?Math.round(all.filter(s=>s.status==='Attended').length/all.length*100):0; }
+function polBalance(p){ return Math.max(0,(Number(p.sum)||0)-(Number(p.used)||0)); }
+function polUse(id,amount){
+  const p=INS_POLICIES.find(x=>x.id===id); if(!p)return {ok:false,msg:'Policy not found'};
+  const a=Number(amount)||0; if(a<=0)return {ok:false,msg:'Enter a valid amount'};
+  if(a>polBalance(p))return {ok:false,msg:'Exceeds available balance of '+money(polBalance(p))};
+  p.used=(Number(p.used)||0)+a;
+  if(typeof logAudit==='function')logAudit('Insurance',`Utilised ${money(a)} · ${p.insurer}`,p.patient); return {ok:true,balance:polBalance(p)};
+}
+function polExpired(p){ return !!(p.valid && p.valid < new Date().toISOString().slice(0,10)); }
+const MRD_FLOW=['In archive','Issued','Returned','Missing'];
+function mrdAdd(mrn,patient,shelf){
+  if(MRD_FILES.some(f=>_norm(f.mrn)===_norm(mrn)))return {ok:false,msg:'That MRN already exists'};
+  const f={id:'MF'+Date.now().toString(36),mrn,patient,shelf:shelf||'',status:'In archive',date:new Date().toISOString().slice(0,10),_ts:Date.now()};
+  MRD_FILES.push(f); return {ok:true,file:f};
+}
+function mrdIssue(mrn,to,reason){
+  const f=MRD_FILES.find(x=>_norm(x.mrn)===_norm(mrn)); if(!f)return {ok:false,msg:'File not found'};
+  if(f.status==='Issued')return {ok:false,msg:'Already issued to '+(f.holder||'someone')};
+  f.status='Issued'; f.holder=to; f.issuedOn=new Date().toISOString().slice(0,10);
+  MRD_MOVES.push({id:'MM'+Date.now().toString(36),mrn,action:'Issued',to,reason:reason||'',date:f.issuedOn});
+  if(typeof logAudit==='function')logAudit('MRD',`File ${mrn} issued to ${to}`,f.patient); return {ok:true};
+}
+function mrdReturn(mrn){
+  const f=MRD_FILES.find(x=>_norm(x.mrn)===_norm(mrn)); if(!f)return {ok:false,msg:'File not found'};
+  if(f.status!=='Issued')return {ok:false,msg:'That file is not currently issued'};
+  const who=f.holder; f.status='In archive'; f.holder=''; f.issuedOn='';
+  MRD_MOVES.push({id:'MM'+Date.now().toString(36),mrn,action:'Returned',to:who||'',date:new Date().toISOString().slice(0,10)});
+  if(typeof logAudit==='function')logAudit('MRD',`File ${mrn} returned`,f.patient); return {ok:true};
+}
+function mrdOverdue(days){
+  const cutoff=new Date(Date.now()-((days||7)*86400000)).toISOString().slice(0,10);
+  return MRD_FILES.filter(f=>f.status==='Issued'&&f.issuedOn&&f.issuedOn<cutoff);
+}
+
+function renderPhysioTool(host){
+  const rows=PHYSIO_PLANS.length?PHYSIO_PLANS.slice().reverse().map((p,i)=>{
+    const done=ptDone(p.id), pct=p.total?Math.round(done/p.total*100):0;
+    return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(p.patient)}</b></td><td>${genEsc(p.condition||'—')}</td><td>${genEsc(p.therapist||'—')}</td>
+      <td>${done}/${p.total}<div style="height:6px;background:var(--bg);border-radius:99px;overflow:hidden;margin-top:3px"><div style="height:100%;width:${pct}%;background:${pct>=100?'#16a34a':'#1f6feb'}"></div></div></td>
+      <td>${ptAdherence(p.id)}%</td><td>${money(p.rate)}</td>
+      <td><span class="pill ${p.status==='Completed'?'g':'b'}">${genEsc(p.status)}</span></td>
+      <td>${p.status!=='Completed'?`<button class="btn ghost tiny" data-ptok="${p.id}" style="width:auto;padding:6px 10px">Attended</button> <button class="btn ghost tiny" data-ptno="${p.id}" style="width:auto;padding:6px 10px;color:#b45309">Missed</button>`:'—'}</td></tr>`;
+  }).join(''):'<tr><td class="tempty" colspan="9">No treatment plans yet.</td></tr>';
+  const sRows=PHYSIO_SESSIONS.length?PHYSIO_SESSIONS.slice().reverse().slice(0,20).map((s,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(s.patient)}</b></td><td><span class="pill ${s.status==='Attended'?'g':'r'}">${genEsc(s.status)}</span></td><td>${genEsc(s.note||'—')}</td><td>${genEsc(s.date)}</td></tr>`).join(''):'<tr><td class="tempty" colspan="5">No sessions recorded.</td></tr>';
+  host.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kbig"><div class="kt">Active plans</div><b>${PHYSIO_PLANS.filter(p=>p.status!=='Completed').length}</b><div class="ks">in treatment</div></div>
+      <div class="kbig"><div class="kt">Sessions done</div><b>${PHYSIO_SESSIONS.filter(s=>s.status==='Attended').length}</b><div class="ks">attended</div></div>
+      <div class="kbig"><div class="kt">Missed</div><b>${PHYSIO_SESSIONS.filter(s=>s.status==='Missed').length}</b><div class="ks">no-shows</div></div>
+      <div class="kbig"><div class="kt">Completed plans</div><b>${PHYSIO_PLANS.filter(p=>p.status==='Completed').length}</b><div class="ks">discharged</div></div></div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>New treatment plan</h3>
+      <p class="psub">Each attended session bills the patient automatically at the session rate.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Patient</label><input id="ptPat" placeholder="Name"></div>
+        <div class="fld"><label>Condition</label><input id="ptCond" placeholder="e.g. Frozen shoulder"></div>
+        <div class="fld"><label>Total sessions</label><input id="ptTotal" type="number" min="1" value="6"></div>
+        <div class="fld"><label>Therapist</label><input id="ptTher" placeholder="Name"></div>
+        <div class="fld"><label>Rate / session (₹)</label><input id="ptRate" type="number" min="0" placeholder="0"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="ptAdd" style="width:auto;padding:12px 20px">Create plan</button></div></div>
+    <div class="sec-head"><div><h3>Treatment plans</h3><p>${PHYSIO_PLANS.length} plan${PHYSIO_PLANS.length===1?'':'s'}</p></div>
+      <button class="btn ghost" id="ptCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Condition</th><th>Therapist</th><th>Progress</th><th>Adherence</th><th>Rate</th><th>Status</th><th>Mark session</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="sec-head" style="margin-top:16px"><div><h3>Recent sessions</h3><p>${PHYSIO_SESSIONS.length} total</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Status</th><th>Note</th><th>Date</th></tr></thead><tbody>${sRows}</tbody></table></div>`;
+  document.getElementById('ptAdd').onclick=()=>{ const p=document.getElementById('ptPat').value.trim(); if(!p){toast('Enter patient');return;}
+    PHYSIO_PLANS.push({id:'PT'+Date.now().toString(36),patient:p,condition:document.getElementById('ptCond').value.trim(),total:Number(document.getElementById('ptTotal').value)||1,therapist:document.getElementById('ptTher').value.trim(),rate:Number(document.getElementById('ptRate').value)||0,status:'Active',date:new Date().toISOString().slice(0,10),_ts:Date.now()});
+    logAudit('Physiotherapy','Plan created',p); persist(); renderMaster(); toast('Plan created'); };
+  host.querySelectorAll('[data-ptok]').forEach(b=>b.onclick=()=>{ const r=ptMark(b.dataset.ptok,'Attended'); if(!r.ok){toast(r.msg);return;} persist(); renderMaster(); toast('Session recorded'+(r.left?` · ${r.left} left`:' · plan complete')); });
+  host.querySelectorAll('[data-ptno]').forEach(b=>b.onclick=()=>{ const why=(typeof prompt!=='undefined'?prompt('Reason for missing:'):'')||''; const r=ptMark(b.dataset.ptno,'Missed',why); if(!r.ok){toast(r.msg);return;} persist(); renderMaster(); toast('Marked missed'); });
+  const cv=document.getElementById('ptCsv'); if(cv)cv.onclick=()=>exportCSV('physio_plans',['Patient','Condition','Therapist','Done','Total','Adherence','Rate','Status'],PHYSIO_PLANS.map(p=>[p.patient,p.condition,p.therapist,ptDone(p.id),p.total,ptAdherence(p.id)+'%',p.rate,p.status]));
+}
+function renderInsuranceTool(host){
+  const rows=INS_POLICIES.length?INS_POLICIES.slice().reverse().map((p,i)=>{
+    const bal=polBalance(p), pct=p.sum?Math.round((Number(p.used)||0)/p.sum*100):0;
+    return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(p.patient)}</b></td><td>${genEsc(p.insurer)}<br><span style="color:var(--muted);font-size:11px">${genEsc(p.policyNo||'')}</span></td>
+      <td>${money(p.sum)}</td><td>${money(p.used||0)}<div style="height:6px;background:var(--bg);border-radius:99px;overflow:hidden;margin-top:3px"><div style="height:100%;width:${pct}%;background:${pct>=90?'#dc2626':'#1f6feb'}"></div></div></td>
+      <td><b>${money(bal)}</b></td><td>${genEsc(p.tpa||'—')}</td>
+      <td>${polExpired(p)?'<span class="pill r">Expired</span>':`<span class="pill g">Valid</span><br><span style="color:var(--muted);font-size:11px">${genEsc(p.valid||'')}</span>`}</td>
+      <td>${(p.docs||[]).length} doc(s)<br><button class="btn ghost tiny" data-poldoc="${p.id}" style="width:auto;padding:5px 9px;margin-top:3px">Attach</button></td>
+      <td><button class="btn ghost tiny" data-poluse="${p.id}" style="width:auto;padding:6px 10px">Utilise</button></td></tr>`;
+  }).join(''):'<tr><td class="tempty" colspan="10">No policies recorded.</td></tr>';
+  const totalSum=INS_POLICIES.reduce((a,p)=>a+(Number(p.sum)||0),0), totalUsed=INS_POLICIES.reduce((a,p)=>a+(Number(p.used)||0),0);
+  host.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kbig"><div class="kt">Policies</div><b>${INS_POLICIES.length}</b><div class="ks">${INS_POLICIES.filter(p=>polExpired(p)).length} expired</div></div>
+      <div class="kbig"><div class="kt">Total sum insured</div><b>${money(totalSum)}</b><div class="ks">all policies</div></div>
+      <div class="kbig"><div class="kt">Utilised</div><b>${money(totalUsed)}</b><div class="ks">${totalSum?Math.round(totalUsed/totalSum*100):0}% of cover</div></div>
+      <div class="kbig"><div class="kt">Available</div><b>${money(totalSum-totalUsed)}</b><div class="ks">remaining cover</div></div></div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>Add policy</h3>
+      <div class="addgrid">
+        <div class="fld"><label>Patient</label><input id="plPat" placeholder="Name"></div>
+        <div class="fld"><label>Insurer</label><input id="plIns" list="insurerList" placeholder="e.g. Star Health"></div>
+        <div class="fld"><label>Policy number</label><input id="plNo" placeholder="P-100"></div>
+        <div class="fld"><label>Sum insured (₹)</label><input id="plSum" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Valid till</label><input id="plValid" type="date"></div>
+        <div class="fld"><label>TPA</label><input id="plTpa" placeholder="e.g. MediAssist"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="plAdd" style="width:auto;padding:12px 20px">Add policy</button></div></div>
+    <div class="sec-head"><div><h3>Policies</h3><p>Cover utilisation is tracked per policy — over-limit use is blocked</p></div>
+      <button class="btn ghost" id="plCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Insurer</th><th>Sum insured</th><th>Utilised</th><th>Balance</th><th>TPA</th><th>Validity</th><th>Documents</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('plAdd').onclick=()=>{ const p=document.getElementById('plPat').value.trim(); if(!p){toast('Enter patient');return;}
+    INS_POLICIES.push({id:'PL'+Date.now().toString(36),patient:p,insurer:document.getElementById('plIns').value.trim(),policyNo:document.getElementById('plNo').value.trim(),sum:Number(document.getElementById('plSum').value)||0,used:0,valid:document.getElementById('plValid').value,tpa:document.getElementById('plTpa').value.trim(),docs:[],active:true,date:new Date().toISOString().slice(0,10)});
+    logAudit('Insurance','Policy added',p); persist(); renderMaster(); toast('Policy added'); };
+  host.querySelectorAll('[data-poluse]').forEach(b=>b.onclick=()=>{ const amt=(typeof prompt!=='undefined'?prompt('Amount to utilise (₹):'):'')||'';
+    const r=polUse(b.dataset.poluse,amt); if(!r.ok){toast(r.msg);return;} persist(); renderMaster(); toast('Balance now '+money(r.balance)); });
+  host.querySelectorAll('[data-poldoc]').forEach(b=>b.onclick=()=>{ const n=(typeof prompt!=='undefined'?prompt('Document name (e.g. Policy copy.pdf):'):'')||'';
+    if(!n)return; const p=INS_POLICIES.find(x=>x.id===b.dataset.poldoc); if(!p)return; p.docs=p.docs||[]; p.docs.push({name:n,date:new Date().toISOString().slice(0,10)}); persist(); renderMaster(); toast('Document noted'); });
+  const cv=document.getElementById('plCsv'); if(cv)cv.onclick=()=>exportCSV('insurance_policies',['Patient','Insurer','Policy','Sum','Used','Balance','TPA','Valid'],INS_POLICIES.map(p=>[p.patient,p.insurer,p.policyNo,p.sum,p.used||0,polBalance(p),p.tpa,p.valid]));
+}
+function renderMrdTool(host){
+  const over=mrdOverdue(7);
+  const rows=MRD_FILES.length?MRD_FILES.slice().reverse().map((f,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(f.mrn)}</b></td><td>${genEsc(f.patient)}</td><td>${genEsc(f.shelf||'—')}</td><td><span class="pill ${f.status==='In archive'?'g':f.status==='Missing'?'r':'b'}">${genEsc(f.status)}</span></td><td>${genEsc(f.holder||'—')}</td><td>${genEsc(f.issuedOn||'—')}${over.some(o=>o.id===f.id)?' <span class="pill r">overdue</span>':''}</td><td>${f.status==='Issued'?`<button class="btn ghost tiny" data-mrdret="${genAttr(f.mrn)}" style="width:auto;padding:6px 10px">Return</button>`:`<button class="btn ghost tiny" data-mrdiss="${genAttr(f.mrn)}" style="width:auto;padding:6px 10px">Issue</button>`} <button class="btn ghost tiny" data-mrdmiss="${genAttr(f.mrn)}" style="width:auto;padding:6px 10px;color:#b45309">Missing</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="8">No files in the archive yet.</td></tr>';
+  const mRows=MRD_MOVES.length?MRD_MOVES.slice().reverse().slice(0,20).map((m,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(m.mrn)}</b></td><td><span class="pill ${m.action==='Issued'?'b':'g'}">${genEsc(m.action)}</span></td><td>${genEsc(m.to||'—')}</td><td>${genEsc(m.reason||'—')}</td><td>${genEsc(m.date)}</td></tr>`).join(''):'<tr><td class="tempty" colspan="6">No movements yet.</td></tr>';
+  host.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kbig"><div class="kt">Files</div><b>${MRD_FILES.length}</b><div class="ks">in the register</div></div>
+      <div class="kbig"><div class="kt">In archive</div><b>${MRD_FILES.filter(f=>f.status==='In archive').length}</b><div class="ks">available</div></div>
+      <div class="kbig"><div class="kt">Issued out</div><b>${MRD_FILES.filter(f=>f.status==='Issued').length}</b><div class="ks">${over.length} overdue &gt;7d</div></div>
+      <div class="kbig"><div class="kt">Missing</div><b>${MRD_FILES.filter(f=>f.status==='Missing').length}</b><div class="ks">to trace</div></div></div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>Register a file</h3>
+      <p class="psub">Each medical record file is tracked by MRN, with shelf location and issue history.</p>
+      <div class="addgrid">
+        <div class="fld"><label>MRN</label><input id="mfMrn" placeholder="e.g. MRN001"></div>
+        <div class="fld"><label>Patient</label><input id="mfPat" placeholder="Name"></div>
+        <div class="fld"><label>Shelf / rack</label><input id="mfShelf" placeholder="e.g. A-12"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="mfAddBtn" style="width:auto;padding:12px 20px">Add to archive</button></div></div>
+    <div class="sec-head"><div><h3>File register</h3><p>${MRD_FILES.length} file${MRD_FILES.length===1?'':'s'}${over.length?` · ${over.length} overdue`:''}</p></div>
+      <button class="btn ghost" id="mfCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>MRN</th><th>Patient</th><th>Shelf</th><th>Status</th><th>Held by</th><th>Issued on</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="sec-head" style="margin-top:16px"><div><h3>Movement log</h3><p>${MRD_MOVES.length} movement${MRD_MOVES.length===1?'':'s'}</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>MRN</th><th>Action</th><th>Person</th><th>Reason</th><th>Date</th></tr></thead><tbody>${mRows}</tbody></table></div>`;
+  document.getElementById('mfAddBtn').onclick=()=>{ const m=document.getElementById('mfMrn').value.trim(); if(!m){toast('Enter MRN');return;}
+    const r=mrdAdd(m,document.getElementById('mfPat').value.trim(),document.getElementById('mfShelf').value.trim());
+    if(!r.ok){toast(r.msg);return;} persist(); renderMaster(); toast('File registered'); };
+  host.querySelectorAll('[data-mrdiss]').forEach(b=>b.onclick=()=>{ const to=(typeof prompt!=='undefined'?prompt('Issue to (name / department):'):'')||''; if(!to)return;
+    const why=(typeof prompt!=='undefined'?prompt('Reason:'):'')||'';
+    const r=mrdIssue(b.dataset.mrdiss,to,why); if(!r.ok){toast(r.msg);return;} persist(); renderMaster(); toast('File issued'); });
+  host.querySelectorAll('[data-mrdret]').forEach(b=>b.onclick=()=>{ const r=mrdReturn(b.dataset.mrdret); if(!r.ok){toast(r.msg);return;} persist(); renderMaster(); toast('File returned'); });
+  host.querySelectorAll('[data-mrdmiss]').forEach(b=>b.onclick=()=>{ const f=MRD_FILES.find(x=>_norm(x.mrn)===_norm(b.dataset.mrdmiss)); if(!f)return;
+    f.status='Missing'; logAudit('MRD','File reported missing · '+f.mrn,f.patient); persist(); renderMaster(); toast('Marked missing'); });
+  const cv=document.getElementById('mfCsv'); if(cv)cv.onclick=()=>exportCSV('mrd_files',['MRN','Patient','Shelf','Status','Held by','Issued on'],MRD_FILES.map(f=>[f.mrn,f.patient,f.shelf,f.status,f.holder||'',f.issuedOn||'']));
+}
 /* ===================== Department tools: admin features embedded inside modules ===================== */
 let _deptHost=null;
-const DEPT_FEATURES={abha:renderMdAbha,voice:renderMdVoice,charges:renderMdCharges,claims:renderMdClaims,discounts:renderMdDiscounts,consent:renderMdConsent,lis:renderMdLis,dischargeLock:renderMdDischargeLock,nabh:renderMdNabh};
-const DEPT_TOOL_LABELS={abha:'ABHA check-in',voice:'Voice-to-EMR',charges:'Charge capture',claims:'TPA / cashless claim',discounts:'Discount request',consent:'DPDP consent',lis:'LIS results',dischargeLock:'Discharge clearance',nabh:'NABH metrics'};
+const DEPT_FEATURES={abha:renderMdAbha,voice:renderMdVoice,charges:renderMdCharges,claims:renderMdClaims,discounts:renderMdDiscounts,consent:renderMdConsent,lis:renderMdLis,dischargeLock:renderMdDischargeLock,nabh:renderMdNabh,appointments:renderApptTool,vitals:renderVitalsTool,samples:renderSamplesTool,ot:renderOtTool,imaging:renderRadTool,packages:renderPkgTool,physio:renderPhysioTool,policies:renderInsuranceTool,files:renderMrdTool};
+const DEPT_TOOL_LABELS={abha:'ABHA check-in',voice:'Voice-to-EMR',charges:'Charge capture',claims:'TPA / cashless claim',discounts:'Discount request',consent:'DPDP consent',lis:'LIS results',dischargeLock:'Discharge clearance',nabh:'NABH metrics',appointments:'Appointments',vitals:'Vitals & nursing notes',samples:'Sample tracking',ot:'Surgery scheduling',imaging:'Imaging orders',packages:'Packages & payment plans',physio:'Treatment plans',policies:'Insurance policies',files:'File tracking'};
 function deptToolsFor(name){
   const n=(name||'').toLowerCase();
-  if(n.includes('opd')||n.includes('consult')) return ['abha','voice','charges','claims','discounts','consent'];
-  if(n.includes('doctor')) return ['voice','charges','claims','consent'];
-  if(n.includes('ipd')||n.includes('ward')||n.includes('inpatient')) return ['charges','claims','dischargeLock','discounts','consent'];
-  if(n.includes('lab')||n.includes('patho')||n.includes('diagn')) return ['lis','charges','consent'];
-  if(n.includes('radio')||n.includes('imaging')||n.includes('scan')||n.includes('sono')) return ['lis','charges','consent'];
+  if(n.includes('opd')||n.includes('consult')) return ['appointments','abha','voice','charges','claims','discounts','consent'];
+  if(n.includes('doctor')) return ['appointments','voice','vitals','charges','claims','consent'];
+  if(n.includes('ipd')||n.includes('ward')||n.includes('inpatient')) return ['vitals','charges','claims','dischargeLock','discounts','consent'];
+  if(n.includes('lab')||n.includes('patho')||n.includes('diagn')) return ['samples','lis','charges','consent'];
+  if(n.includes('radio')||n.includes('imaging')||n.includes('scan')||n.includes('sono')) return ['imaging','samples','lis','charges','consent'];
+  if(n.includes('operation')||n.includes('theatre')||n.includes('theater')||n.includes('surg')||n===' ot') return ['ot','charges','consent','claims'];
   if(n.includes('pharm')) return ['charges','consent'];
-  if(n.includes('nurs')) return ['charges','voice','dischargeLock'];
-  if(n.includes('mrd')||n.includes('record')) return ['consent','abha','nabh'];
-  if(n.includes('account')||n.includes('billing')||n.includes('finance')||n.includes('revenue')) return ['charges','claims','discounts'];
+  if(n.includes('nurs')) return ['vitals','charges','voice','dischargeLock'];
+  if(n.includes('mrd')||n.includes('record')) return ['files','consent','abha','nabh'];
+  if(n.includes('physio')||n.includes('rehab')||n.includes('therap')) return ['physio','charges','consent'];
+  if(n.includes('insur')||n.includes('tpa')) return ['policies','claims','charges'];
+  if(n.includes('account')||n.includes('billing')||n.includes('finance')||n.includes('revenue')) return ['packages','charges','claims','discounts'];
   if(n.includes('quality')||n.includes('nabh')) return ['nabh','consent'];
   return ['abha','charges','claims','consent','voice'];
 }
@@ -3909,6 +4416,176 @@ function dispenseGuard(med, qty, patient){
   });
   return problems;
 }
+/* ---- suppliers, purchase orders, returns, stock audit, Rx queue, analytics ---- */
+let PH_SUPPLIERS=[], PH_ORDERS=[], PH_RETURNS=[], PH_AUDITS=[], PH_RX=[];
+function supFind(id){ return PH_SUPPLIERS.find(s=>s.id===id)||null; }
+function reorderSuggestions(){
+  return PHARMACY.filter(m=>phLow(m)&&!phExpired(m)).map(m=>{
+    const target=Math.max((Number(m.need)||0)*2,(Number(m.need)||0)+1);
+    const qty=Math.max(1,target-phStock(m));
+    return {medId:m.id,name:m.name,stock:phStock(m),need:Number(m.need)||0,qty,rate:(Number(m.cost)||Number(m.price)||0),est:qty*(Number(m.cost)||Number(m.price)||0)};
+  });
+}
+function poCreate(supplierId,lines){
+  const total=lines.reduce((a,l)=>a+(Number(l.qty)||0)*(Number(l.rate)||0),0);
+  const po={id:'PO'+Date.now().toString(36),supplierId,lines,total,status:'Ordered',date:new Date().toISOString().slice(0,10),_ts:Date.now()};
+  PH_ORDERS.push(po); if(typeof logAudit==='function')logAudit('Pharmacy',`PO created · ${money(total)}`); return po;
+}
+function poReceive(poId){
+  const po=PH_ORDERS.find(p=>p.id===poId); if(!po||po.status==='Received')return {ok:false};
+  po.lines.forEach(l=>{ const m=PHARMACY.find(x=>x.id===l.medId); if(m)m.stock=phStock(m)+(Number(l.qty)||0);
+    PHARMA_MOVES.push({id:'MV'+Date.now().toString(36)+Math.random().toString(36).slice(2,4),type:'in',medId:l.medId,medName:l.name,qty:Number(l.qty)||0,amount:(Number(l.qty)||0)*(Number(l.rate)||0),who:(supFind(po.supplierId)||{}).name||'Supplier',date:new Date().toISOString().slice(0,10),_ts:Date.now()}); });
+  po.status='Received'; po.receivedOn=new Date().toISOString().slice(0,10);
+  if(typeof logAudit==='function')logAudit('Pharmacy',`PO received · ${money(po.total)}`); return {ok:true,po};
+}
+function phReturn(medId,qty,reason,who){
+  const m=PHARMACY.find(x=>x.id===medId); if(!m)return {ok:false,msg:'Medicine not found'};
+  const q=Number(qty)||0; if(q<=0)return {ok:false,msg:'Enter a valid quantity'};
+  m.stock=phStock(m)+q;
+  PH_RETURNS.push({id:'RT'+Date.now().toString(36),medId,name:m.name,qty:q,reason:reason||'',who:who||'',date:new Date().toISOString().slice(0,10),_ts:Date.now()});
+  if(typeof logAudit==='function')logAudit('Pharmacy',`Return · ${q} × ${m.name}`,who); return {ok:true};
+}
+function auditRecord(medId,counted,by){
+  const m=PHARMACY.find(x=>x.id===medId); if(!m)return {ok:false};
+  const sys=phStock(m), diff=(Number(counted)||0)-sys;
+  PH_AUDITS.push({id:'AU'+Date.now().toString(36),medId,name:m.name,system:sys,counted:Number(counted)||0,diff,by:by||'',date:new Date().toISOString().slice(0,10),_ts:Date.now()});
+  m.stock=Number(counted)||0;
+  if(typeof logAudit==='function')logAudit('Pharmacy',`Stock audit · ${m.name} ${diff>0?'+':''}${diff}`,by); return {ok:true,diff};
+}
+function auditVariance(){ return PH_AUDITS.reduce((a,x)=>a+Math.abs(x.diff),0); }
+function rxPush(patient,doctor,items){ PH_RX.push({id:'RX'+Date.now().toString(36),patient,doctor:doctor||'',items:items||[],status:'Pending',date:new Date().toISOString().slice(0,10),_ts:Date.now()}); }
+function rxPending(){ return PH_RX.filter(r=>r.status==='Pending').length; }
+function movers(days){
+  const cutoff=Date.now()-((days||30)*86400000), tally={};
+  PHARMA_MOVES.filter(x=>x.type==='out'&&(x._ts||0)>=cutoff).forEach(x=>{ tally[x.medId]=(tally[x.medId]||0)+(Number(x.qty)||0); });
+  return Object.entries(tally).map(([id,qty])=>{ const m=PHARMACY.find(z=>z.id===id); return {id,name:m?m.name:'—',qty}; }).sort((a,b)=>b.qty-a.qty);
+}
+function marginOf(m){ const cost=Number(m.cost)||0, price=Number(m.price)||0; return price>0?Math.round((price-cost)/price*100):0; }
+
+function renderPharmaSuppliers(){
+  const body=document.getElementById('pharmaBody');
+  const sup=PH_SUPPLIERS.map((s,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(s.name)}</b></td><td>${genEsc(s.contact||'—')}</td><td>${genEsc(s.gst||'—')}</td><td>${genEsc(s.terms||'—')}</td><td>${PH_ORDERS.filter(p=>p.supplierId===s.id).length}</td></tr>`).join('')||'<tr><td class="tempty" colspan="6">No suppliers yet.</td></tr>';
+  const sugg=reorderSuggestions();
+  const sRows=sugg.length?sugg.map((x,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(x.name)}</b></td><td>${x.stock}</td><td>${x.need}</td><td><b>${x.qty}</b></td><td>${money(x.est)}</td><td><input type="checkbox" class="po-pick" data-med="${x.medId}" data-qty="${x.qty}" data-rate="${x.rate}" data-name="${genAttr(x.name)}" checked></td></tr>`).join(''):'<tr><td class="tempty" colspan="7">Nothing needs reordering. 👍</td></tr>';
+  const poRows=PH_ORDERS.length?PH_ORDERS.slice().reverse().map((p,i)=>`<tr><td class="sno">${i+1}</td><td>${genEsc((supFind(p.supplierId)||{}).name||'—')}</td><td>${p.lines.length} item${p.lines.length===1?'':'s'}</td><td>${money(p.total)}</td><td><span class="pill ${p.status==='Received'?'g':'b'}">${genEsc(p.status)}</span></td><td>${genEsc(p.date)}</td><td>${p.status==='Received'?genEsc(p.receivedOn||''):`<button class="btn ghost tiny" data-porecv="${p.id}" style="width:auto;padding:6px 10px">Receive</button>`}</td></tr>`).join(''):'<tr><td class="tempty" colspan="7">No purchase orders yet.</td></tr>';
+  body.innerHTML=`
+    <div class="panel" style="max-width:none;margin-bottom:16px"><h3>Add supplier</h3>
+      <div class="addgrid">
+        <div class="fld"><label>Supplier name</label><input id="spName" placeholder="e.g. MedSupply Co"></div>
+        <div class="fld"><label>Contact</label><input id="spContact" placeholder="Phone / email"></div>
+        <div class="fld"><label>GST no.</label><input id="spGst" placeholder="Optional"></div>
+        <div class="fld"><label>Payment terms</label><input id="spTerms" placeholder="e.g. 30 days"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="spAdd" style="width:auto;padding:12px 20px">Add supplier</button></div></div>
+    <div class="sec-head"><div><h3>Suppliers</h3><p>${PH_SUPPLIERS.length} supplier${PH_SUPPLIERS.length===1?'':'s'}</p></div>
+      <button class="btn ghost" id="spCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Supplier</th><th>Contact</th><th>GST</th><th>Terms</th><th>Orders</th></tr></thead><tbody>${sup}</tbody></table></div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>Auto-reorder suggestions</h3>
+      <p class="psub">Medicines at or below their reorder level. Tick the ones to order, choose a supplier, and raise a purchase order.</p>
+      <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Medicine</th><th>In stock</th><th>Reorder level</th><th>Suggested qty</th><th>Est. cost</th><th>Order?</th></tr></thead><tbody>${sRows}</tbody></table></div>
+      <div class="addgrid" style="margin-top:12px"><div class="fld"><label>Supplier</label><select id="poSup">${PH_SUPPLIERS.map(s=>`<option value="${s.id}">${genEsc(s.name)}</option>`).join('')||'<option value="">— add a supplier first —</option>'}</select></div></div>
+      <div class="form-actions"><button class="btn" id="poCreate" style="width:auto;padding:12px 20px">Raise purchase order</button></div></div>
+    <div class="sec-head"><div><h3>Purchase orders</h3><p>${PH_ORDERS.filter(p=>p.status!=='Received').length} pending · ${PH_ORDERS.length} total</p></div>
+      <button class="btn ghost" id="poCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Supplier</th><th>Items</th><th>Total</th><th>Status</th><th>Ordered</th><th>Action</th></tr></thead><tbody>${poRows}</tbody></table></div>`;
+  document.getElementById('spAdd').onclick=()=>{ const n=document.getElementById('spName').value.trim(); if(!n){toast('Enter supplier name');return;}
+    PH_SUPPLIERS.push({id:'SP'+Date.now().toString(36),name:n,contact:document.getElementById('spContact').value.trim(),gst:document.getElementById('spGst').value.trim(),terms:document.getElementById('spTerms').value.trim(),active:true});
+    logAudit('Pharmacy','Supplier added · '+n); persist(); renderPharma(); toast('Supplier added'); };
+  document.getElementById('poCreate').onclick=()=>{
+    const supId=document.getElementById('poSup').value; if(!supId){toast('Add a supplier first');return;}
+    const lines=[...body.querySelectorAll('.po-pick:checked')].map(c=>({medId:c.dataset.med,name:c.dataset.name,qty:Number(c.dataset.qty)||0,rate:Number(c.dataset.rate)||0}));
+    if(!lines.length){toast('Tick at least one medicine');return;}
+    poCreate(supId,lines); persist(); renderPharma(); toast('Purchase order raised'); };
+  body.querySelectorAll('[data-porecv]').forEach(b=>b.onclick=()=>{ const r=poReceive(b.dataset.porecv); if(r.ok){persist(); renderPharma(); toast('Stock received & inventory updated');} });
+  const c1=document.getElementById('spCsv'); if(c1)c1.onclick=()=>exportCSV('suppliers',['Supplier','Contact','GST','Terms'],PH_SUPPLIERS.map(s=>[s.name,s.contact,s.gst,s.terms]));
+  const c2=document.getElementById('poCsv'); if(c2)c2.onclick=()=>exportCSV('purchase_orders',['Supplier','Items','Total','Status','Date'],PH_ORDERS.map(p=>[(supFind(p.supplierId)||{}).name||'',p.lines.length,p.total,p.status,p.date]));
+}
+function renderPharmaReturns(){
+  const body=document.getElementById('pharmaBody');
+  const rows=PH_RETURNS.length?PH_RETURNS.slice().reverse().map((r,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(r.name)}</b></td><td>${r.qty}</td><td>${genEsc(r.reason||'—')}</td><td>${genEsc(r.who||'—')}</td><td>${genEsc(r.date)}</td></tr>`).join(''):'<tr><td class="tempty" colspan="6">No returns recorded.</td></tr>';
+  body.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>Record a return</h3>
+      <p class="psub">Returned medicine goes back into stock and is logged for audit.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Medicine</label><select id="rtMed">${PHARMACY.map(m=>`<option value="${m.id}">${genEsc(m.name)}</option>`).join('')||'<option value="">— no medicines —</option>'}</select></div>
+        <div class="fld"><label>Quantity</label><input id="rtQty" type="number" min="1" placeholder="1"></div>
+        <div class="fld"><label>Reason</label><select id="rtReason"><option>Patient returned</option><option>Damaged</option><option>Wrong item</option><option>Near expiry</option><option>Other</option></select></div>
+        <div class="fld"><label>Returned by</label><input id="rtWho" placeholder="Patient / ward"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="rtSave" style="width:auto;padding:12px 20px">Record return</button></div></div>
+    <div class="sec-head"><div><h3>Returns</h3><p>${PH_RETURNS.length} return${PH_RETURNS.length===1?'':'s'} · ${PH_RETURNS.reduce((a,r)=>a+(Number(r.qty)||0),0)} units back in stock</p></div>
+      <button class="btn ghost" id="rtCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Medicine</th><th>Qty</th><th>Reason</th><th>By</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('rtSave').onclick=()=>{ const r=phReturn(document.getElementById('rtMed').value,document.getElementById('rtQty').value,document.getElementById('rtReason').value,document.getElementById('rtWho').value.trim());
+    if(!r.ok){toast(r.msg||'Could not record');return;} persist(); renderPharma(); toast('Return recorded'); };
+  const cv=document.getElementById('rtCsv'); if(cv)cv.onclick=()=>exportCSV('returns',['Medicine','Qty','Reason','By','Date'],PH_RETURNS.map(r=>[r.name,r.qty,r.reason,r.who,r.date]));
+}
+function renderPharmaAudit(){
+  const body=document.getElementById('pharmaBody');
+  const rows=PH_AUDITS.length?PH_AUDITS.slice().reverse().map((a,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(a.name)}</b></td><td>${a.system}</td><td>${a.counted}</td><td style="color:${a.diff===0?'inherit':(a.diff<0?'#b91c1c':'#15803d')};font-weight:700">${a.diff>0?'+':''}${a.diff}</td><td>${genEsc(a.by||'—')}</td><td>${genEsc(a.date)}</td></tr>`).join(''):'<tr><td class="tempty" colspan="7">No stock audits yet.</td></tr>';
+  const short=PH_AUDITS.filter(a=>a.diff<0).length, over=PH_AUDITS.filter(a=>a.diff>0).length;
+  body.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="kbig"><div class="kt">Total variance</div><b>${auditVariance()}</b><div class="ks">units across all counts</div></div>
+      <div class="kbig"><div class="kt">Short</div><b>${short}</b><div class="ks">counts below system</div></div>
+      <div class="kbig"><div class="kt">Excess</div><b>${over}</b><div class="ks">counts above system</div></div></div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>Physical stock count</h3>
+      <p class="psub">Enter the counted quantity — the system records the variance and reconciles stock.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Medicine</label><select id="auMed">${PHARMACY.map(m=>`<option value="${m.id}">${genEsc(m.name)} (system ${phStock(m)})</option>`).join('')||'<option value="">— no medicines —</option>'}</select></div>
+        <div class="fld"><label>Counted quantity</label><input id="auQty" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Counted by</label><input id="auBy" placeholder="Staff name"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="auSave" style="width:auto;padding:12px 20px">Record count</button></div></div>
+    <div class="sec-head"><div><h3>Audit log</h3><p>${PH_AUDITS.length} count${PH_AUDITS.length===1?'':'s'}</p></div>
+      <button class="btn ghost" id="auCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Medicine</th><th>System</th><th>Counted</th><th>Variance</th><th>By</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('auSave').onclick=()=>{ const v=document.getElementById('auQty').value; if(v===''){toast('Enter counted quantity');return;}
+    const r=auditRecord(document.getElementById('auMed').value,v,document.getElementById('auBy').value.trim());
+    if(!r.ok){toast('Select a medicine');return;} persist(); renderPharma(); toast(`Variance ${r.diff>0?'+':''}${r.diff} recorded`); };
+  const cv=document.getElementById('auCsv'); if(cv)cv.onclick=()=>exportCSV('stock_audit',['Medicine','System','Counted','Variance','By','Date'],PH_AUDITS.map(a=>[a.name,a.system,a.counted,a.diff,a.by,a.date]));
+}
+function renderPharmaRx(){
+  const body=document.getElementById('pharmaBody');
+  const rows=PH_RX.length?PH_RX.slice().reverse().map((r,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(r.patient)}</b></td><td>${genEsc(r.doctor||'—')}</td><td>${(r.items||[]).map(x=>genEsc(x.name)+(x.qty?' ×'+x.qty:'')).join(', ')||'—'}</td><td><span class="pill ${r.status==='Dispensed'?'g':'b'}">${genEsc(r.status)}</span></td><td>${genEsc(r.date)}</td><td>${r.status==='Pending'?`<button class="btn ghost tiny" data-rxd="${r.id}" style="width:auto;padding:6px 10px">Mark dispensed</button>`:'—'}</td></tr>`).join(''):'<tr><td class="tempty" colspan="7">No prescriptions in the queue. Add one below or send from OPD.</td></tr>';
+  body.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="kbig"><div class="kt">Pending</div><b>${rxPending()}</b><div class="ks">to dispense</div></div>
+      <div class="kbig"><div class="kt">Dispensed</div><b>${PH_RX.filter(r=>r.status==='Dispensed').length}</b><div class="ks">completed</div></div>
+      <div class="kbig"><div class="kt">Total</div><b>${PH_RX.length}</b><div class="ks">prescriptions</div></div></div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>Add prescription to queue</h3>
+      <p class="psub">Pharmacy work queue — prescriptions waiting to be dispensed.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Patient</label><input id="rxPat" placeholder="Name"></div>
+        <div class="fld"><label>Doctor</label><input id="rxDoc" list="docNameList" placeholder="Prescribing doctor"></div>
+        <div class="fld"><label>Medicine</label><input id="rxItem" list="saltDL" placeholder="Medicine name"></div>
+        <div class="fld"><label>Quantity</label><input id="rxQty" type="number" min="1" placeholder="1"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="rxAdd" style="width:auto;padding:12px 20px">Add to queue</button></div></div>
+    <div class="sec-head"><div><h3>Prescription queue</h3><p>${PH_RX.length} prescription${PH_RX.length===1?'':'s'}</p></div>
+      <button class="btn ghost" id="rxCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Doctor</th><th>Items</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('rxAdd').onclick=()=>{ const p=document.getElementById('rxPat').value.trim(); if(!p){toast('Enter patient');return;}
+    rxPush(p,document.getElementById('rxDoc').value.trim(),[{name:document.getElementById('rxItem').value.trim()||'Medicine',qty:Number(document.getElementById('rxQty').value)||1}]);
+    persist(); renderPharma(); toast('Added to queue'); };
+  body.querySelectorAll('[data-rxd]').forEach(b=>b.onclick=()=>{ const r=PH_RX.find(x=>x.id===b.dataset.rxd); if(r){r.status='Dispensed'; logAudit('Pharmacy','Rx dispensed',r.patient); persist(); renderPharma();} });
+  const cv=document.getElementById('rxCsv'); if(cv)cv.onclick=()=>exportCSV('prescriptions',['Patient','Doctor','Items','Status','Date'],PH_RX.map(r=>[r.patient,r.doctor,(r.items||[]).map(x=>x.name+'×'+x.qty).join('; '),r.status,r.date]));
+}
+function renderPharmaAnalytics(){
+  const body=document.getElementById('pharmaBody');
+  const fast=movers(30);
+  const slow=PHARMACY.filter(m=>!fast.some(f=>f.id===m.id)&&phStock(m)>0);
+  const totalCost=PHARMACY.reduce((a,m)=>a+phStock(m)*(Number(m.cost)||0),0);
+  const totalSell=PHARMACY.reduce((a,m)=>a+phStock(m)*(Number(m.price)||0),0);
+  const fRows=fast.length?fast.slice(0,15).map((f,i)=>{const m=PHARMACY.find(z=>z.id===f.id)||{};return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(f.name)}</b></td><td>${f.qty}</td><td>${phStock(m)||0}</td><td>${marginOf(m)}%</td></tr>`;}).join(''):'<tr><td class="tempty" colspan="5">No dispensing in the last 30 days.</td></tr>';
+  const sRows=slow.length?slow.slice(0,15).map((m,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(m.name)}</b></td><td>${phStock(m)}</td><td>${money(phStock(m)*(Number(m.price)||0))}</td><td>${genEsc(m.expiry||'—')}</td></tr>`).join(''):'<tr><td class="tempty" colspan="5">Everything is moving. 👍</td></tr>';
+  body.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kbig"><div class="kt">Stock at cost</div><b>${money(totalCost)}</b><div class="ks">purchase value</div></div>
+      <div class="kbig"><div class="kt">Stock at MRP</div><b>${money(totalSell)}</b><div class="ks">selling value</div></div>
+      <div class="kbig"><div class="kt">Potential margin</div><b>${money(totalSell-totalCost)}</b><div class="ks">${totalSell?Math.round((totalSell-totalCost)/totalSell*100):0}% overall</div></div>
+      <div class="kbig"><div class="kt">Pending POs</div><b>${PH_ORDERS.filter(p=>p.status!=='Received').length}</b><div class="ks">${rxPending()} Rx waiting</div></div></div>
+    <div class="sec-head" style="margin-top:16px"><div><h3>Fast movers (30 days)</h3><p>Most dispensed — keep these stocked</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Medicine</th><th>Dispensed</th><th>In stock</th><th>Margin</th></tr></thead><tbody>${fRows}</tbody></table></div>
+    <div class="sec-head" style="margin-top:16px"><div><h3>Slow / non-moving stock</h3><p>No dispensing in 30 days — capital tied up</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Medicine</th><th>In stock</th><th>Value</th><th>Expiry</th></tr></thead><tbody>${sRows}</tbody></table></div>`;
+}
 function renderPharmaInteractions(){
   const body=document.getElementById('pharmaBody');
   const rows=PH_INTERACTIONS.length?PH_INTERACTIONS.map((x,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(x.a)}</b></td><td><b>${genEsc(x.b)}</b></td><td>${x.severity==='Severe'?'<span class="pill r">Severe</span>':x.severity==='Mild'?'<span class="pill g">Mild</span>':'<span class="pill a">Moderate</span>'}</td><td>${genEsc(x.note||'—')}</td><td>${x.active===false?'<span class="pill r">Off</span>':'<span class="pill g">On</span>'}</td><td><button class="btn ghost tiny" data-ixtog="${x.id}" style="width:auto;padding:6px 10px">${x.active===false?'Enable':'Disable'}</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="7">No interaction rules.</td></tr>';
@@ -4087,6 +4764,11 @@ function renderPharma(){
   else if(pharmaTab==='allergies') renderPharmaAllergies();
   else if(pharmaTab==='expiry') renderPharmaExpiry();
   else if(pharmaTab==='interactions') renderPharmaInteractions();
+  else if(pharmaTab==='rx') renderPharmaRx();
+  else if(pharmaTab==='suppliers') renderPharmaSuppliers();
+  else if(pharmaTab==='returns') renderPharmaReturns();
+  else if(pharmaTab==='audit') renderPharmaAudit();
+  else if(pharmaTab==='analytics') renderPharmaAnalytics();
   else renderPharmaMoves();
 }
 function renderPharmaStock(){
@@ -4118,6 +4800,7 @@ function renderPharmaStock(){
         <div class="fld"><label>Box</label><input id="phBox" placeholder="e.g. 12"></div>
         <div class="fld"><label>Opening stock</label><input id="phStockIn" type="number" min="0" placeholder="0"></div>
         <div class="fld"><label>Reorder level</label><input id="phNeed" type="number" min="0" placeholder="10"></div>
+        <div class="fld"><label>Cost price / unit (₹)</label><input id="phCost" type="number" min="0" placeholder="0"></div>
         <div class="fld"><label>Selling price / unit (₹)</label><input id="phPrice" type="number" min="0" placeholder="0"></div>
         <div class="fld"><label>Expiry date</label><input id="phExpiry" type="date"></div>
       </div>
@@ -4143,6 +4826,7 @@ function addMedicine(){
     box:document.getElementById('phBox').value.trim(),
     stock:Number(document.getElementById('phStockIn').value)||0,
     need:Number(document.getElementById('phNeed').value)||0,
+    cost:(document.getElementById('phCost')?Number(document.getElementById('phCost').value)||0:0),
     price:Number(document.getElementById('phPrice').value)||0,
     expiry:document.getElementById('phExpiry').value||'',
     _ts:Date.now() };
@@ -4274,7 +4958,7 @@ function buildStateObject(){
   const rows={};
   Object.keys(MODULE_DEFS).forEach(n=>{rows[n]=MODULE_DEFS[n].sections.map(s=>s.rows);});
   return {_v:_stateV,rows,QUEUE,TOKEN,BEDS,WARDS,LEDGER,VACANCIES,MODCREDS,ADMIN_CRED,PHARMACY,PHARMA_MOVES,SHIFTS,SANITIZE,OPD_BILLS,MD_DOCTORS,MD_STAFF,MD_ROLES,MD_INVEST,MD_HOSPITAL,MD_LISTS,AUDIT,MD_COMPLIANCE,MD_INTEGRATIONS,
-    ABHA_REG,NABH_METRICS,CONSENTS,CHARGES,CLAIMS,DISCOUNTS,LIS_RESULTS,EMR_NOTES,DISCHARGE_LOCK,DISCHARGE_CLEARED,VARIANCE_ALERTS,PH_ALLERGIES,PH_INGREDIENTS,PH_COMPOUNDS,PH_INTERACTIONS,DEPARTMENTS,
+    ABHA_REG,NABH_METRICS,CONSENTS,CHARGES,CLAIMS,DISCOUNTS,LIS_RESULTS,EMR_NOTES,DISCHARGE_LOCK,DISCHARGE_CLEARED,VARIANCE_ALERTS,PH_ALLERGIES,PH_INGREDIENTS,PH_COMPOUNDS,PH_INTERACTIONS,DEPARTMENTS,PH_SUPPLIERS,PH_ORDERS,PH_RETURNS,PH_AUDITS,PH_RX,MODULE_CFG,APPOINTMENTS,VITALS,NURSE_NOTES,LAB_SAMPLES,OT_BOOKINGS,RAD_ORDERS,RAD_TEMPLATES,PKG_PLANS,PKG_BILLS,PHYSIO_PLANS,PHYSIO_SESSIONS,INS_POLICIES,MRD_FILES,MRD_MOVES,
     MODULES:MODULES.map(m=>({name:m.name,desc:m.desc,icon:m.icon,color:m.color,count:m.count}))};
 }
 function persist(){
@@ -4325,6 +5009,26 @@ function applyState(d){
     if(Array.isArray(d.PH_COMPOUNDS))PH_COMPOUNDS=d.PH_COMPOUNDS;
     if(Array.isArray(d.PH_INTERACTIONS))PH_INTERACTIONS=d.PH_INTERACTIONS;
     if(Array.isArray(d.DEPARTMENTS))DEPARTMENTS=d.DEPARTMENTS;
+    if(Array.isArray(d.PH_SUPPLIERS))PH_SUPPLIERS=d.PH_SUPPLIERS;
+    if(Array.isArray(d.PH_ORDERS))PH_ORDERS=d.PH_ORDERS;
+    if(Array.isArray(d.PH_RETURNS))PH_RETURNS=d.PH_RETURNS;
+    if(Array.isArray(d.PH_AUDITS))PH_AUDITS=d.PH_AUDITS;
+    if(Array.isArray(d.PH_RX))PH_RX=d.PH_RX;
+    if(d.MODULE_CFG&&typeof d.MODULE_CFG==='object')MODULE_CFG=d.MODULE_CFG;
+    if(Array.isArray(d.APPOINTMENTS))APPOINTMENTS=d.APPOINTMENTS;
+    if(Array.isArray(d.VITALS))VITALS=d.VITALS;
+    if(Array.isArray(d.NURSE_NOTES))NURSE_NOTES=d.NURSE_NOTES;
+    if(Array.isArray(d.LAB_SAMPLES))LAB_SAMPLES=d.LAB_SAMPLES;
+    if(Array.isArray(d.OT_BOOKINGS))OT_BOOKINGS=d.OT_BOOKINGS;
+    if(Array.isArray(d.RAD_ORDERS))RAD_ORDERS=d.RAD_ORDERS;
+    if(Array.isArray(d.RAD_TEMPLATES))RAD_TEMPLATES=d.RAD_TEMPLATES;
+    if(Array.isArray(d.PKG_PLANS))PKG_PLANS=d.PKG_PLANS;
+    if(Array.isArray(d.PKG_BILLS))PKG_BILLS=d.PKG_BILLS;
+    if(Array.isArray(d.PHYSIO_PLANS))PHYSIO_PLANS=d.PHYSIO_PLANS;
+    if(Array.isArray(d.PHYSIO_SESSIONS))PHYSIO_SESSIONS=d.PHYSIO_SESSIONS;
+    if(Array.isArray(d.INS_POLICIES))INS_POLICIES=d.INS_POLICIES;
+    if(Array.isArray(d.MRD_FILES))MRD_FILES=d.MRD_FILES;
+    if(Array.isArray(d.MRD_MOVES))MRD_MOVES=d.MRD_MOVES;
     ensureSeedMasters();
     if(d.MODCREDS)Object.keys(d.MODCREDS).forEach(k=>MODCREDS[k]=d.MODCREDS[k]);
     if(d.ADMIN_CRED){ADMIN_CRED.user=d.ADMIN_CRED.user;ADMIN_CRED.pass=d.ADMIN_CRED.pass;}
