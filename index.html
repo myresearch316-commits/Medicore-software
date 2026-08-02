@@ -1607,7 +1607,7 @@ document.getElementById('loginForm').addEventListener('submit',async e=>{
     if(!SERVER.online && typeof repoProbe==='function'){ try{ await repoProbe(); }catch(x){} }
     if(SERVER.online){
       err.textContent='Signing in…';
-      const r=await repoLogin(uid.includes('@')?uid.split('@')[0]:uid,pwd);
+      const r=await repoLogin(uid.trim(),pwd);   // send the whole email — the server matches on it
       if(!r.ok){ err.textContent=r.msg||'Wrong username or password.'; return; }
       err.textContent='';
       userName=r.user.name||r.user.username;
