@@ -4,6 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MediCore HMS — Hospital Management System</title>
+<!-- Installable app (PWA) -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1f6feb">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MediCore">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" href="icon.svg">
+<script>
+(function(){
+  if('serviceWorker' in navigator){ window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
+  var dp=null;
+  window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); dp=e; var b=document.getElementById('installAppBtn'); if(!b){ b=document.createElement('button'); b.id='installAppBtn'; b.textContent='⬇ Install app'; b.style.cssText='position:fixed;right:16px;bottom:16px;z-index:9998;padding:10px 16px;border-radius:10px;border:0;background:#1f6feb;color:#fff;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.25);font-family:inherit'; b.onclick=function(){ if(dp){ dp.prompt(); dp.userChoice.finally(function(){ dp=null; b.remove(); }); } }; document.body.appendChild(b); } });
+  window.addEventListener('appinstalled',function(){ var b=document.getElementById('installAppBtn'); if(b)b.remove(); });
+  window.installApp=function(){ if(dp){ dp.prompt(); dp.userChoice.finally(function(){ dp=null; var b=document.getElementById('installAppBtn'); if(b)b.remove(); }); } else if(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches){ alert('MediCore is already installed — you are running the app.'); } else { alert('To install MediCore: open your browser menu and choose “Install app” or “Add to Home Screen”.'); } };
+})();
+</script>
 <style>
   :root{
     --bg:#f4f7fb; --panel:#ffffff; --ink:#0f2033; --muted:#5b6b7f;
@@ -218,7 +235,7 @@
   }
   .module:hover{transform:translateY(-4px); box-shadow:var(--shadow); border-color:transparent}
   .m-ico{
-    width:52px;height:52px;border-radius:14px; display:grid; place-items:center; margin-bottom:16px;
+    width:52px;height:52px;border-radius:50%; display:grid; place-items:center; margin-bottom:16px;
     background:var(--mcbg,#eaf1ff); color:var(--mc,#1f6feb);
   }
   .m-ico svg{width:26px;height:26px}
@@ -240,6 +257,20 @@
   .add-plus svg{width:28px;height:28px}
   .module.add h3{font-size:15px;color:inherit}
   .module.add p{font-size:12px}
+
+  /* ---- circular department module tiles ---- */
+  .grid{display:flex;flex-wrap:wrap;gap:20px;justify-content:center}
+  .module{width:204px;height:204px;min-height:204px;border-radius:50%;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:3px}
+  .module::before{display:none}
+  .module .m-ico{width:44px;height:44px;margin:0 0 3px}
+  .module h3{font-size:14.5px;margin:0}
+  .module p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:10.8px;line-height:1.35;color:var(--muted);max-width:136px;margin:0}
+  .module .m-foot{margin-top:5px;justify-content:center;width:auto}
+  .module .m-arrow{display:none}
+  .module .m-count{font-size:10.5px;padding:2px 9px}
+  .module.add{width:204px;height:204px;min-height:204px;border-radius:50%;padding:16px;gap:2px}
+  .module.add p{display:none}
+  .module.add .add-plus{width:44px;height:44px;margin-bottom:6px}
 
   /* modal */
   .overlay{position:fixed; inset:0; background:rgba(15,33,51,.45); backdrop-filter:blur(3px); display:grid; place-items:center; z-index:60; padding:20px}
@@ -272,7 +303,7 @@
   .mod-back:hover{border-color:var(--brand);color:var(--brand)}
   .mod-back svg{width:15px;height:15px}
   .mod-title{display:flex;align-items:center;gap:12px}
-  .mod-title .m-ico{width:42px;height:42px;border-radius:12px;margin:0;background:#eaf1ff;color:var(--brand)}
+  .mod-title .m-ico{width:42px;height:42px;border-radius:50%;margin:0;background:#eaf1ff;color:var(--brand)}
   .mod-title .m-ico svg{width:22px;height:22px}
   .mod-title h2{margin:0;font-size:17px;font-weight:800;letter-spacing:-.2px}
   .mod-title .crumb{font-size:12px;color:var(--muted);font-weight:600}
@@ -652,6 +683,7 @@
           <div class="tm-head">Settings</div>
           <button class="tm-item" id="setAdmin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/></svg>Admin Portal</button>
           <button class="tm-item" id="setSync"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>Sync data now</button>
+          <button class="tm-item" id="setInstall"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>Install app</button>
           <div class="tm-sep"></div>
           <button class="tm-item danger" id="setSignout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sign out</button>
         </div>
@@ -753,7 +785,7 @@
               <div class="fld"><label>Consulting doctor</label>
                 <select id="rDoc"><option>Dr. A. Sharma</option><option>Dr. P. Mehta</option><option>Dr. S. Iyer</option><option>Dr. R. Nair</option></select></div>
               <div class="fld"><label>Patient type</label><select id="rType"><option>Normal</option><option>Insurance</option></select></div>
-              <div class="fld" id="rInsurerWrap" style="display:none"><label>Insurer</label><input id="rInsurer" placeholder="e.g. Star Health"></div>
+              <div class="fld" id="rInsurerWrap" style="display:none"><label>Insurer</label><input id="rInsurer" list="insurerList" placeholder="e.g. Star Health"><datalist id="insurerList"></datalist></div>
               <div class="fld" id="rPolicyWrap" style="display:none"><label>Policy no.</label><input id="rPolicy" placeholder="Policy number"></div>
               <div class="fld full"><label>Chief complaint</label><textarea id="rComplaint" placeholder="Reason for visit / symptoms…"></textarea></div>
             </div>
@@ -808,6 +840,10 @@
 
       <!-- BILLING TAB -->
       <div id="tabBills" class="hidden"><div id="opdBillsBody"></div></div>
+
+      <!-- DEPARTMENT TOOLS (admin features embedded) -->
+      <div class="panel" style="max-width:none;margin-top:14px"><div style="font-weight:800;font-size:14px;margin-bottom:8px">Department tools</div><div id="opdToolBar" style="display:flex;flex-wrap:wrap;gap:8px"></div></div>
+      <div id="opdToolHost"></div>
     </div>
   </div>
 </section>
@@ -891,6 +927,10 @@
       </div>
       <div class="adm-list" id="admList"></div>
     </div>
+
+    <!-- DEPARTMENT TOOLS (admin features embedded) -->
+    <div class="panel" style="max-width:none;margin-top:14px"><div style="font-weight:800;font-size:14px;margin-bottom:8px">Department tools</div><div id="ipdToolBar" style="display:flex;flex-wrap:wrap;gap:8px"></div></div>
+    <div id="ipdToolHost"></div>
   </div>
 </section>
 
@@ -909,7 +949,10 @@
   </div>
   <div class="gen-main">
     <div class="seg" id="genSeg"></div>
+    <div id="genToolBar" style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px"></div>
     <div id="genBody"></div>
+    <div id="genToolHost"></div>
+    <datalist id="gfInvestList"></datalist>
   </div>
 </section>
 
@@ -994,6 +1037,10 @@
     <div class="seg" id="pharmaSeg">
       <button data-ptab="stock" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 4v16"/></svg>Stock &amp; inventory</button>
       <button data-ptab="moves"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10l5-5 5 5M12 5v14"/></svg>Stock in / out</button>
+      <button data-ptab="ingredients"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v6l-6 10a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3l-6-10V2"/><path d="M8 2h8"/></svg>Ingredients</button>
+      <button data-ptab="allergies"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>Allergies</button>
+      <button data-ptab="expiry"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Expiry</button>
+      <button data-ptab="interactions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v4M16 17v4M3 8h4M17 16h4"/><circle cx="9" cy="15" r="4"/><circle cx="15" cy="9" r="4"/></svg>Interactions</button>
     </div>
     <div id="pharmaBody"></div>
   </div>
@@ -1023,6 +1070,7 @@
       <button data-tab="mods"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>All modules</button>
       <button data-tab="cred"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Credentials</button>
       <button data-tab="feedback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Feedback (QR)</button>
+      <button data-tab="master"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Master Data</button>
       <button data-tab="danger" style="color:#dc2626"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>Danger zone</button>
     </div>
 
@@ -1201,6 +1249,51 @@
       </div>
     </div>
 
+    <!-- MASTER DATA -->
+    <div id="adTabMaster" class="hidden">
+      <div class="seg" id="mdSeg" style="flex-wrap:wrap">
+        <button data-md="doctors" class="active">Doctors</button>
+        <button data-md="staff">Staff</button>
+        <button data-md="roles">Roles &amp; access</button>
+        <button data-md="invest">Investigations</button>
+        <button data-md="departments">Departments</button>
+        <button data-md="diagnostics">Diagnostics</button>
+        <button data-md="qualifications">Qualifications</button>
+        <button data-md="referrals">Referred doctors</button>
+        <button data-md="pathologists">Pathologists</button>
+        <button data-md="radiologists">Radiologists</button>
+        <button data-md="sonologists">Sonologists</button>
+        <button data-md="cardiologists">Cardiologists</button>
+        <button data-md="expenseHeads">Expense heads</button>
+        <button data-md="incomeHeads">Income heads</button>
+        <button data-md="outsourceLabs">Outsource labs</button>
+        <button data-md="insurance">Insurance</button>
+        <button data-md="tpa">TPA</button>
+        <button data-md="ratelists">Rate lists</button>
+        <button data-md="dischargeTypes">Discharge types</button>
+        <button data-md="roomCategories">Room categories</button>
+        <button data-md="certificates">Certificates</button>
+        <button data-md="icd10">ICD-10 codes</button>
+        <button data-md="tariffs">Schedule IV tariffs</button>
+        <button data-md="compliance">Compliance &amp; audit</button>
+        <button data-md="integrations">ERP / SAP</button>
+        <button data-md="abha">ABHA check-in</button>
+        <button data-md="nabh">NABH audit engine</button>
+        <button data-md="dischargeLock">Discharge lock</button>
+        <button data-md="consent">DPDP consent</button>
+        <button data-md="charges">Charge capture</button>
+        <button data-md="claims">TPA / cashless claims</button>
+        <button data-md="discounts">Discount approvals</button>
+        <button data-md="voice">Voice-to-EMR</button>
+        <button data-md="lis">LIS results</button>
+        <button data-md="stdRates">Standard rates</button>
+        <button data-md="billingAlerts">Billing alerts</button>
+        <button data-md="hospital">Hospital settings</button>
+      </div>
+      <div id="mdBody"></div>
+      <datalist id="docNameList"></datalist>
+    </div>
+
     <!-- DANGER ZONE -->
     <div id="adTabDanger" class="hidden">
       <div class="danger">
@@ -1255,7 +1348,7 @@
     </div>
     <div class="modal-body">
       <p class="auth-sub">Create a ward and generate its beds on the board.</p>
-      <div class="fld" style="margin-bottom:14px"><label>Ward name *</label><input id="wName" placeholder="e.g. Surgical Ward"></div>
+      <div class="fld" style="margin-bottom:14px"><label>Ward name *</label><input id="wName" list="wardCatList" placeholder="e.g. Surgical Ward"><datalist id="wardCatList"></datalist></div>
       <div class="form-grid">
         <div class="fld"><label>Short code</label><input id="wCode" placeholder="e.g. SUR" maxlength="4"></div>
         <div class="fld"><label>Number of beds</label><input id="wBeds" type="number" min="1" max="40" value="6"></div>
@@ -1508,6 +1601,7 @@ function syncNow(){
   const act=(id,fn)=>{const el=document.getElementById(id); if(el)el.onclick=()=>{closeAll();fn();};};
   act('setAdmin',()=>{ if(typeof requestAdminAccess==='function')requestAdminAccess(); });
   act('setSync',()=>syncNow());
+  act('setInstall',()=>{ if(typeof installApp==='function')installApp(); });
   act('setSignout',()=>{ document.getElementById('app').classList.add('hidden'); document.getElementById('rolePage').classList.remove('hidden'); });
   act('notifClear',()=>{ if(nBtn){const b=nBtn.querySelector('.badge'); if(b)b.remove();} toast('Notifications cleared'); });
 })();
@@ -1653,10 +1747,44 @@ function openOPD(){
   document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('opdPage').classList.remove('hidden');
   activeTok = QUEUE.find(p=>p.status==='serving')?.tok || null;
+  populateOpdMasters();
   renderQueue(); showConsult();
+  renderDeptTools('OPD','opdToolBar','opdToolHost');
   window.scrollTo(0,0);
 }
 document.getElementById('opdBack').onclick=()=>backFromModule();
+/* pull Master-Data (admin) into OPD registration dropdowns */
+function mdActive(key){ return ((typeof MD_LISTS!=='undefined'&&MD_LISTS[key])?MD_LISTS[key]:[]).filter(x=>x.active!==false); }
+function populateOpdMasters(){
+  const deps=(typeof DEPARTMENTS!=='undefined'&&DEPARTMENTS.length)
+    ? DEPARTMENTS.filter(d=>d.active!==false)
+    : mdActive('departments');
+  const dSel=document.getElementById('rDept');
+  if(deps.length && dSel){ const cur=dSel.value; dSel.innerHTML=deps.map(d=>`<option>${genEsc(d.name)}</option>`).join(''); if([...dSel.options].some(o=>o.value===cur))dSel.value=cur; }
+  const docs=(typeof MD_DOCTORS!=='undefined'?MD_DOCTORS:[]).filter(x=>x.opd!==false);
+  const docSel=document.getElementById('rDoc');
+  if(docs.length && docSel){ const cur=docSel.value; docSel.innerHTML=docs.map(d=>`<option>Dr. ${genEsc(d.name)}</option>`).join(''); if([...docSel.options].some(o=>o.value===cur))docSel.value=cur; }
+  const dl=document.getElementById('insurerList');
+  if(dl) dl.innerHTML=mdActive('insurance').map(i=>`<option value="${genAttr(i.name)}"></option>`).join('');
+}
+/* pull Master-Data into IPD (admitting doctor + ward categories) */
+function populateIpdMasters(){
+  let docs=(typeof MD_DOCTORS!=='undefined'?MD_DOCTORS:[]).filter(x=>x.ipd);
+  if(!docs.length) docs=(typeof MD_DOCTORS!=='undefined'?MD_DOCTORS:[]);
+  const s=document.getElementById('aDoc');
+  if(docs.length && s){ const cur=s.value; s.innerHTML=docs.map(d=>`<option>Dr. ${genEsc(d.name)}</option>`).join(''); if([...s.options].some(o=>o.value===cur))s.value=cur; }
+  const dl=document.getElementById('wardCatList');
+  if(dl) dl.innerHTML=mdActive('roomCategories').map(r=>`<option value="${genAttr(r.name)}"></option>`).join('');
+}
+/* pull Master-Data investigations into a diagnostic module's add-form */
+function populateGenInvest(moduleName){
+  const dl=document.getElementById('gfInvestList'); if(!dl)return;
+  const all=(typeof MD_INVEST!=='undefined'?MD_INVEST:[]).filter(x=>x.active!==false);
+  const mn=(moduleName||'').toLowerCase();
+  const mine=all.filter(x=>{ const dp=(x.dept||'').toLowerCase(); return dp&&(dp.includes(mn)||mn.includes(dp)); });
+  const use=mine.length?mine:all;
+  dl.innerHTML=use.map(x=>`<option value="${genAttr(x.name)}"></option>`).join('');
+}
 document.getElementById('opdCSV').onclick=()=>opdExport('csv');
 document.getElementById('opdPDF').onclick=()=>opdExport('pdf');
 
@@ -1837,12 +1965,15 @@ function addOpdBill(){
     status:document.getElementById('obStatus').value, insurance:payer==='Insurance',
     insurer:document.getElementById('obInsurer').value.trim(),
     date:new Date().toISOString().slice(0,10), _ts:Date.now() });
+  logAudit('OPD billing',`Bill created · ${money(Number(document.getElementById('obAmt').value)||0)}`,patient);
+  if(typeof stdRateFor==='function'){ const _t=document.getElementById('obType').value, _a=Number(document.getElementById('obAmt').value)||0, _e=stdRateFor(_t,'OPD'); if(_e!=null&&_a>_e&&typeof raiseVariance==='function')raiseVariance('OPD',_t,_e,_a); }
   persist(); renderOpdBills(); toast(`Bill added for ${patient}`);
 }
 function opdBillToggle(id){
   const b=OPD_BILLS.find(x=>x.id===id); if(!b)return;
   b.status = b.status==='Paid'?'Unpaid':'Paid';
   if(b.status==='Paid') b._ts=Date.now();
+  logAudit('OPD billing',`Payment status changed to ${b.status} · ${money(b.amount||0)}`,b.patient);
   persist(); renderOpdBills(); toast(`Bill marked ${b.status.toLowerCase()}`);
 }
 function printOpdReceipt(id){
@@ -1886,7 +2017,9 @@ function openIPD(){
   document.getElementById('app').classList.add('hidden');
   document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('ipdPage').classList.remove('hidden');
+  populateIpdMasters();
   fillWardSelects(); renderBoard(); renderAdmitted();
+  renderDeptTools('IPD','ipdToolBar','ipdToolHost');
   window.scrollTo(0,0);
 }
 document.getElementById('ipdBack').onclick=()=>backFromModule();
@@ -2088,7 +2221,8 @@ function renderAdmitted(){
   });
   wrap.querySelectorAll('[data-dis]').forEach(btn=>btn.onclick=()=>{
     const b=BEDS.find(x=>x.id===btn.dataset.dis); const nm=b.patient.name;
-    b.status='cleaning'; b.patient=null; persist(); renderBoard(); renderAdmitted();
+    if(typeof DISCHARGE_LOCK!=='undefined' && DISCHARGE_LOCK.enabled && !dischargeCleared(nm)){ if(typeof logAudit==='function')logAudit('Discharge lock','Discharge blocked — clinical clearance pending',nm); toast('Discharge locked — clear "'+nm+'" in Admin → Discharge lock first'); return; }
+    b.status='cleaning'; b.patient=null; if(typeof logAudit==='function')logAudit('IPD','Patient discharged',nm); persist(); renderBoard(); renderAdmitted();
     toast(`${nm} discharged · bed ${b.id} in cleaning`);
   });
   wrap.querySelectorAll('[data-mov]').forEach(btn=>btn.onclick=()=>{
@@ -2176,7 +2310,7 @@ Object.values(MODULE_DEFS).forEach(d=>d.sections.forEach(s=>{s.rows=[];}));
 
 let genDef=null, genSec=0, genMeta=null, moduleReturn='app';
 function openGeneric(m){
-  genMeta=m; genDef=MODULE_DEFS[m.name]; genSec=0; _genQuery='';
+  genMeta=m; genDef=MODULE_DEFS[m.name]; genSec=0; _genQuery=''; populateGenInvest(m.name);
   if(!genDef){toast(`${m.name} — coming soon`);return;}
   const ico=document.getElementById('genIco');
   ico.style.background=shade(m.color); ico.style.color=m.color;
@@ -2187,7 +2321,7 @@ function openGeneric(m){
   document.getElementById('app').classList.add('hidden');
   document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('genPage').classList.remove('hidden');
-  renderGenSeg(); renderGenBody(); window.scrollTo(0,0);
+  renderGenSeg(); renderGenBody(); renderDeptTools(m.name,'genToolBar','genToolHost'); window.scrollTo(0,0);
 }
 function renderGenSeg(){
   const seg=document.getElementById('genSeg'); seg.innerHTML='';
@@ -2270,7 +2404,7 @@ function fieldHTML(c){
   else if(c.type==='tag') inner=`<select id="${id}">${(c.opts||[]).map(o=>`<option>${o}</option>`).join('')}</select>`;
   else if(c.type==='date') inner=`<input id="${id}" type="date" value="${today}">`;
   else if(c.type==='fee'||c.type==='num') inner=`<input id="${id}" type="number" min="0" placeholder="0">`;
-  else inner=`<input id="${id}" placeholder="${c.t}">`;
+  else { const inv=/report|test|investigation|scan|result|modality|sample|finding/i.test((c.k||'')+' '+(c.t||'')); inner=`<input id="${id}" ${inv?'list="gfInvestList"':''} placeholder="${c.t}">`; }
   return `<div class="fld"><label>${c.t}</label>${inner}</div>`;
 }
 function saveGenRecord(){
@@ -2298,6 +2432,7 @@ function openAdmin(){
   renderAdminDash(); renderAdminModGrid(); renderAdminCreds();
   document.querySelector('#adminSeg [data-tab="dash"]').classList.add('active');
   document.getElementById('adminPage').classList.remove('hidden');
+  if(typeof showVariancePopup==='function')showVariancePopup();
   window.scrollTo(0,0);
 }
 document.getElementById('adminRefresh').onclick=()=>{
@@ -2324,9 +2459,11 @@ document.getElementById('adminSeg').addEventListener('click',e=>{
   document.getElementById('adTabMods').classList.toggle('hidden',t!=='mods');
   document.getElementById('adTabCred').classList.toggle('hidden',t!=='cred');
   document.getElementById('adTabFeedback').classList.toggle('hidden',t!=='feedback');
+  document.getElementById('adTabMaster').classList.toggle('hidden',t!=='master');
   document.getElementById('adTabDanger').classList.toggle('hidden',t!=='danger');
   if(t==='danger')genDangerCode();
   if(t==='feedback'){ renderFeedbackQR(); loadAdminFeedback(); }
+  if(t==='master')renderMaster();
 });
 /* ---------- QR feedback (Package G) ---------- */
 function feedbackURL(){ const o=location.origin; return (o && /^https?:/.test(o)) ? o+'/feedback' : ''; }
@@ -2355,6 +2492,866 @@ function loadAdminFeedback(){
 }
 setInterval(()=>{ const ap=document.getElementById('adminPage'), ft=document.getElementById('adTabFeedback');
   if(ap&&!ap.classList.contains('hidden')&&ft&&!ft.classList.contains('hidden')) loadAdminFeedback(); }, 5000);
+
+/* ===================== MASTER DATA (admin) ===================== */
+let MD_DOCTORS=[], MD_STAFF=[], MD_ROLES=[], MD_INVEST=[], MD_HOSPITAL={};
+let mdTab='doctors';
+const MD_DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const MD_ROLE_MODULES=['OPD','IPD','Pathology','Sonography','Radiology','Cardiology','Doctor','Nursing','Pharmacy','Reports','Store','Accounting','Admin','MRD','Appointment'];
+function genAttr(v){return (v==null?'':String(v)).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+/* ---- generic list-style masters ---- */
+let MD_LISTS={};
+const MDL_PEOPLE=[{k:'qual',label:'Qualification'},{k:'contact',label:'Contact'}];
+const MDLIST_CONFIG={
+  departments:{title:'Departments',noun:'department'},
+  diagnostics:{title:'Diagnostic Departments',noun:'diagnostic department'},
+  qualifications:{title:'Qualifications',noun:'qualification'},
+  referrals:{title:'Referred Doctors',noun:'referral',nameLabel:'Referral name',fields:[{k:'hospital',label:'Hospital / Clinic'},{k:'contact',label:'Contact'},{k:'email',label:'Email'},{k:'shareOpd',label:'OPD %',type:'number'},{k:'shareTest',label:'Tests %',type:'number'},{k:'shareDay',label:'Daycare %',type:'number'},{k:'shareIpd',label:'IPD %',type:'number'}],cols:[{k:'hospital',label:'Hospital/Clinic'},{label:'Share %',fn:x=>`OPD ${x.shareOpd||0}% · Test ${x.shareTest||0}% · Day ${x.shareDay||0}% · IPD ${x.shareIpd||0}%`},{k:'contact',label:'Contact'}]},
+  pathologists:{title:'Pathologists',noun:'pathologist',fields:MDL_PEOPLE,cols:[{k:'qual',label:'Qualification'},{k:'contact',label:'Contact'}]},
+  radiologists:{title:'Radiologists',noun:'radiologist',fields:MDL_PEOPLE,cols:[{k:'qual',label:'Qualification'},{k:'contact',label:'Contact'}]},
+  sonologists:{title:'Sonologists',noun:'sonologist',fields:MDL_PEOPLE,cols:[{k:'qual',label:'Qualification'},{k:'contact',label:'Contact'}]},
+  cardiologists:{title:'Cardiologists',noun:'cardiologist',fields:MDL_PEOPLE,cols:[{k:'qual',label:'Qualification'},{k:'contact',label:'Contact'}]},
+  expenseHeads:{title:'Expense Heads',noun:'expense head'},
+  incomeHeads:{title:'Income Heads',noun:'income head'},
+  outsourceLabs:{title:'Outsource Labs',noun:'lab'},
+  insurance:{title:'Insurance Companies',noun:'insurance company'},
+  tpa:{title:'TPA',noun:'TPA'},
+  ratelists:{title:'Rate Lists',noun:'rate list'},
+  dischargeTypes:{title:'Discharge Types',noun:'discharge type'},
+  roomCategories:{title:'Room Categories',noun:'room category',fields:[{k:'beds',label:'No. of beds / rooms',type:'number'}],cols:[{k:'beds',label:'No. of rooms'}]},
+  certificates:{title:'Certificates',noun:'certificate',fields:[{k:'template',label:'Template text',type:'textarea'}],cols:[{label:'Template',fn:x=>((x.template||'').slice(0,60)+((x.template||'').length>60?'…':''))}]},
+  icd10:{title:'ICD-10 Codes',noun:'ICD-10 code',nameLabel:'ICD-10 code & description',fields:[{k:'category',label:'Category'}],cols:[{k:'category',label:'Category'}]},
+  tariffs:{title:'Schedule IV Tariffs',noun:'tariff head',fields:[{k:'code',label:'Code'},{k:'rate',label:'Rate (₹)',type:'number'}],cols:[{k:'code',label:'Code'},{k:'rate',label:'Rate'}]},
+  stdRates:{title:'Standard Rates',noun:'rate',nameLabel:'Item / service',fields:[{k:'module',label:'Module / department'},{k:'amount',label:'Standard amount (₹)',type:'number'}],cols:[{k:'module',label:'Module'},{k:'amount',label:'Standard ₹'}]}
+};
+(function initMdSeg(){ const seg=document.getElementById('mdSeg'); if(!seg)return;
+  seg.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; mdTab=b.dataset.md; renderMaster(); }); })();
+function renderMaster(){
+  const body=document.getElementById('mdBody');
+  if(!body){ if(typeof _deptHost!=='undefined'&&_deptHost){ const _h=document.getElementById(_deptHost.elId); if(_h&&DEPT_FEATURES[_deptHost.key])DEPT_FEATURES[_deptHost.key](_h); } return; }
+  if(typeof _deptHost!=='undefined')_deptHost=null;
+  if(typeof _deptCtx!=='undefined')_deptCtx='Admin';
+  const _dl=document.getElementById('docNameList');
+  if(_dl)_dl.innerHTML=(typeof MD_DOCTORS!=='undefined'?MD_DOCTORS:[]).map(x=>`<option value="${genAttr('Dr. '+x.name)}">`).join('');
+  document.querySelectorAll('#mdSeg button').forEach(b=>b.classList.toggle('active',b.dataset.md===mdTab));
+  if(mdTab==='doctors')renderMdDoctors(body);
+  else if(mdTab==='staff')renderMdStaff(body);
+  else if(mdTab==='roles')renderMdRoles(body);
+  else if(mdTab==='invest')renderMdInvest(body);
+  else if(mdTab==='hospital')renderMdHospital(body);
+  else if(mdTab==='compliance')renderMdCompliance(body);
+  else if(mdTab==='integrations')renderMdIntegrations(body);
+  else if(mdTab==='abha')renderMdAbha(body);
+  else if(mdTab==='nabh')renderMdNabh(body);
+  else if(mdTab==='dischargeLock')renderMdDischargeLock(body);
+  else if(mdTab==='consent')renderMdConsent(body);
+  else if(mdTab==='charges')renderMdCharges(body);
+  else if(mdTab==='claims')renderMdClaims(body);
+  else if(mdTab==='discounts')renderMdDiscounts(body);
+  else if(mdTab==='voice')renderMdVoice(body);
+  else if(mdTab==='lis')renderMdLis(body);
+  else if(mdTab==='billingAlerts')renderMdBilling(body);
+  else if(mdTab==='departments')renderMdDepartments(body);
+  else if(MDLIST_CONFIG[mdTab])renderMdList(mdTab,body);
+  else renderMdDoctors(body);
+}
+let _mdlQuery='', _mdlEditId=null, _mdlLastKey=null;
+function mdlItems(key){ return MD_LISTS[key]||(MD_LISTS[key]=[]); }
+function mdlFiltered(key){ const q=_mdlQuery.trim().toLowerCase(); const items=mdlItems(key); return q? items.filter(it=>String(it.name||'').toLowerCase().includes(q)) : items; }
+function mdlRowsHTML(key){
+  const cfg=MDLIST_CONFIG[key], cols=cfg.cols||[], list=mdlFiltered(key);
+  if(!list.length) return `<tr><td class="tempty" colspan="${4+cols.length}">No ${cfg.noun}s found.</td></tr>`;
+  return list.map((it,i)=>{
+    const extraTds=cols.map(c=>`<td>${genEsc(c.fn?c.fn(it):(it[c.k]||'—'))}</td>`).join('');
+    return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(it.name)}</b></td>${extraTds}<td>${it.active===false?'<span class="pill r">Inactive</span>':'<span class="pill g">Active</span>'}</td><td><a href="#" class="mdl-edit" data-id="${it.id}" style="color:var(--brand);font-weight:700;text-decoration:none">Edit</a></td><td style="text-align:center"><input type="checkbox" class="mdl-chk" value="${it.id}"></td></tr>`;
+  }).join('');
+}
+function wireMdlRows(){ document.querySelectorAll('#mdlTbody .mdl-edit').forEach(a=>a.onclick=(e)=>{ e.preventDefault(); _mdlEditId=a.dataset.id; renderMaster(); }); }
+function renderMdList(key,body){
+  if(key!==_mdlLastKey){ _mdlQuery=''; _mdlEditId=null; _mdlLastKey=key; }
+  const cfg=MDLIST_CONFIG[key], cols=cfg.cols||[], extra=cfg.fields||[];
+  const editing=_mdlEditId?mdlItems(key).find(x=>x.id===_mdlEditId):null;
+  const inputs=[`<div class="fld"><label>${cfg.nameLabel||(cfg.noun.charAt(0).toUpperCase()+cfg.noun.slice(1)+' name')}</label><input id="mdlName" value="${editing?genAttr(editing.name):''}" placeholder="Name"></div>`]
+    .concat(extra.map(f=> f.type==='textarea'
+      ? `<div class="fld full"><label>${f.label}</label><textarea id="mdl_${f.k}" placeholder="${f.label}">${editing?genEsc(editing[f.k]||''):''}</textarea></div>`
+      : `<div class="fld"><label>${f.label}</label><input id="mdl_${f.k}" ${f.type==='number'?'type="number" min="0"':''} value="${editing?genAttr(editing[f.k]!=null?editing[f.k]:''):''}" placeholder="${f.label}"></div>`)).join('');
+  const total=mdlItems(key).length, shown=mdlFiltered(key).length;
+  body.innerHTML=`
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>${editing?'Edit':'Add'} ${genEsc(cfg.title.replace(/s$/,''))}</h3>
+      <div class="addgrid">${inputs}</div>
+      <div class="form-actions"><button class="btn" id="mdlSave" style="width:auto;padding:12px 22px">${editing?'Update':'Add'}</button>${editing?'<button class="btn ghost" id="mdlCancel" style="width:auto;padding:12px 22px">Cancel</button>':''}</div>
+    </div>
+    <div class="sec-head">
+      <div><h3>${genEsc(cfg.title)}</h3><p id="mdlCount">${shown} of ${total} ${cfg.noun}${total===1?'':'s'}</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn ghost" id="mdlCopy" style="width:auto;padding:9px 13px">Copy</button>
+        <button class="btn ghost" id="mdlCsv" style="width:auto;padding:9px 13px">CSV</button>
+        <div style="display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:8px 11px;color:var(--muted);min-width:180px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex:none"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="mdlSearch" value="${genAttr(_mdlQuery)}" placeholder="Search by name…" style="border:0;background:transparent;outline:0;width:100%;font-size:13px;color:var(--ink)">
+        </div>
+      </div>
+    </div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Name</th>${cols.map(c=>`<th>${genEsc(c.label)}</th>`).join('')}<th>Status</th><th>Action</th><th style="text-align:center"><input type="checkbox" id="mdlAll"></th></tr></thead><tbody id="mdlTbody">${mdlRowsHTML(key)}</tbody></table></div>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn ghost" id="mdlActivate" style="width:auto;padding:9px 16px">Activate</button><button class="btn ghost" id="mdlDeactivate" style="width:auto;padding:9px 16px;color:#b45309;border-color:#f0d5ad">Deactivate</button></div>`;
+  document.getElementById('mdlSave').onclick=()=>saveMdListItem(key);
+  const cancel=document.getElementById('mdlCancel'); if(cancel)cancel.onclick=()=>{ _mdlEditId=null; renderMaster(); };
+  document.getElementById('mdlSearch').oninput=function(){ _mdlQuery=this.value; const tb=document.getElementById('mdlTbody'); if(tb)tb.innerHTML=mdlRowsHTML(key); wireMdlRows(); const c=document.getElementById('mdlCount'); if(c)c.textContent=`${mdlFiltered(key).length} of ${mdlItems(key).length} ${cfg.noun}${mdlItems(key).length===1?'':'s'}`; };
+  document.getElementById('mdlAll').onchange=function(){ document.querySelectorAll('#mdlTbody .mdl-chk').forEach(x=>x.checked=this.checked); };
+  document.getElementById('mdlActivate').onclick=()=>mdlBulk(key,true);
+  document.getElementById('mdlDeactivate').onclick=()=>mdlBulk(key,false);
+  document.getElementById('mdlCopy').onclick=()=>mdlExport(key,'copy');
+  document.getElementById('mdlCsv').onclick=()=>mdlExport(key,'csv');
+  wireMdlRows();
+}
+function saveMdListItem(key){
+  const cfg=MDLIST_CONFIG[key];
+  const _wasEdit=!!_mdlEditId;
+  const name=document.getElementById('mdlName').value.trim();
+  if(!name){document.getElementById('mdlName').focus();toast('Enter a name');return;}
+  const collect=(item)=>{ item.name=name; (cfg.fields||[]).forEach(f=>{ const el=document.getElementById('mdl_'+f.k); item[f.k]= el ? (f.type==='number'?(Number(el.value)||0):el.value.trim()) : ''; }); };
+  if(_mdlEditId){ const it=mdlItems(key).find(x=>x.id===_mdlEditId); if(it){ collect(it); it._ts=Date.now(); } _mdlEditId=null; toast('Updated'); }
+  else { const item={ id:'L'+Date.now().toString(36), active:true, _ts:Date.now() }; collect(item); mdlItems(key).push(item); toast(`${name} added`); }
+  if(typeof logAudit==='function')logAudit('Master data',`${cfg.title}: ${_wasEdit?'updated':'added'} "${name}"`);
+  persist(); renderMaster();
+}
+function toggleMdListItem(key,id){ const it=mdlItems(key).find(x=>x.id===id); if(!it)return; it.active=(it.active===false); persist(); renderMaster(); }
+function mdlBulk(key,active){
+  const ids=[...document.querySelectorAll('#mdlTbody .mdl-chk:checked')].map(x=>x.value);
+  if(!ids.length){toast('Select rows first');return;}
+  mdlItems(key).forEach(it=>{ if(ids.includes(it.id)) it.active=active; });
+  if(typeof logAudit==='function')logAudit('Master data',`${MDLIST_CONFIG[key].title}: ${ids.length} ${active?'activated':'deactivated'}`);
+  persist(); renderMaster(); toast(`${ids.length} ${active?'activated':'deactivated'}`);
+}
+function mdlExport(key,how){
+  const cfg=MDLIST_CONFIG[key], cols=cfg.cols||[], list=mdlFiltered(key);
+  const headers=['S.No','Name',...cols.map(c=>c.label),'Status'];
+  const matrix=list.map((it,i)=>[i+1,it.name,...cols.map(c=>c.fn?c.fn(it):(it[c.k]||'')),it.active===false?'Inactive':'Active']);
+  if(how==='csv'){ if(typeof exportCSV==='function')exportCSV((cfg.title||'list').replace(/[^a-z0-9]+/gi,'_'),headers,matrix); else toast('CSV unavailable'); return; }
+  const txt=[headers.join('\t')].concat(matrix.map(r=>r.join('\t'))).join('\n');
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(()=>toast('Copied to clipboard')).catch(()=>toast('Copy failed')); }
+  else toast('Copy not supported here');
+}
+/* ===================== Compliance, Audit trail, ICD-10 / tariffs seed, ERP integration ===================== */
+let AUDIT=[], MD_COMPLIANCE=null, MD_INTEGRATIONS={};
+const COMPLIANCE_ITEMS=[
+  {k:'nabhAudit',label:'NABH audit-trail logging',desc:'Every payment edit, master change & deletion is logged with user, time and source.'},
+  {k:'irda',label:'IRDA compliance protocols',desc:'Insurance & cashless (TPA) claims follow IRDA guidelines.'},
+  {k:'abdm',label:'ABDM / ABHA digital health',desc:'ABHA-linked records with FHIR-based, consent-driven health information exchange.'},
+  {k:'clinicalInd',label:'Clinical indicator reports',desc:'NABH clinical indicators auto-collected from the audit engine.'},
+  {k:'consent',label:'Patient consent capture',desc:'Consent recorded before procedures.'},
+  {k:'retention',label:'Medical-records retention',desc:'Records retained for the statutory period.'},
+  {k:'dpdp',label:'Data privacy (DPDP) safeguards',desc:'Patient data is role-restricted and access is logged.'}
+];
+const ICD10_SEED=[['A09','Infectious gastroenteritis & colitis'],['E11','Type 2 diabetes mellitus'],['I10','Essential (primary) hypertension'],['J18.9','Pneumonia, unspecified'],['K35.80','Acute appendicitis'],['N39.0','Urinary tract infection'],['O80','Normal delivery'],['R51','Headache'],['S72.0','Fracture of neck of femur'],['J45.909','Asthma, unspecified'],['E78.5','Hyperlipidemia'],['I50.9','Heart failure, unspecified'],['B34.9','Viral infection, unspecified'],['M54.5','Low back pain'],['Z00.00','General adult medical examination']];
+const TARIFF_SEED=[['General Ward (Sch IV-A)','SIVA-GW',1500],['Private Room (Sch IV-A)','SIVA-PR',3000],['ICU (Sch IV-A)','SIVA-ICU',5000],['Consultation (Sch IV-A)','SIVA-CON',300],['Minor Procedure (Sch IV-B)','SIVB-MP',2000],['Appendectomy (Sch IV-B)','SIVB-APP',22000],['Major Surgery (Sch IV-B)','SIVB-MS',25000],['Normal Delivery (GIPSA)','GIPSA-ND',20000],['LSCS Caesarean (GIPSA)','GIPSA-LSCS',35000],['Cataract (GIPSA package)','GIPSA-CAT',24000],['Angioplasty PTCA (TPA package)','TPA-PTCA',150000],['Haemodialysis (TPA package)','TPA-HD',3000]];
+function ensureSeedMasters(){
+  MD_LISTS=MD_LISTS||{};
+  MD_LISTS.icd10=MD_LISTS.icd10||[];
+  ICD10_SEED.forEach(([code,cat])=>{ const id='ICD_'+code; if(!MD_LISTS.icd10.some(x=>x.id===id)) MD_LISTS.icd10.push({id,name:code+' — '+cat,category:cat,active:true,_ts:0}); });
+  MD_LISTS.tariffs=MD_LISTS.tariffs||[];
+  TARIFF_SEED.forEach(([name,code,rate])=>{ const id='TAR_'+code; if(!MD_LISTS.tariffs.some(x=>x.id===id)) MD_LISTS.tariffs.push({id,name,code,rate,active:true,_ts:0}); });
+  MD_LISTS.stdRates=MD_LISTS.stdRates||[];
+  if(typeof STDRATE_SEED!=='undefined')STDRATE_SEED.forEach(([name,module,amount])=>{ const id='RT_'+name.replace(/[^a-z0-9]+/gi,'').toLowerCase(); if(!MD_LISTS.stdRates.some(x=>x.id===id)) MD_LISTS.stdRates.push({id,name,module,amount,active:true,_ts:0}); });
+  if(typeof seedInteractions==='function')seedInteractions();
+  if(typeof seedDepartments==='function')seedDepartments();
+  if(!MD_COMPLIANCE){ MD_COMPLIANCE={}; COMPLIANCE_ITEMS.forEach(it=>MD_COMPLIANCE[it.k]=true); }
+}
+function logAudit(head, action, patient){
+  AUDIT.push({ id:'A'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), head:head||'System', patient:patient||'', action:action||'', user:(typeof ADMIN_CRED!=='undefined'&&ADMIN_CRED&&ADMIN_CRED.user)||'admin', date:new Date().toLocaleString(), _ts:Date.now() });
+  if(AUDIT.length>2000) AUDIT=AUDIT.slice(-2000);
+}
+function renderMdCompliance(body){
+  ensureSeedMasters();
+  const row=(label,desc,on,key)=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)">
+    <span style="display:flex;align-items:flex-start;gap:10px"><i style="width:9px;height:9px;border-radius:50%;margin-top:5px;flex:none;background:${on?'#16a34a':'#dc2626'}"></i>
+      <span><b>${genEsc(label)}</b><br><span style="color:var(--muted);font-size:11.5px">${genEsc(desc)}</span></span></span>
+    <button class="btn ghost" data-comp="${key}" style="width:auto;padding:6px 12px;flex:none">${on?'Enabled':'Disabled'}</button></div>`;
+  const items=COMPLIANCE_ITEMS.map(it=>row(it.label,it.desc,MD_COMPLIANCE[it.k]!==false,it.k)).join('');
+  const ready=COMPLIANCE_ITEMS.every(it=>MD_COMPLIANCE[it.k]!==false);
+  const audit=AUDIT.slice().reverse().slice(0,60);
+  const rows=audit.length?audit.map((a,i)=>`<tr><td class="sno">${i+1}</td><td>${genEsc(a.head)}</td><td>${genEsc(a.patient||'—')}</td><td>${genEsc(a.action)}</td><td>${genEsc(a.user)}</td><td>${genEsc(a.date)}</td></tr>`).join(''):'<tr><td class="tempty" colspan="6">No audit entries yet — payment edits & master changes are logged here.</td></tr>';
+  body.innerHTML=`
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <div class="sec-head" style="border:0;padding:0;margin:0 0 6px"><div><h3 style="margin:0">Regulatory readiness</h3><p class="psub" style="margin:2px 0 0">NABH audit trails &amp; IRDA compliance protocols — pre-configured</p></div>
+        <span class="pill ${ready?'g':'r'}">${ready?'Audit-ready':'Review needed'}</span></div>
+      ${items}
+    </div>
+    <div class="sec-head"><div><h3>NABH audit trail</h3><p>${AUDIT.length} logged event${AUDIT.length===1?'':'s'} · head · patient · action · user · time</p></div>
+      <button class="btn ghost" id="auditCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Head</th><th>Patient</th><th>Action</th><th>User</th><th>Date &amp; time</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  body.querySelectorAll('[data-comp]').forEach(b=>b.onclick=()=>{ const k=b.dataset.comp; MD_COMPLIANCE[k]=(MD_COMPLIANCE[k]===false); persist(); logAudit('Compliance',`${k} ${MD_COMPLIANCE[k]===false?'disabled':'enabled'}`); renderMaster(); });
+  const cb=document.getElementById('auditCsv'); if(cb)cb.onclick=()=>{ if(typeof exportCSV==='function')exportCSV('audit_trail',['S.No','Head','Patient','Action','User','Date'],AUDIT.slice().reverse().map((a,i)=>[i+1,a.head,a.patient,a.action,a.user,a.date])); };
+}
+function renderMdIntegrations(body){
+  const g=MD_INTEGRATIONS||{};
+  body.innerHTML=`
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>Enterprise ERP &amp; accounting integration</h3>
+      <p class="psub">Connect MediCore to your accounting / ERP system (SAP or legacy) to push billing &amp; ledger entries. Configure the hook here; the server relays entries to your endpoint.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Accounting / ERP system</label><select id="intSys"><option>None</option><option>SAP</option><option>Oracle Financials</option><option>Tally</option><option>Legacy / Custom</option></select></div>
+        <div class="fld"><label>Endpoint URL</label><input id="intUrl" placeholder="https://erp.example.com/api/ledger"></div>
+        <div class="fld"><label>API key / token</label><input id="intKey" placeholder="Secret key"></div>
+        <div class="fld"><label>Sync</label><select id="intOn"><option>Disabled</option><option>Enabled</option></select></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="intSave" style="width:auto;padding:12px 22px">Save integration</button><button class="btn ghost" id="intTest" style="width:auto;padding:12px 22px">Test connection</button></div>
+    </div>
+    <div class="panel" style="max-width:none">
+      <h3 style="margin:0 0 8px">Status</h3>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)"><span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;background:${g.enabled?'#16a34a':'#9fb0c2'}"></i>Connection</span><b>${g.enabled?'Enabled':'Not connected'}</b></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)"><span>System</span><b>${genEsc(g.system||'—')}</b></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0"><span>Endpoint</span><b style="word-break:break-all;text-align:right;max-width:60%">${genEsc(g.endpoint||'—')}</b></div>
+    </div>`;
+  const s=document.getElementById('intSys'); if(g.system)s.value=g.system;
+  document.getElementById('intUrl').value=g.endpoint||'';
+  document.getElementById('intKey').value=g.apiKey||'';
+  document.getElementById('intOn').value=g.enabled?'Enabled':'Disabled';
+  document.getElementById('intSave').onclick=()=>{
+    MD_INTEGRATIONS={ system:document.getElementById('intSys').value, endpoint:document.getElementById('intUrl').value.trim(), apiKey:document.getElementById('intKey').value.trim(), enabled:document.getElementById('intOn').value==='Enabled', _ts:Date.now() };
+    persist(); logAudit('Integration',`ERP integration saved (${MD_INTEGRATIONS.system}${MD_INTEGRATIONS.enabled?', enabled':''})`); renderMaster(); toast('Integration saved');
+  };
+  document.getElementById('intTest').onclick=()=>toast('Test queued — set the endpoint on the server to complete the hook');
+}
+/* ===================== ABDM/NABH/DPDP · Revenue cycle · Clinical AI ===================== */
+let ABHA_REG=[], NABH_METRICS=[], CONSENTS=[], CHARGES=[], CLAIMS=[], DISCOUNTS=[], LIS_RESULTS=[], EMR_NOTES=[];
+let DISCHARGE_LOCK={enabled:true,items:['Nursing notes complete','Clinical / treatment logs complete','Final bill cleared']};
+let DISCHARGE_CLEARED={};
+const _norm=s=>String(s||'').trim().toLowerCase();
+function captureCharge(patient,source,item,amount,opt){
+  if(!patient) return null;
+  const mod=(opt&&opt.module)||((typeof _deptCtx!=='undefined'&&_deptCtx&&_deptCtx!=='Admin')?_deptCtx:source);
+  const exp=(typeof stdRateFor==='function')?stdRateFor(item,mod):null;
+  const over=(exp!=null&&(Number(amount)||0)>exp);
+  const rec={id:'CH'+Date.now().toString(36)+Math.random().toString(36).slice(2,4),patient:patient,source:source,item:item,amount:Number(amount)||0,expected:exp,over:over,module:mod,date:new Date().toISOString().slice(0,10),_ts:Date.now()};
+  CHARGES.push(rec);
+  if(typeof logAudit==='function')logAudit('Charge capture',`${source}: ${item} · ${money(Number(amount)||0)}`,patient);
+  if(over&&typeof raiseVariance==='function')raiseVariance(mod,item,exp,amount,(opt&&opt.by));
+  return rec;
+}
+function dischargeCleared(name){ return !!DISCHARGE_CLEARED[_norm(name)]; }
+function abhaFmt(v){ const d=String(v||'').replace(/\D/g,'').slice(0,14); return d.replace(/^(\d{2})(\d{0,4})(\d{0,4})(\d{0,4}).*$/,(m,a,b,c,e)=>[a,b,c,e].filter(Boolean).join('-')); }
+function icdOptions(){ return (MD_LISTS.icd10||[]).filter(x=>x.active!==false).map(x=>`<option value="${genAttr(x.name)}">`).join(''); }
+function tariffOptions(){ return (MD_LISTS.tariffs||[]).filter(x=>x.active!==false).map(x=>`<option value="${genAttr(x.name)}">`).join(''); }
+function tariffRate(name){ const t=(MD_LISTS.tariffs||[]).find(x=>x.name===name); return t?Number(t.rate)||0:0; }
+function mapIcd(text){ const t=_norm(text); const hits=[]; (MD_LISTS.icd10||[]).forEach(c=>{ const desc=_norm(c.name).replace(/^[a-z0-9.]+ — /,''); const words=desc.split(/[^a-z0-9]+/).filter(w=>w.length>3); if(words.some(w=>t.includes(w))) hits.push(c.name); }); return hits.slice(0,6); }
+function renderMdCharges(body){
+  const rates=(MD_LISTS.stdRates||[]).filter(x=>x.active!==false);
+  const rateOpts=rates.map(r=>`<option value="${genAttr(r.name)}">`).join('');
+  const rows=CHARGES.length?CHARGES.slice().reverse().map((c,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(c.patient)}</b></td><td>${genEsc(c.source)}</td><td>${genEsc(c.item)}</td><td>${c.expected!=null?money(c.expected):'—'}</td><td>${money(c.amount)}${c.over?' <span class="pill r">over</span>':''}</td><td>${genEsc(c.date)}</td><td><button class="btn ghost tiny" data-rcpt="${c.id}" style="width:auto;padding:6px 10px">Print</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="8">No charges captured yet. Dispensing pharmacy stock auto-posts here.</td></tr>';
+  const total=CHARGES.reduce((a,c)=>a+(+c.amount||0),0);
+  body.innerHTML=`<datalist id="rateDL">${rateOpts}</datalist><div class="panel" style="max-width:none;margin-bottom:16px"><h3>Billing &amp; charge capture</h3><p class="psub">Pick a service to auto-fill its standard rate, or type a custom item. Charging above the standard rate raises an admin alert. Pharmacy dispensing auto-posts here.</p><div class="addgrid"><div class="fld"><label>Patient</label><input id="chPatient" placeholder="Name"></div><div class="fld"><label>Source</label><select id="chSource"><option>OPD</option><option>IPD</option><option>Lab</option><option>Radiology</option><option>Nursing</option><option>Pharmacy</option><option>Procedure</option><option>Other</option></select></div><div class="fld"><label>Item / service</label><input id="chItem" list="rateDL" placeholder="Service or item"></div><div class="fld"><label>Amount (₹)</label><input id="chAmt" type="number" min="0" placeholder="0"></div></div><div id="chHint" style="margin:2px 0 10px;font-size:12px;color:var(--muted)"></div><div class="form-actions"><button class="btn" id="chSave" style="width:auto;padding:12px 22px">Capture &amp; bill</button></div></div><div class="sec-head"><div><h3>Captured charges</h3><p>${CHARGES.length} entr${CHARGES.length===1?'y':'ies'} · total ${money(total)}</p></div><button class="btn ghost" id="chCsv" style="width:auto;padding:9px 13px">CSV</button></div><div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Source</th><th>Item</th><th>Standard</th><th>Charged</th><th>Date</th><th>Receipt</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const item=document.getElementById('chItem'),amt=document.getElementById('chAmt'),hint=document.getElementById('chHint'),src=document.getElementById('chSource');
+  const refresh=()=>{ if(!item||!amt||!hint)return; const exp=stdRateFor(item.value,src?src.value:''); if(exp!=null){ if(!amt.value)amt.value=exp; const got=Number(amt.value)||0; hint.innerHTML=`Standard rate: <b>${money(exp)}</b>`+(got>exp?` · <span style="color:#b91c1c;font-weight:700">₹${got-exp} over — this will alert the admin</span>`:''); } else hint.textContent=''; };
+  if(item){item.oninput=refresh;item.onchange=refresh;} if(amt)amt.oninput=refresh; if(src)src.onchange=refresh;
+  const s=document.getElementById('chSave'); if(s)s.onclick=()=>{ const p=document.getElementById('chPatient').value.trim(); const it=(item.value||'').trim()||'Charge'; const a=Number(amt.value)||0; const mod=(typeof _deptCtx!=='undefined'&&_deptCtx&&_deptCtx!=='Admin')?_deptCtx:(src?src.value:'Other'); if(!p){toast('Enter patient');return;} captureCharge(p,src?src.value:'Other',it,a,{module:mod}); persist(); renderMaster(); toast('Charge captured — use Print for the receipt'); };
+  const cv=document.getElementById('chCsv'); if(cv)cv.onclick=()=>exportCSV('charges',['Patient','Source','Item','Standard','Charged','Date'],CHARGES.map(c=>[c.patient,c.source,c.item,c.expected!=null?c.expected:'',c.amount,c.date]));
+  body.querySelectorAll('[data-rcpt]').forEach(b=>b.onclick=()=>{ const c=CHARGES.find(x=>x.id===b.dataset.rcpt); if(c)printReceipt({title:'Bill Receipt',dept:c.source,patient:c.patient,lines:[[c.item,c.amount]],total:c.amount}); });
+}
+function renderMdClaims(body){
+  const rows=CLAIMS.length?CLAIMS.slice().reverse().map((c,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(c.patient)}</b></td><td>${genEsc(c.payer)}</td><td>${genEsc(c.icd)}</td><td>${genEsc(c.tariff)}</td><td>${money(c.amount)}</td><td><span class="pill ${c.status==='Settled'?'g':c.status==='Rejected'?'r':'b'}">${genEsc(c.status)}</span></td><td>${c.status!=='Settled'&&c.status!=='Rejected'?`<button class="btn ghost tiny" data-claim="${c.id}" style="width:auto;padding:6px 10px">Advance</button> <button class="btn ghost tiny" data-deny="${c.id}" style="width:auto;padding:6px 10px;color:#b45309">Deny</button>`:genEsc(c.denialReason||'—')}</td></tr>`).join(''):'<tr><td class="tempty" colspan="8">No claims yet.</td></tr>';
+  body.innerHTML=`<datalist id="icdDL">${icdOptions()}</datalist><datalist id="tarDL">${tariffOptions()}</datalist><div class="panel" style="max-width:none;margin-bottom:16px"><h3>TPA &amp; cashless claims engine</h3><p class="psub">Pre-authorise &amp; settle on pre-loaded ICD-10 codes and Schedule IV tariffs. Amount auto-fills from the selected tariff.</p><div class="addgrid"><div class="fld"><label>Patient</label><input id="clPatient" placeholder="Name"></div><div class="fld"><label>Payer</label><select id="clPayer"><option>TPA</option><option>Insurance</option><option>PM-JAY</option><option>State scheme</option></select></div><div class="fld"><label>ICD-10 diagnosis</label><input id="clIcd" list="icdDL" placeholder="Search ICD-10"></div><div class="fld"><label>Schedule IV tariff</label><input id="clTariff" list="tarDL" placeholder="Search tariff"></div><div class="fld"><label>Amount (₹)</label><input id="clAmt" type="number" min="0" placeholder="auto from tariff"></div></div><div class="form-actions"><button class="btn" id="clSave" style="width:auto;padding:12px 22px">Create pre-auth</button></div></div><div class="sec-head"><div><h3>Claims</h3><p>${CLAIMS.length} claim${CLAIMS.length===1?'':'s'}</p></div><button class="btn ghost" id="clCsv" style="width:auto;padding:9px 13px">CSV</button></div><div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Payer</th><th>ICD-10</th><th>Tariff</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const tf=document.getElementById('clTariff'); if(tf)tf.onchange=()=>{ const r=tariffRate(tf.value); if(r){ const a=document.getElementById('clAmt'); if(a&&!a.value)a.value=r; } };
+  const s=document.getElementById('clSave'); if(s)s.onclick=()=>{ const p=document.getElementById('clPatient').value.trim(); if(!p){toast('Enter patient');return;} const tarv=document.getElementById('clTariff').value.trim(); const amt=Number(document.getElementById('clAmt').value)||tariffRate(tarv); CLAIMS.push({id:'CL'+Date.now().toString(36),patient:p,payer:document.getElementById('clPayer').value,icd:document.getElementById('clIcd').value.trim(),tariff:tarv,amount:amt,status:'Pre-auth',date:new Date().toISOString().slice(0,10),_ts:Date.now()}); logAudit('Claim','Pre-auth created · '+money(amt),p); persist(); renderMaster(); toast('Pre-auth created'); };
+  body.querySelectorAll('[data-claim]').forEach(b=>b.onclick=()=>{ const c=CLAIMS.find(x=>x.id===b.dataset.claim); if(!c)return; c.status=c.status==='Pre-auth'?'Approved':'Settled'; logAudit('Claim',c.status+' · '+money(c.amount),c.patient); persist(); renderMaster(); });
+  body.querySelectorAll('[data-deny]').forEach(b=>b.onclick=()=>{ const c=CLAIMS.find(x=>x.id===b.dataset.deny); if(!c)return; const r=((typeof prompt!=='undefined'?prompt('Denial reason (denial management):'):'')||'').trim()||'Denied'; c.status='Rejected'; c.denialReason=r; logAudit('Claim','Denied · '+r,c.patient); persist(); renderMaster(); toast('Claim denied'); });
+  const cv=document.getElementById('clCsv'); if(cv)cv.onclick=()=>exportCSV('claims',['Patient','Payer','ICD-10','Tariff','Amount','Status'],CLAIMS.map(c=>[c.patient,c.payer,c.icd,c.tariff,c.amount,c.status]));
+}
+function renderMdDiscounts(body){
+  const rows=DISCOUNTS.length?DISCOUNTS.slice().reverse().map((d,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(d.patient)}</b></td><td>${d.pct?d.pct+'%':money(d.amount)}</td><td>${genEsc(d.reason)}</td><td>${genEsc(d.by)}</td><td><span class="pill ${d.status==='Approved'?'g':d.status==='Rejected'?'r':'a'}">${genEsc(d.status)}</span></td><td>${d.status==='Pending'?`<button class="btn ghost tiny" data-appr="${d.id}" style="width:auto;padding:6px 10px">Approve</button> <button class="btn ghost tiny" data-rej="${d.id}" style="width:auto;padding:6px 10px;color:#b45309">Reject</button>`:genEsc(d.approver||'—')}</td></tr>`).join(''):'<tr><td class="tempty" colspan="7">No discount requests.</td></tr>';
+  body.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>Maker-checker discount governance</h3><p class="psub">Front-desk raises a discount request; a billing manager must approve before it applies (dual-level control).</p><div class="addgrid"><div class="fld"><label>Patient</label><input id="dsPatient" placeholder="Name"></div><div class="fld"><label>Discount %</label><input id="dsPct" type="number" min="0" max="100" placeholder="e.g. 10"></div><div class="fld"><label>or Amount (₹)</label><input id="dsAmt" type="number" min="0" placeholder="0"></div><div class="fld"><label>Requested by</label><input id="dsBy" placeholder="Staff name"></div><div class="fld full"><label>Reason</label><input id="dsReason" placeholder="Reason for discount"></div></div><div class="form-actions"><button class="btn" id="dsSave" style="width:auto;padding:12px 22px">Raise request</button></div></div><div class="sec-head"><div><h3>Requests</h3><p>${DISCOUNTS.filter(d=>d.status==='Pending').length} pending · ${DISCOUNTS.length} total</p></div></div><div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Discount</th><th>Reason</th><th>By</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const s=document.getElementById('dsSave'); if(s)s.onclick=()=>{ const p=document.getElementById('dsPatient').value.trim(); if(!p){toast('Enter patient');return;} DISCOUNTS.push({id:'DS'+Date.now().toString(36),patient:p,pct:Number(document.getElementById('dsPct').value)||0,amount:Number(document.getElementById('dsAmt').value)||0,reason:document.getElementById('dsReason').value.trim(),by:document.getElementById('dsBy').value.trim()||'Front desk',status:'Pending',date:new Date().toISOString().slice(0,10),_ts:Date.now()}); logAudit('Discount','Requested for '+p); persist(); renderMaster(); toast('Request raised'); };
+  body.querySelectorAll('[data-appr]').forEach(b=>b.onclick=()=>{ const d=DISCOUNTS.find(x=>x.id===b.dataset.appr); if(!d)return; d.status='Approved'; d.approver=(ADMIN_CRED&&ADMIN_CRED.user)||'manager'; logAudit('Discount','Approved for '+d.patient); persist(); renderMaster(); toast('Approved'); });
+  body.querySelectorAll('[data-rej]').forEach(b=>b.onclick=()=>{ const d=DISCOUNTS.find(x=>x.id===b.dataset.rej); if(!d)return; d.status='Rejected'; d.approver=(ADMIN_CRED&&ADMIN_CRED.user)||'manager'; logAudit('Discount','Rejected for '+d.patient); persist(); renderMaster(); toast('Rejected'); });
+}
+function renderMdNabh(body){
+  const tot=NABH_METRICS.reduce((a,m)=>({inc:a.inc+(+m.incidents||0),inf:a.inf+(+m.infections||0),med:a.med+(+m.medErrors||0),pd:a.pd+(+m.patientDays||0)}),{inc:0,inf:0,med:0,pd:0});
+  const infRate=tot.pd?(tot.inf/tot.pd*1000):0, medRate=tot.pd?(tot.med/tot.pd*1000):0;
+  const kpi=(l,v)=>`<div class="panel" style="flex:1;min-width:150px;margin:0"><p class="psub" style="margin:0">${l}</p><h2 style="margin:5px 0 0">${v}</h2></div>`;
+  const rows=NABH_METRICS.length?NABH_METRICS.slice().reverse().map((m,i)=>`<tr><td class="sno">${i+1}</td><td>${genEsc(m.period)}</td><td>${m.incidents||0}</td><td>${m.infections||0}</td><td>${m.medErrors||0}</td><td>${m.patientDays||0}</td></tr>`).join(''):'<tr><td class="tempty" colspan="6">No metrics logged yet.</td></tr>';
+  body.innerHTML=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">${kpi('Total incidents',tot.inc)}${kpi('Infection rate /1000 pt-days',infRate.toFixed(2))}${kpi('Med-error rate /1000 pt-days',medRate.toFixed(2))}</div><div class="panel" style="max-width:none;margin-bottom:16px"><h3>NABH automated audit engine</h3><p class="psub">Log quality metrics each period; rates are computed automatically for NABH submission.</p><div class="addgrid"><div class="fld"><label>Period</label><input id="nbPeriod" placeholder="e.g. Jul 2026"></div><div class="fld"><label>Incident reports</label><input id="nbInc" type="number" min="0" placeholder="0"></div><div class="fld"><label>Hospital infections</label><input id="nbInf" type="number" min="0" placeholder="0"></div><div class="fld"><label>Medication errors</label><input id="nbMed" type="number" min="0" placeholder="0"></div><div class="fld"><label>Patient-days</label><input id="nbPd" type="number" min="0" placeholder="0"></div></div><div class="form-actions"><button class="btn" id="nbSave" style="width:auto;padding:12px 22px">Log metrics</button></div></div><div class="sec-head"><div><h3>Metric log</h3><p>${NABH_METRICS.length} period${NABH_METRICS.length===1?'':'s'}</p></div><button class="btn ghost" id="nbCsv" style="width:auto;padding:9px 13px">CSV</button></div><div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Period</th><th>Incidents</th><th>Infections</th><th>Med errors</th><th>Patient-days</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const s=document.getElementById('nbSave'); if(s)s.onclick=()=>{ NABH_METRICS.push({id:'NB'+Date.now().toString(36),period:document.getElementById('nbPeriod').value.trim()||new Date().toISOString().slice(0,7),incidents:Number(document.getElementById('nbInc').value)||0,infections:Number(document.getElementById('nbInf').value)||0,medErrors:Number(document.getElementById('nbMed').value)||0,patientDays:Number(document.getElementById('nbPd').value)||0,_ts:Date.now()}); logAudit('NABH','Metrics logged'); persist(); renderMaster(); toast('Logged'); };
+  const cv=document.getElementById('nbCsv'); if(cv)cv.onclick=()=>exportCSV('nabh_metrics',['Period','Incidents','Infections','MedErrors','PatientDays'],NABH_METRICS.map(m=>[m.period,m.incidents,m.infections,m.medErrors,m.patientDays]));
+}
+function renderMdConsent(body){
+  const rows=CONSENTS.length?CONSENTS.slice().reverse().map((c,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(c.patient)}</b></td><td>${genEsc(c.purpose)}</td><td>${genEsc(c.scope)}</td><td>${c.granted?'<span class="pill g">Granted</span>':'<span class="pill r">Revoked</span>'}</td><td>${genEsc(c.date)}</td><td><button class="btn ghost tiny" data-cons="${c.id}" style="width:auto;padding:6px 10px">${c.granted?'Revoke':'Grant'}</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="7">No consent records yet.</td></tr>';
+  body.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>DPDP consent management</h3><p class="psub">Explicit, purpose-bound digital consent for accessing or sharing patient records. Every access is logged in the audit trail.</p><div class="addgrid"><div class="fld"><label>Patient</label><input id="cnPatient" placeholder="Name"></div><div class="fld"><label>Purpose</label><select id="cnPurpose"><option>Treatment</option><option>Insurance / TPA claim</option><option>Referral</option><option>Research (anonymised)</option><option>Health information exchange</option></select></div><div class="fld"><label>Scope</label><select id="cnScope"><option>Full record</option><option>Demographics only</option><option>Diagnosis &amp; billing</option><option>Lab results</option></select></div></div><div class="form-actions"><button class="btn" id="cnSave" style="width:auto;padding:12px 22px">Record consent</button></div></div><div class="sec-head"><div><h3>Consent register</h3><p>${CONSENTS.filter(c=>c.granted).length} active · ${CONSENTS.length} total</p></div></div><div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Purpose</th><th>Scope</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const s=document.getElementById('cnSave'); if(s)s.onclick=()=>{ const p=document.getElementById('cnPatient').value.trim(); if(!p){toast('Enter patient');return;} CONSENTS.push({id:'CN'+Date.now().toString(36),patient:p,purpose:document.getElementById('cnPurpose').value,scope:document.getElementById('cnScope').value,granted:true,date:new Date().toISOString().slice(0,10),_ts:Date.now()}); logAudit('Consent','Granted · '+document.getElementById('cnPurpose').value,p); persist(); renderMaster(); toast('Consent recorded'); };
+  body.querySelectorAll('[data-cons]').forEach(b=>b.onclick=()=>{ const c=CONSENTS.find(x=>x.id===b.dataset.cons); if(!c)return; c.granted=!c.granted; logAudit('Consent',(c.granted?'Granted':'Revoked')+' · '+c.purpose,c.patient); persist(); renderMaster(); });
+}
+function renderMdLis(body){
+  const rows=LIS_RESULTS.length?LIS_RESULTS.slice().reverse().map((r,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(r.patient)}</b></td><td>${genEsc(r.analyzer)}</td><td>${genEsc(r.test)}</td><td>${genEsc(r.value)} ${genEsc(r.unit||'')}</td><td><span class="pill ${r.flag==='High'||r.flag==='Low'?'r':'g'}">${genEsc(r.flag||'Normal')}</span></td><td>${genEsc(r.date)}</td></tr>`).join(''):'<tr><td class="tempty" colspan="7">No results received. Connect an analyzer bridge on the server, or add / simulate a result.</td></tr>';
+  body.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>LIS machine interfacing</h3><p class="psub">Bi-directional analyzer results flow straight to the EMR — no manual typing. Live hardware needs an HL7/ASTM bridge on the server; you can add or simulate results below.</p><div class="addgrid"><div class="fld"><label>Patient</label><input id="lsPatient" placeholder="Name"></div><div class="fld"><label>Analyzer</label><select id="lsAnalyzer"><option>Biochemistry</option><option>Hematology</option><option>Immunoassay</option><option>Urine</option></select></div><div class="fld"><label>Test</label><input id="lsTest" placeholder="e.g. Hemoglobin"></div><div class="fld"><label>Value</label><input id="lsValue" placeholder="Result"></div><div class="fld"><label>Unit</label><input id="lsUnit" placeholder="g/dL"></div><div class="fld"><label>Flag</label><select id="lsFlag"><option>Normal</option><option>High</option><option>Low</option></select></div></div><div class="form-actions"><button class="btn" id="lsSave" style="width:auto;padding:12px 22px">Push to EMR</button><button class="btn ghost" id="lsSim" style="width:auto;padding:12px 22px">Simulate analyzer push</button></div></div><div class="sec-head"><div><h3>Results inbox</h3><p>${LIS_RESULTS.length} result${LIS_RESULTS.length===1?'':'s'}</p></div><button class="btn ghost" id="lsCsv" style="width:auto;padding:9px 13px">CSV</button></div><div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Analyzer</th><th>Test</th><th>Result</th><th>Flag</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const push=(o)=>{ LIS_RESULTS.push(Object.assign({id:'LS'+Date.now().toString(36)+Math.random().toString(36).slice(2,4),date:new Date().toISOString().slice(0,10),_ts:Date.now()},o)); logAudit('LIS',o.test+' → EMR',o.patient); persist(); renderMaster(); };
+  const s=document.getElementById('lsSave'); if(s)s.onclick=()=>{ const p=document.getElementById('lsPatient').value.trim(); if(!p){toast('Enter patient');return;} push({patient:p,analyzer:document.getElementById('lsAnalyzer').value,test:document.getElementById('lsTest').value.trim()||'Test',value:document.getElementById('lsValue').value.trim(),unit:document.getElementById('lsUnit').value.trim(),flag:document.getElementById('lsFlag').value}); toast('Pushed to EMR'); };
+  const sim=document.getElementById('lsSim'); if(sim)sim.onclick=()=>{ const samples=[['Hemoglobin','9.1','g/dL','Low','Hematology'],['Glucose (F)','180','mg/dL','High','Biochemistry'],['Creatinine','1.0','mg/dL','Normal','Biochemistry']]; const x=samples[Math.floor(Math.random()*samples.length)]; push({patient:document.getElementById('lsPatient').value.trim()||'Ward patient',analyzer:x[4],test:x[0],value:x[1],unit:x[2],flag:x[3]}); toast('Analyzer result received'); };
+  const cv=document.getElementById('lsCsv'); if(cv)cv.onclick=()=>exportCSV('lis_results',['Patient','Analyzer','Test','Value','Unit','Flag','Date'],LIS_RESULTS.map(r=>[r.patient,r.analyzer,r.test,r.value,r.unit,r.flag,r.date]));
+}
+function renderMdVoice(body){
+  const SR=(typeof window!=='undefined')&&(window.SpeechRecognition||window.webkitSpeechRecognition);
+  const rows=EMR_NOTES.length?EMR_NOTES.slice().reverse().map((n,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(n.patient)}</b></td><td style="max-width:320px">${genEsc(n.text)}</td><td>${(n.codes||[]).map(c=>`<span class="pill b" style="margin:1px">${genEsc(String(c).split(' — ')[0])}</span>`).join(' ')||'—'}</td><td>${genEsc(n.date)}</td></tr>`).join(''):'<tr><td class="tempty" colspan="5">No notes yet.</td></tr>';
+  body.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>AI voice-to-EMR &amp; medical coding</h3><p class="psub">Dictate a clinical note; it is transcribed and diagnoses are auto-mapped to ICD-10 codes. ${SR?'':'<b>Voice capture is not available in this browser</b> — type the note and it will still be coded.'}</p><div class="addgrid"><div class="fld"><label>Patient</label><input id="vcPatient" placeholder="Name"></div></div><div class="fld full"><label>Clinical note</label><textarea id="vcText" placeholder="Dictate or type the note…" style="min-height:110px"></textarea></div><div class="form-actions"><button class="btn ghost" id="vcMic" style="width:auto;padding:12px 20px">🎙 Start dictation</button><button class="btn ghost" id="vcCode" style="width:auto;padding:12px 20px">Map ICD-10</button><button class="btn" id="vcSave" style="width:auto;padding:12px 22px">Save to EMR</button></div><div id="vcCodes" style="margin-top:10px;color:var(--muted);font-size:12.5px"></div></div><div class="sec-head"><div><h3>EMR notes</h3><p>${EMR_NOTES.length} note${EMR_NOTES.length===1?'':'s'}</p></div></div><div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Note</th><th>ICD-10</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  let _rec=null;
+  const showCodes=()=>{ const codes=mapIcd(document.getElementById('vcText').value); const box=document.getElementById('vcCodes'); if(box)box.innerHTML=codes.length?('Suggested ICD-10: '+codes.map(c=>`<span class="pill b" style="margin:2px">${genEsc(c)}</span>`).join(' ')):'No ICD-10 match found in the loaded library.'; return codes; };
+  const code=document.getElementById('vcCode'); if(code)code.onclick=showCodes;
+  const mic=document.getElementById('vcMic');
+  if(mic)mic.onclick=()=>{ if(!SR){toast('Voice not supported here — type the note');return;} if(_rec){_rec.stop();_rec=null;mic.textContent='🎙 Start dictation';return;} _rec=new SR(); _rec.continuous=true; _rec.interimResults=false; _rec.onresult=(e)=>{ let t=''; for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript; const ta=document.getElementById('vcText'); if(ta)ta.value=(ta.value+' '+t).trim(); showCodes(); }; _rec.onend=()=>{ mic.textContent='🎙 Start dictation'; }; _rec.start(); mic.textContent='⏹ Stop'; };
+  const s=document.getElementById('vcSave'); if(s)s.onclick=()=>{ const p=document.getElementById('vcPatient').value.trim(); const txt=document.getElementById('vcText').value.trim(); if(!p||!txt){toast('Enter patient and note');return;} EMR_NOTES.push({id:'EN'+Date.now().toString(36),patient:p,text:txt,codes:mapIcd(txt),date:new Date().toISOString().slice(0,10),_ts:Date.now()}); logAudit('EMR','Voice note saved',p); persist(); renderMaster(); toast('Saved to EMR'); };
+}
+function renderMdDischargeLock(body){
+  const cleared=Object.keys(DISCHARGE_CLEARED).filter(k=>DISCHARGE_CLEARED[k]);
+  const items=(DISCHARGE_LOCK.items||[]).map(x=>`<li>${genEsc(x)}</li>`).join('');
+  body.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><div class="sec-head" style="border:0;padding:0;margin:0 0 6px"><div><h3 style="margin:0">Discharge lock</h3><p class="psub" style="margin:2px 0 0">Blocks IPD discharge until clinical clearance is confirmed.</p></div><button class="btn ghost" id="dlToggle" style="width:auto;padding:8px 16px">${DISCHARGE_LOCK.enabled?'Enabled':'Disabled'}</button></div><p style="margin:6px 0 4px;font-weight:700">Mandatory before discharge</p><ul style="margin:0 0 8px 18px;color:var(--muted);font-size:12.5px">${items}</ul></div><div class="panel" style="max-width:none;margin-bottom:16px"><h3>Clear a patient for discharge</h3><p class="psub">Confirm the mandatory items are complete for this patient. Only then can IPD discharge them.</p><div class="addgrid"><div class="fld"><label>Patient name</label><input id="dlName" placeholder="Exact admitted name"></div></div><div class="form-actions"><button class="btn" id="dlClear" style="width:auto;padding:12px 22px">Confirm clearance</button></div></div><div class="sec-head"><div><h3>Cleared patients</h3><p>${cleared.length} cleared</p></div></div><div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Action</th></tr></thead><tbody>${cleared.length?cleared.map((k,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(k)}</b></td><td><button class="btn ghost tiny" data-uncl="${genAttr(k)}" style="width:auto;padding:6px 10px">Revoke</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="3">No patients cleared yet.</td></tr>'}</tbody></table></div>`;
+  const t=document.getElementById('dlToggle'); if(t)t.onclick=()=>{ DISCHARGE_LOCK.enabled=!DISCHARGE_LOCK.enabled; logAudit('Discharge lock',DISCHARGE_LOCK.enabled?'Enabled':'Disabled'); persist(); renderMaster(); };
+  const c=document.getElementById('dlClear'); if(c)c.onclick=()=>{ const n=document.getElementById('dlName').value.trim(); if(!n){toast('Enter patient name');return;} DISCHARGE_CLEARED[_norm(n)]=true; logAudit('Discharge lock','Cleared for discharge',n); persist(); renderMaster(); toast(n+' cleared'); };
+  body.querySelectorAll('[data-uncl]').forEach(b=>b.onclick=()=>{ delete DISCHARGE_CLEARED[_norm(b.dataset.uncl)]; persist(); renderMaster(); });
+}
+function renderMdAbha(body){
+  const rows=ABHA_REG.length?ABHA_REG.slice().reverse().map((r,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(r.name)}</b></td><td>${genEsc(r.abha)}</td><td>${genEsc(r.phone||'—')}</td><td>${r.consent?'<span class="pill g">Consented</span>':'<span class="pill r">No consent</span>'}</td><td>${genEsc(r.date)}</td></tr>`).join(''):'<tr><td class="tempty" colspan="6">No ABHA check-ins yet.</td></tr>';
+  body.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>ABHA check-in (ABDM)</h3><p class="psub">Register a patient by their 14-digit ABHA number. Live verification against the ABDM gateway needs your facility's ABDM credentials on the server — until then this records the ABHA locally with consent.</p><div class="addgrid"><div class="fld"><label>ABHA number</label><input id="abNum" inputmode="numeric" placeholder="14-digit ABHA" maxlength="17"></div><div class="fld"><label>Patient name</label><input id="abName" placeholder="Full name"></div><div class="fld"><label>Mobile</label><input id="abPhone" placeholder="Phone"></div><div class="fld"><label>Consent</label><select id="abConsent"><option value="yes">Consent given</option><option value="no">Not given</option></select></div></div><div class="form-actions"><button class="btn" id="abSave" style="width:auto;padding:12px 22px">Check in</button><button class="btn ghost" id="abVerify" style="width:auto;padding:12px 22px">Verify with ABDM</button></div></div><div class="sec-head"><div><h3>ABHA register</h3><p>${ABHA_REG.length} check-in${ABHA_REG.length===1?'':'s'}</p></div><button class="btn ghost" id="abCsv" style="width:auto;padding:9px 13px">CSV</button></div><div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Name</th><th>ABHA</th><th>Mobile</th><th>Consent</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const num=document.getElementById('abNum'); if(num)num.oninput=()=>{ num.value=abhaFmt(num.value); };
+  const s=document.getElementById('abSave'); if(s)s.onclick=()=>{ const digits=(document.getElementById('abNum').value||'').replace(/\D/g,''); const name=document.getElementById('abName').value.trim(); if(digits.length!==14){toast('ABHA must be 14 digits');return;} if(!name){toast('Enter patient name');return;} const consent=document.getElementById('abConsent').value==='yes'; ABHA_REG.push({id:'AB'+Date.now().toString(36),name,abha:abhaFmt(digits),phone:document.getElementById('abPhone').value.trim(),consent,date:new Date().toISOString().slice(0,10),_ts:Date.now()}); if(consent)CONSENTS.push({id:'CN'+Date.now().toString(36),patient:name,purpose:'ABHA registration',scope:'Demographics only',granted:true,date:new Date().toISOString().slice(0,10),_ts:Date.now()}); logAudit('ABHA','Checked in via ABHA',name); persist(); renderMaster(); toast('Checked in'); };
+  const v=document.getElementById('abVerify'); if(v)v.onclick=()=>toast('ABDM verification needs facility credentials configured on the server');
+  const cv=document.getElementById('abCsv'); if(cv)cv.onclick=()=>exportCSV('abha_register',['Name','ABHA','Mobile','Consent','Date'],ABHA_REG.map(r=>[r.name,r.abha,r.phone,r.consent?'Yes':'No',r.date]));
+}
+/* ===================== DEPARTMENTS (full module) ===================== */
+let DEPARTMENTS=[], _dpOpen=null, _dpTab='overview', _dpEdit=null;
+const DEPT_SEED=[
+  ['General Medicine','GEN','Clinical'],['Cardiology','CARD','Clinical'],['Neurology','NEURO','Clinical'],
+  ['Orthopaedics','ORTHO','Clinical'],['Paediatrics','PAED','Clinical'],['Gynaecology','GYN','Clinical'],
+  ['ENT','ENT','Clinical'],['Dermatology','DERM','Clinical'],['Emergency','EMG','Emergency'],
+  ['ICU','ICU','Critical care'],['Laboratory','LAB','Diagnostic'],['Radiology','RAD','Diagnostic'],
+  ['Pharmacy','PHAR','Support'],['Billing','BILL','Administrative'],['Insurance','INS','Administrative'],
+  ['Operation Theatre','OT','Surgical'],['Physiotherapy','PHYSIO','Therapy']
+];
+const DEPT_TYPES=['Clinical','Emergency','Critical care','Diagnostic','Surgical','Therapy','Support','Administrative'];
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+function seedDepartments(){
+  DEPARTMENTS=DEPARTMENTS||[];
+  DEPT_SEED.forEach(([name,code,type])=>{
+    const id='DP_'+code;
+    if(!DEPARTMENTS.some(d=>d.id===id)) DEPARTMENTS.push({
+      id,name,code,type,head:'',floor:'',room:'',
+      days:['Mon','Tue','Wed','Thu','Fri','Sat'],open:'09:00',close:'17:00',
+      emergency:(type==='Emergency'||type==='Critical care'),
+      limit:50,tokenPrefix:code.slice(0,3),tokenStart:1,
+      services:[],rooms:[],equipment:[],active:true,_ts:0
+    });
+  });
+}
+const deptFind=id=>DEPARTMENTS.find(d=>d.id===id)||null;
+function deptDoctors(d){ return (typeof MD_DOCTORS!=='undefined'?MD_DOCTORS:[]).filter(x=>_norm(x.dept)===_norm(d.name)); }
+function deptStaff(d){ return (typeof MD_STAFF!=='undefined'?MD_STAFF:[]).filter(x=>_norm(x.dept)===_norm(d.name)); }
+function deptQueue(d){ return (typeof QUEUE!=='undefined'?QUEUE:[]).filter(q=>_norm(q.dept)===_norm(d.name)); }
+function deptWaiting(d){ return deptQueue(d).filter(q=>q.status==='waiting').length; }
+function deptCompleted(d){ return deptQueue(d).filter(q=>q.status==='done').length; }
+function deptCancelled(d){ return deptQueue(d).filter(q=>q.status==='cancelled'||q.status==='noshow').length; }
+function deptRevenue(d){
+  const fromBills=(typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).filter(b=>_norm(b.dept)===_norm(d.name)).reduce((a,b)=>a+(Number(b.amount)||0),0);
+  const fromCharges=(typeof CHARGES!=='undefined'?CHARGES:[]).filter(c=>_norm(c.module)===_norm(d.name)||_norm(c.source)===_norm(d.name)).reduce((a,c)=>a+(Number(c.amount)||0),0);
+  return fromBills+fromCharges;
+}
+function deptNextToken(d){ return (d.tokenPrefix||'T')+'-'+((Number(d.tokenStart)||1)+deptQueue(d).length); }
+function deptSlotsLeft(d){ return Math.max(0,(Number(d.limit)||0)-deptQueue(d).length); }
+function deptOpenNow(d){
+  if(!d.active) return false;
+  const now=new Date(), day=DAYS[(now.getDay()+6)%7];
+  const hhmm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  if(!(d.days||[]).includes(day)) return false;
+  return hhmm>=String(d.open||'00:00') && hhmm<=String(d.close||'23:59');
+}
+function deptServiceTotal(d){ return (d.services||[]).filter(s=>s.active!==false).reduce((a,s)=>a+(Number(s.charge)||0),0); }
+/* per-doctor timings inside a department (falls back to department hours) */
+function docTiming(d,docName){
+  const t=(d.docTimings||{})[_norm(docName)];
+  return t||{days:(d.days||[]).slice(),open:d.open||'09:00',close:d.close||'17:00',slot:15,inherit:true};
+}
+function setDocTiming(d,docName,t){
+  d.docTimings=d.docTimings||{};
+  d.docTimings[_norm(docName)]={days:t.days||[],open:t.open||'',close:t.close||'',slot:Number(t.slot)||15,inherit:false};
+}
+function clearDocTiming(d,docName){ if(d.docTimings) delete d.docTimings[_norm(docName)]; }
+function docSlots(d,docName){
+  const t=docTiming(d,docName);
+  const o=String(t.open||'').split(':').map(Number), c=String(t.close||'').split(':').map(Number);
+  if(o.length<2||c.length<2||isNaN(o[0])||isNaN(c[0])) return 0;
+  const mins=(c[0]*60+(c[1]||0))-(o[0]*60+(o[1]||0)); const per=Number(t.slot)||15;
+  return mins>0?Math.floor(mins/per):0;
+}
+function docAvailableOn(d,docName,day){
+  if(d.active===false) return false;
+  return (docTiming(d,docName).days||[]).includes(day);
+}
+
+function renderMdDepartments(body){
+  if(_dpOpen){ renderDeptPage(body); return; }
+  const q=_norm(_mdlQuery);
+  const list=q?DEPARTMENTS.filter(d=>_norm(d.name).includes(q)||_norm(d.code).includes(q)):DEPARTMENTS;
+  const rows=list.length?list.map((d,i)=>`<tr>
+      <td class="sno">${i+1}</td>
+      <td><b>${genEsc(d.name)}</b><br><span style="color:var(--muted);font-size:11px">${genEsc(d.code)}</span></td>
+      <td>${genEsc(d.type||'—')}</td><td>${genEsc(d.head||'—')}</td>
+      <td>${genEsc(d.floor?('Floor '+d.floor):'—')}${d.room?' · Rm '+genEsc(d.room):''}</td>
+      <td>${deptDoctors(d).length} / ${deptStaff(d).length}</td>
+      <td>${d.emergency?'<span class="pill r">24×7</span>':'<span class="pill b">'+genEsc(d.open||'')+'–'+genEsc(d.close||'')+'</span>'}</td>
+      <td><b>${deptWaiting(d)}</b></td><td>${money(deptRevenue(d))}</td>
+      <td>${d.active===false?'<span class="pill r">Inactive</span>':(deptOpenNow(d)?'<span class="pill g">Open now</span>':'<span class="pill a">Closed</span>')}</td>
+      <td><a href="#" class="dp-open" data-dp="${d.id}" style="color:var(--brand);font-weight:700;text-decoration:none">Open</a></td>
+    </tr>`).join(''):'<tr><td class="tempty" colspan="11">No departments found.</td></tr>';
+  const tot={docs:0,waiting:0,rev:0};
+  DEPARTMENTS.forEach(d=>{ tot.docs+=deptDoctors(d).length; tot.waiting+=deptWaiting(d); tot.rev+=deptRevenue(d); });
+  body.innerHTML=`
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kbig"><div class="kt">Departments</div><b>${DEPARTMENTS.length}</b><div class="ks">${DEPARTMENTS.filter(d=>d.active!==false).length} active</div></div>
+      <div class="kbig"><div class="kt">Doctors mapped</div><b>${tot.docs}</b><div class="ks">across departments</div></div>
+      <div class="kbig"><div class="kt">Patients waiting</div><b>${tot.waiting}</b><div class="ks">live queue</div></div>
+      <div class="kbig"><div class="kt">Total revenue</div><b>${money(tot.rev)}</b><div class="ks">bills + charges</div></div>
+    </div>
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>${_dpEdit?'Edit department':'Add department'}</h3>
+      <div class="addgrid">
+        <div class="fld"><label>Department name</label><input id="dpName" value="${_dpEdit?genAttr(_dpEdit.name):''}" placeholder="e.g. Cardiology"></div>
+        <div class="fld"><label>Code</label><input id="dpCode" value="${_dpEdit?genAttr(_dpEdit.code):''}" placeholder="e.g. CARD"></div>
+        <div class="fld"><label>Type</label><select id="dpType">${DEPT_TYPES.map(t=>`<option ${_dpEdit&&_dpEdit.type===t?'selected':''}>${t}</option>`).join('')}</select></div>
+        <div class="fld"><label>Department head</label><input id="dpHead" list="docNameList" value="${_dpEdit?genAttr(_dpEdit.head||''):''}" placeholder="Doctor name"></div>
+        <div class="fld"><label>Floor</label><input id="dpFloor" value="${_dpEdit?genAttr(_dpEdit.floor||''):''}" placeholder="e.g. 2"></div>
+        <div class="fld"><label>Room number</label><input id="dpRoom" value="${_dpEdit?genAttr(_dpEdit.room||''):''}" placeholder="e.g. 204"></div>
+        <div class="fld"><label>Opens</label><input id="dpOpenT" type="time" value="${_dpEdit?genAttr(_dpEdit.open||'09:00'):'09:00'}"></div>
+        <div class="fld"><label>Closes</label><input id="dpCloseT" type="time" value="${_dpEdit?genAttr(_dpEdit.close||'17:00'):'17:00'}"></div>
+        <div class="fld"><label>Daily patient limit</label><input id="dpLimit" type="number" min="0" value="${_dpEdit?genAttr(String(_dpEdit.limit||50)):'50'}"></div>
+        <div class="fld"><label>Token prefix</label><input id="dpTokP" value="${_dpEdit?genAttr(_dpEdit.tokenPrefix||''):''}" placeholder="e.g. CAR"></div>
+        <div class="fld"><label>Token starts at</label><input id="dpTokS" type="number" min="1" value="${_dpEdit?genAttr(String(_dpEdit.tokenStart||1)):'1'}"></div>
+        <div class="fld"><label>Emergency service</label><select id="dpEmg"><option value="no" ${_dpEdit&&!_dpEdit.emergency?'selected':''}>Not available</option><option value="yes" ${_dpEdit&&_dpEdit.emergency?'selected':''}>Available 24×7</option></select></div>
+        <div class="fld full"><label>Working days</label><div style="display:flex;gap:10px;flex-wrap:wrap;padding:4px 0">${DAYS.map(dd=>`<label style="display:flex;align-items:center;gap:5px;font-weight:600;font-size:12.5px"><input type="checkbox" class="dp-day" value="${dd}" ${(!_dpEdit||(_dpEdit.days||[]).includes(dd))&&(_dpEdit||dd!=='Sun')?'checked':''}>${dd}</label>`).join('')}</div></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="dpSave" style="width:auto;padding:12px 22px">${_dpEdit?'Update department':'Add department'}</button>${_dpEdit?'<button class="btn ghost" id="dpCancel" style="width:auto;padding:12px 22px">Cancel</button>':''}</div>
+    </div>
+    <div class="sec-head">
+      <div><h3>Departments</h3><p>${list.length} of ${DEPARTMENTS.length} · click <b>Open</b> for the full department page</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn ghost" id="dpCsv" style="width:auto;padding:9px 13px">CSV</button>
+        <input id="mdlSearch" value="${genAttr(_mdlQuery)}" placeholder="Search department…" style="border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13px;background:var(--bg);color:var(--ink)">
+      </div>
+    </div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Department</th><th>Type</th><th>Head</th><th>Location</th><th>Doc/Staff</th><th>Timings</th><th>Waiting</th><th>Revenue</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const srch=document.getElementById('mdlSearch'); if(srch)srch.oninput=function(){ _mdlQuery=this.value; renderMaster(); setTimeout(()=>{const s=document.getElementById('mdlSearch'); if(s){s.focus();s.setSelectionRange(s.value.length,s.value.length);} },0); };
+  body.querySelectorAll('.dp-open').forEach(a=>a.onclick=e=>{ e.preventDefault(); _dpOpen=a.dataset.dp; _dpTab='overview'; renderMaster(); });
+  const sv=document.getElementById('dpSave'); if(sv)sv.onclick=()=>{
+    const name=document.getElementById('dpName').value.trim(); if(!name){toast('Enter department name');return;}
+    const days=[...document.querySelectorAll('.dp-day:checked')].map(x=>x.value);
+    const vals={ name, code:document.getElementById('dpCode').value.trim()||name.slice(0,4).toUpperCase(),
+      type:document.getElementById('dpType').value, head:document.getElementById('dpHead').value.trim(),
+      floor:document.getElementById('dpFloor').value.trim(), room:document.getElementById('dpRoom').value.trim(),
+      open:document.getElementById('dpOpenT').value, close:document.getElementById('dpCloseT').value,
+      limit:Number(document.getElementById('dpLimit').value)||0, tokenPrefix:document.getElementById('dpTokP').value.trim(),
+      tokenStart:Number(document.getElementById('dpTokS').value)||1, emergency:document.getElementById('dpEmg').value==='yes', days };
+    if(_dpEdit){ Object.assign(_dpEdit,vals); _dpEdit._ts=Date.now(); toast('Department updated'); logAudit('Department','Updated · '+name); _dpEdit=null; }
+    else { DEPARTMENTS.push(Object.assign({id:'DP'+Date.now().toString(36),services:[],rooms:[],equipment:[],active:true,_ts:Date.now()},vals)); toast(name+' added'); logAudit('Department','Added · '+name); }
+    persist(); renderMaster();
+  };
+  const cn=document.getElementById('dpCancel'); if(cn)cn.onclick=()=>{ _dpEdit=null; renderMaster(); };
+  const cv=document.getElementById('dpCsv'); if(cv)cv.onclick=()=>exportCSV('departments',['Name','Code','Type','Head','Floor','Room','Days','Open','Close','Emergency','Limit','Doctors','Staff','Waiting','Revenue','Status'],
+    DEPARTMENTS.map(d=>[d.name,d.code,d.type,d.head,d.floor,d.room,(d.days||[]).join(' '),d.open,d.close,d.emergency?'Yes':'No',d.limit,deptDoctors(d).length,deptStaff(d).length,deptWaiting(d),deptRevenue(d),d.active===false?'Inactive':'Active']));
+}
+
+const DP_TABS=[['overview','Overview'],['doctors','Doctors'],['staff','Staff'],['services','Services'],['queue','Queue'],['billing','Billing'],['reports','Reports'],['settings','Settings']];
+function renderDeptPage(body){
+  const d=deptFind(_dpOpen); if(!d){ _dpOpen=null; renderMaster(); return; }
+  const seg=DP_TABS.map(([k,l])=>`<button data-dptab="${k}" class="${_dpTab===k?'active':''}">${l}</button>`).join('');
+  body.innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="btn ghost" id="dpBack" style="width:auto;padding:9px 14px">← All departments</button>
+      <div><h2 style="margin:0;font-size:20px">${genEsc(d.name)} <span style="color:var(--muted);font-size:13px">(${genEsc(d.code)})</span></h2>
+        <p class="psub" style="margin:2px 0 0">${genEsc(d.type||'')} · ${d.floor?'Floor '+genEsc(d.floor):'—'}${d.room?' · Room '+genEsc(d.room):''} · Head: ${genEsc(d.head||'not set')}</p></div>
+      <span style="margin-left:auto">${d.active===false?'<span class="pill r">Inactive</span>':(deptOpenNow(d)?'<span class="pill g">Open now</span>':'<span class="pill a">Closed</span>')}${d.emergency?' <span class="pill r">Emergency 24×7</span>':''}</span>
+    </div>
+    <div class="seg" style="flex-wrap:wrap">${seg}</div>
+    <div id="dpBody"></div>`;
+  document.getElementById('dpBack').onclick=()=>{ _dpOpen=null; renderMaster(); };
+  body.querySelectorAll('[data-dptab]').forEach(b=>b.onclick=()=>{ _dpTab=b.dataset.dptab; renderMaster(); });
+  renderDeptTab(d,document.getElementById('dpBody'));
+}
+function renderDeptTab(d,el){
+  if(!el)return;
+  const kpi=(t,v,s)=>`<div class="kbig"><div class="kt">${t}</div><b>${v}</b><div class="ks">${s||''}</div></div>`;
+  if(_dpTab==='overview'){
+    el.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+        ${kpi('Waiting',deptWaiting(d),'in queue now')}${kpi('Completed',deptCompleted(d),'consultations')}
+        ${kpi('Cancelled',deptCancelled(d),'no-show / cancelled')}${kpi('Revenue',money(deptRevenue(d)),'bills + charges')}</div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-top:12px">
+        ${kpi('Doctors',deptDoctors(d).length,'assigned')}${kpi('Staff',deptStaff(d).length,'assigned')}
+        ${kpi('Slots left',deptSlotsLeft(d),'of '+(d.limit||0)+' daily limit')}${kpi('Next token',genEsc(deptNextToken(d)),'auto-generated')}</div>
+      <div class="panel" style="max-width:none;margin-top:16px"><h3>Department details</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
+          <div><span class="psub">Working days</span><br><b>${(d.days||[]).join(', ')||'—'}</b></div>
+          <div><span class="psub">Timings</span><br><b>${genEsc(d.open||'—')} – ${genEsc(d.close||'—')}</b></div>
+          <div><span class="psub">Emergency</span><br><b>${d.emergency?'Available 24×7':'Not available'}</b></div>
+          <div><span class="psub">Daily limit</span><br><b>${d.limit||0} patients</b></div>
+          <div><span class="psub">Token format</span><br><b>${genEsc(d.tokenPrefix||'T')}-${d.tokenStart||1}…</b></div>
+          <div><span class="psub">Services</span><br><b>${(d.services||[]).length} · ${money(deptServiceTotal(d))} total</b></div>
+          <div><span class="psub">Rooms</span><br><b>${(d.rooms||[]).length}</b></div>
+          <div><span class="psub">Equipment</span><br><b>${(d.equipment||[]).length}</b></div>
+        </div></div>`;
+  }
+  else if(_dpTab==='doctors'||_dpTab==='staff'){
+    const isDoc=_dpTab==='doctors', list=isDoc?deptDoctors(d):deptStaff(d);
+    const rows=list.length?list.map((x,i)=>{
+      if(!isDoc) return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(x.name)}</b></td><td>${genEsc(x.role||'—')}</td><td>${genEsc(x.contact||x.phone||'—')}</td><td>${genEsc(x.shift||(d.open+'–'+d.close))}</td><td>${x.active===false?'<span class="pill r">Inactive</span>':'<span class="pill g">Active</span>'}</td></tr>`;
+      const t=docTiming(d,x.name);
+      return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(x.name)}</b></td><td>${genEsc(x.qual||'—')}</td><td>${genEsc(x.contact||x.phone||'—')}</td>
+        <td>${genEsc((t.days||[]).join(', ')||'—')}</td>
+        <td>${genEsc(t.open||'—')}–${genEsc(t.close||'—')} ${t.inherit?'<span class="pill b">dept</span>':'<span class="pill g">custom</span>'}</td>
+        <td>${docSlots(d,x.name)} × ${t.slot||15}m</td>
+        <td><button class="btn ghost tiny" data-dtedit="${genAttr(x.name)}" style="width:auto;padding:6px 10px">Set timings</button>${t.inherit?'':` <button class="btn ghost tiny" data-dtclear="${genAttr(x.name)}" style="width:auto;padding:6px 10px">Reset</button>`}</td></tr>`;
+    }).join(''):`<tr><td class="tempty" colspan="${isDoc?8:6}">No ${isDoc?'doctors':'staff'} mapped to ${genEsc(d.name)}. Add them in Master data → ${isDoc?'Doctors':'Staff'} with department “${genEsc(d.name)}”.</td></tr>`;
+    const head=isDoc
+      ? '<th class="sno">S.No</th><th>Doctor</th><th>Qualification</th><th>Contact</th><th>Working days</th><th>Timings</th><th>Slots</th><th>Action</th>'
+      : '<th class="sno">S.No</th><th>Name</th><th>Role</th><th>Contact</th><th>Shift</th><th>Status</th>';
+    el.innerHTML=`<div class="sec-head"><div><h3>${isDoc?'Doctors':'Staff'} — ${genEsc(d.name)}</h3><p>${list.length} ${isDoc?'doctor':'member'}${list.length===1?'':'s'}${isDoc?' · set individual timings or inherit department hours':''}</p></div>
+        <button class="btn ghost" id="dpPeopleCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+      <div class="tablewrap"><table class="dtable"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>
+      ${isDoc?`<div class="panel hidden" id="dtCard" style="max-width:none;margin-top:16px">
+        <h3>Timings — <span id="dtWho"></span></h3>
+        <p class="psub">Override this doctor's schedule inside ${genEsc(d.name)}. Leave as department hours by clicking Reset.</p>
+        <div class="addgrid">
+          <div class="fld"><label>Starts</label><input id="dtOpen" type="time"></div>
+          <div class="fld"><label>Ends</label><input id="dtClose" type="time"></div>
+          <div class="fld"><label>Slot length (minutes)</label><input id="dtSlot" type="number" min="5" step="5" value="15"></div>
+        </div>
+        <div class="fld full"><label>Working days</label><div style="display:flex;gap:10px;flex-wrap:wrap;padding:4px 0">${DAYS.map(dd=>`<label style="display:flex;align-items:center;gap:5px;font-weight:600;font-size:12.5px"><input type="checkbox" class="dt-day" value="${dd}">${dd}</label>`).join('')}</div></div>
+        <div class="form-actions"><button class="btn" id="dtSave" style="width:auto;padding:12px 20px">Save doctor timings</button><button class="btn ghost" id="dtCancel" style="width:auto;padding:12px 20px">Cancel</button></div></div>`:''}`;
+    const cv=document.getElementById('dpPeopleCsv');
+    if(cv)cv.onclick=()=>isDoc
+      ? exportCSV(d.code+'_doctors',['Doctor','Qualification','Contact','Days','Open','Close','SlotMins','Slots','Source'],list.map(x=>{const t=docTiming(d,x.name);return [x.name,x.qual||'',x.contact||x.phone||'',(t.days||[]).join(' '),t.open,t.close,t.slot||15,docSlots(d,x.name),t.inherit?'Department':'Custom'];}))
+      : exportCSV(d.code+'_staff',['Name','Role','Contact','Shift'],list.map(x=>[x.name,x.role||'',x.contact||x.phone||'',x.shift||'']));
+    let _dtWho=null;
+    el.querySelectorAll('[data-dtedit]').forEach(b=>b.onclick=()=>{
+      _dtWho=b.dataset.dtedit; const t=docTiming(d,_dtWho);
+      document.getElementById('dtWho').textContent=_dtWho;
+      document.getElementById('dtOpen').value=t.open||''; document.getElementById('dtClose').value=t.close||'';
+      document.getElementById('dtSlot').value=t.slot||15;
+      el.querySelectorAll('.dt-day').forEach(c=>c.checked=(t.days||[]).includes(c.value));
+      document.getElementById('dtCard').classList.remove('hidden');
+      document.getElementById('dtCard').scrollIntoView({behavior:'smooth',block:'nearest'});
+    });
+    el.querySelectorAll('[data-dtclear]').forEach(b=>b.onclick=()=>{ clearDocTiming(d,b.dataset.dtclear); logAudit('Department','Doctor timings reset · '+b.dataset.dtclear); persist(); renderMaster(); });
+    const dc=document.getElementById('dtCancel'); if(dc)dc.onclick=()=>document.getElementById('dtCard').classList.add('hidden');
+    const ds=document.getElementById('dtSave'); if(ds)ds.onclick=()=>{
+      if(!_dtWho)return;
+      const days=[...el.querySelectorAll('.dt-day:checked')].map(x=>x.value);
+      if(!days.length){toast('Select at least one working day');return;}
+      setDocTiming(d,_dtWho,{days,open:document.getElementById('dtOpen').value,close:document.getElementById('dtClose').value,slot:Number(document.getElementById('dtSlot').value)||15});
+      logAudit('Department',`Doctor timings set · ${_dtWho} (${d.name})`); persist(); renderMaster(); toast('Timings saved');
+    };
+  }
+  else if(_dpTab==='services'){
+    const rows=(d.services||[]).length?d.services.map((s,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(s.name)}</b></td><td>${money(s.charge)}</td><td>${s.active===false?'<span class="pill r">Inactive</span>':'<span class="pill g">Active</span>'}</td><td><button class="btn ghost tiny" data-svtog="${s.id}" style="width:auto;padding:6px 10px">${s.active===false?'Activate':'Deactivate'}</button> <button class="btn ghost tiny" data-svdel="${s.id}" style="width:auto;padding:6px 10px">Remove</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="5">No services yet. Add one below.</td></tr>';
+    el.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>Add service &amp; charge</h3>
+        <p class="psub">Services offered by ${genEsc(d.name)} with their standard charge.</p>
+        <div class="addgrid">
+          <div class="fld"><label>Service name</label><input id="svName" placeholder="e.g. ECHO"></div>
+          <div class="fld"><label>Charge (₹)</label><input id="svAmt" type="number" min="0" placeholder="0"></div>
+        </div>
+        <div class="form-actions"><button class="btn" id="svAdd" style="width:auto;padding:12px 20px">Add service</button></div></div>
+      <div class="sec-head"><div><h3>Services</h3><p>${(d.services||[]).length} service${(d.services||[]).length===1?'':'s'} · ${money(deptServiceTotal(d))} combined</p></div>
+        <button class="btn ghost" id="svCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+      <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Service</th><th>Charge</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    document.getElementById('svAdd').onclick=()=>{ const n=document.getElementById('svName').value.trim(); if(!n){toast('Enter service name');return;}
+      d.services=d.services||[]; d.services.push({id:'SV'+Date.now().toString(36),name:n,charge:Number(document.getElementById('svAmt').value)||0,active:true});
+      logAudit('Department',`Service added · ${n} (${d.name})`); persist(); renderMaster(); toast('Service added'); };
+    el.querySelectorAll('[data-svtog]').forEach(b=>b.onclick=()=>{ const s=(d.services||[]).find(x=>x.id===b.dataset.svtog); if(s){s.active=(s.active===false); persist(); renderMaster();} });
+    el.querySelectorAll('[data-svdel]').forEach(b=>b.onclick=()=>{ d.services=(d.services||[]).filter(x=>x.id!==b.dataset.svdel); persist(); renderMaster(); });
+    const cv=document.getElementById('svCsv'); if(cv)cv.onclick=()=>exportCSV(d.code+'_services',['Service','Charge','Status'],(d.services||[]).map(s=>[s.name,s.charge,s.active===false?'Inactive':'Active']));
+  }
+  else if(_dpTab==='queue'){
+    const q=deptQueue(d);
+    const rows=q.length?q.slice().reverse().map((x,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(x.tok||'—')}</b></td><td>${genEsc(x.name||x.patient||'—')}</td><td>${genEsc(x.doc||'—')}</td><td><span class="pill ${x.status==='done'?'g':x.status==='waiting'?'b':'r'}">${genEsc(x.status||'—')}</span></td></tr>`).join(''):'<tr><td class="tempty" colspan="5">No patients in this department\'s queue.</td></tr>';
+    el.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+        ${kpi('Waiting',deptWaiting(d),'now')}${kpi('Completed',deptCompleted(d),'today')}${kpi('Cancelled',deptCancelled(d),'no-show')}${kpi('Slots left',deptSlotsLeft(d),'of '+(d.limit||0))}</div>
+      <div class="panel" style="max-width:none;margin-top:16px"><h3>Token &amp; queue settings</h3>
+        <div class="addgrid">
+          <div class="fld"><label>Token prefix</label><input id="qTokP" value="${genAttr(d.tokenPrefix||'')}"></div>
+          <div class="fld"><label>Token starts at</label><input id="qTokS" type="number" min="1" value="${genAttr(String(d.tokenStart||1))}"></div>
+          <div class="fld"><label>Daily patient limit</label><input id="qLimit" type="number" min="0" value="${genAttr(String(d.limit||0))}"></div>
+          <div class="fld"><label>Next token</label><input value="${genAttr(deptNextToken(d))}" disabled></div>
+        </div>
+        <div class="form-actions"><button class="btn" id="qSave" style="width:auto;padding:12px 20px">Save queue settings</button></div></div>
+      <div class="sec-head" style="margin-top:16px"><div><h3>Queue</h3><p>${q.length} token${q.length===1?'':'s'} issued</p></div></div>
+      <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Token</th><th>Patient</th><th>Doctor</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    document.getElementById('qSave').onclick=()=>{ d.tokenPrefix=document.getElementById('qTokP').value.trim(); d.tokenStart=Number(document.getElementById('qTokS').value)||1; d.limit=Number(document.getElementById('qLimit').value)||0; persist(); renderMaster(); toast('Queue settings saved'); };
+  }
+  else if(_dpTab==='billing'){
+    const bills=(typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).filter(b=>_norm(b.dept)===_norm(d.name));
+    const chgs=(typeof CHARGES!=='undefined'?CHARGES:[]).filter(c=>_norm(c.module)===_norm(d.name)||_norm(c.source)===_norm(d.name));
+    const all=bills.map(b=>({who:b.patient,item:b.type||b.item||'OPD bill',amt:b.amount,date:b.date,src:'OPD bill'}))
+      .concat(chgs.map(c=>({who:c.patient,item:c.item,amt:c.amount,date:c.date,src:c.source})));
+    const rows=all.length?all.slice().reverse().map((x,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(x.who||'—')}</b></td><td>${genEsc(x.item||'—')}</td><td><span class="pill b">${genEsc(x.src)}</span></td><td>${money(x.amt)}</td><td>${genEsc(x.date||'')}</td></tr>`).join(''):'<tr><td class="tempty" colspan="6">No billing entries for this department yet.</td></tr>';
+    el.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+        ${kpi('Department revenue',money(deptRevenue(d)),'all sources')}${kpi('Entries',all.length,'bills + charges')}${kpi('Service catalogue',money(deptServiceTotal(d)),(d.services||[]).length+' services')}</div>
+      <div class="sec-head" style="margin-top:16px"><div><h3>Billing entries</h3><p>Everything billed under ${genEsc(d.name)}</p></div>
+        <button class="btn ghost" id="dpBillCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+      <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Item</th><th>Source</th><th>Amount</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    const cv=document.getElementById('dpBillCsv'); if(cv)cv.onclick=()=>exportCSV(d.code+'_billing',['Patient','Item','Source','Amount','Date'],all.map(x=>[x.who,x.item,x.src,x.amt,x.date]));
+  }
+  else if(_dpTab==='reports'){
+    const totalSeen=deptCompleted(d)+deptCancelled(d)+deptWaiting(d);
+    const pct=(n)=>totalSeen?Math.round(n/totalSeen*100):0;
+    const bar=(label,n,color)=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:3px"><span>${label}</span><b>${n} (${pct(n)}%)</b></div><div style="height:9px;background:var(--bg);border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct(n)}%;background:${color}"></div></div></div>`;
+    el.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+        ${kpi('Total patients',totalSeen,'all statuses')}${kpi('Completed',deptCompleted(d),pct(deptCompleted(d))+'%')}
+        ${kpi('Cancelled',deptCancelled(d),pct(deptCancelled(d))+'%')}${kpi('Revenue / patient',money(totalSeen?Math.round(deptRevenue(d)/totalSeen):0),'average')}</div>
+      <div class="panel" style="max-width:none;margin-top:16px"><h3>Patient flow</h3>
+        ${bar('Completed',deptCompleted(d),'#16a34a')}${bar('Waiting',deptWaiting(d),'#1f6feb')}${bar('Cancelled / no-show',deptCancelled(d),'#dc2626')}</div>
+      <div class="panel" style="max-width:none;margin-top:16px"><h3>Capacity</h3>
+        ${bar('Slots used',(Number(d.limit)||0)-deptSlotsLeft(d),'#7c3aed')}
+        <p class="psub" style="margin:6px 0 0">${deptSlotsLeft(d)} of ${d.limit||0} daily slots remaining · ${deptDoctors(d).length} doctor(s) on this department.</p></div>`;
+  }
+  else if(_dpTab==='settings'){
+    const rr=(d.rooms||[]).length?d.rooms.map((r,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(r.name)}</b></td><td>${genEsc(r.kind||'—')}</td><td><button class="btn ghost tiny" data-rmdel="${r.id}" style="width:auto;padding:6px 10px">Remove</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="4">No rooms added.</td></tr>';
+    const eq=(d.equipment||[]).length?d.equipment.map((r,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(r.name)}</b></td><td>${genEsc(r.serial||'—')}</td><td>${genEsc(r.status||'Working')}</td><td><button class="btn ghost tiny" data-eqdel="${r.id}" style="width:auto;padding:6px 10px">Remove</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="5">No equipment added.</td></tr>';
+    el.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px">
+        <div class="sec-head" style="border:0;padding:0;margin:0 0 8px"><div><h3 style="margin:0">Department status</h3><p class="psub" style="margin:2px 0 0">Inactive departments are hidden from registration and never show as open.</p></div>
+          <button class="btn ghost" id="dpToggle" style="width:auto;padding:8px 16px">${d.active===false?'Activate':'Deactivate'}</button></div>
+        <div class="form-actions"><button class="btn ghost" id="dpEditBtn" style="width:auto;padding:10px 18px">Edit department details</button></div></div>
+      <div class="panel" style="max-width:none;margin-bottom:16px"><h3>Rooms</h3>
+        <div class="addgrid"><div class="fld"><label>Room name / number</label><input id="rmName" placeholder="e.g. Consult 1"></div>
+          <div class="fld"><label>Type</label><select id="rmKind"><option>Consultation</option><option>Procedure</option><option>Ward</option><option>Theatre</option><option>Store</option></select></div></div>
+        <div class="form-actions"><button class="btn" id="rmAdd" style="width:auto;padding:12px 20px">Add room</button></div>
+        <div class="tablewrap" style="margin-top:10px"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Room</th><th>Type</th><th>Action</th></tr></thead><tbody>${rr}</tbody></table></div></div>
+      <div class="panel" style="max-width:none"><h3>Equipment</h3>
+        <div class="addgrid"><div class="fld"><label>Equipment</label><input id="eqName" placeholder="e.g. ECG machine"></div>
+          <div class="fld"><label>Serial / asset no.</label><input id="eqSerial" placeholder="Optional"></div>
+          <div class="fld"><label>Status</label><select id="eqStatus"><option>Working</option><option>Under maintenance</option><option>Out of order</option></select></div></div>
+        <div class="form-actions"><button class="btn" id="eqAdd" style="width:auto;padding:12px 20px">Add equipment</button></div>
+        <div class="tablewrap" style="margin-top:10px"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Equipment</th><th>Serial</th><th>Status</th><th>Action</th></tr></thead><tbody>${eq}</tbody></table></div></div>`;
+    document.getElementById('dpToggle').onclick=()=>{ d.active=(d.active===false); logAudit('Department',(d.active?'Activated':'Deactivated')+' · '+d.name); persist(); renderMaster(); };
+    document.getElementById('dpEditBtn').onclick=()=>{ _dpEdit=d; _dpOpen=null; renderMaster(); };
+    document.getElementById('rmAdd').onclick=()=>{ const n=document.getElementById('rmName').value.trim(); if(!n){toast('Enter room name');return;}
+      d.rooms=d.rooms||[]; d.rooms.push({id:'RM'+Date.now().toString(36),name:n,kind:document.getElementById('rmKind').value}); persist(); renderMaster(); toast('Room added'); };
+    document.getElementById('eqAdd').onclick=()=>{ const n=document.getElementById('eqName').value.trim(); if(!n){toast('Enter equipment name');return;}
+      d.equipment=d.equipment||[]; d.equipment.push({id:'EQ'+Date.now().toString(36),name:n,serial:document.getElementById('eqSerial').value.trim(),status:document.getElementById('eqStatus').value}); persist(); renderMaster(); toast('Equipment added'); };
+    el.querySelectorAll('[data-rmdel]').forEach(b=>b.onclick=()=>{ d.rooms=(d.rooms||[]).filter(x=>x.id!==b.dataset.rmdel); persist(); renderMaster(); });
+    el.querySelectorAll('[data-eqdel]').forEach(b=>b.onclick=()=>{ d.equipment=(d.equipment||[]).filter(x=>x.id!==b.dataset.eqdel); persist(); renderMaster(); });
+  }
+}
+/* ===================== Department tools: admin features embedded inside modules ===================== */
+let _deptHost=null;
+const DEPT_FEATURES={abha:renderMdAbha,voice:renderMdVoice,charges:renderMdCharges,claims:renderMdClaims,discounts:renderMdDiscounts,consent:renderMdConsent,lis:renderMdLis,dischargeLock:renderMdDischargeLock,nabh:renderMdNabh};
+const DEPT_TOOL_LABELS={abha:'ABHA check-in',voice:'Voice-to-EMR',charges:'Charge capture',claims:'TPA / cashless claim',discounts:'Discount request',consent:'DPDP consent',lis:'LIS results',dischargeLock:'Discharge clearance',nabh:'NABH metrics'};
+function deptToolsFor(name){
+  const n=(name||'').toLowerCase();
+  if(n.includes('opd')||n.includes('consult')) return ['abha','voice','charges','claims','discounts','consent'];
+  if(n.includes('doctor')) return ['voice','charges','claims','consent'];
+  if(n.includes('ipd')||n.includes('ward')||n.includes('inpatient')) return ['charges','claims','dischargeLock','discounts','consent'];
+  if(n.includes('lab')||n.includes('patho')||n.includes('diagn')) return ['lis','charges','consent'];
+  if(n.includes('radio')||n.includes('imaging')||n.includes('scan')||n.includes('sono')) return ['lis','charges','consent'];
+  if(n.includes('pharm')) return ['charges','consent'];
+  if(n.includes('nurs')) return ['charges','voice','dischargeLock'];
+  if(n.includes('mrd')||n.includes('record')) return ['consent','abha','nabh'];
+  if(n.includes('account')||n.includes('billing')||n.includes('finance')||n.includes('revenue')) return ['charges','claims','discounts'];
+  if(n.includes('quality')||n.includes('nabh')) return ['nabh','consent'];
+  return ['abha','charges','claims','consent','voice'];
+}
+function renderDeptTools(name,barId,hostId){
+  const bar=document.getElementById(barId); if(!bar)return;
+  _deptHost=null; if(typeof _deptCtx!=='undefined')_deptCtx=name; const host=document.getElementById(hostId); if(host)host.innerHTML='';
+  const tools=deptToolsFor(name);
+  bar.innerHTML='<span style="font-weight:800;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);align-self:center;margin-right:4px">Tools</span>'+tools.map(k=>`<button data-tool="${k}" class="btn ghost" style="width:auto;padding:8px 13px">${DEPT_TOOL_LABELS[k]||k}</button>`).join('');
+  bar.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{ const k=b.dataset.tool; const h=document.getElementById(hostId); if(!h||!DEPT_FEATURES[k])return; _deptHost={key:k,elId:hostId}; DEPT_FEATURES[k](h); bar.querySelectorAll('[data-tool]').forEach(x=>x.classList.toggle('active',x===b)); h.scrollIntoView({behavior:'smooth',block:'nearest'}); });
+}
+/* ===================== Billing: standard rates, receipts & overcharge alerts ===================== */
+let VARIANCE_ALERTS=[], _deptCtx='Admin';
+const STDRATE_SEED=[['OPD Consultation','OPD',300],['OPD Follow-up','OPD',150],['OPD Token','OPD',50],['Casualty / Emergency','OPD',500],['General Ward / day','IPD',1500],['ICU / day','IPD',5000],['Dressing','Nursing',200],['ECG','Laboratory',300],['X-Ray','Radiology',400]];
+function stdRateFor(item,module){ const list=(MD_LISTS.stdRates||[]).filter(x=>x.active!==false); let m=list.find(x=>_norm(x.name)===_norm(item)&&(!module||_norm(x.module||'')===_norm(module))); if(!m)m=list.find(x=>_norm(x.name)===_norm(item)); return m?Number(m.amount)||0:null; }
+function raiseVariance(module,item,expected,charged,by){ VARIANCE_ALERTS.push({id:'V'+Date.now().toString(36)+Math.random().toString(36).slice(2,4),module:module||'—',item:item||'—',expected:Number(expected)||0,charged:Number(charged)||0,diff:(Number(charged)||0)-(Number(expected)||0),by:by||(typeof ADMIN_CRED!=='undefined'&&ADMIN_CRED&&ADMIN_CRED.user)||'staff',date:new Date().toLocaleString(),ack:false,_ts:Date.now()}); if(typeof logAudit==='function')logAudit('Billing alert',`Overcharge in ${module}: ${item} — standard ${money(expected)}, charged ${money(charged)}`,''); }
+function pendingVariance(){ return VARIANCE_ALERTS.filter(v=>!v.ack).length; }
+function printReceipt(o){ if(typeof window==='undefined'||!window.open){ if(typeof toast==='function')toast('Printing available in the browser'); return; } const w=window.open('','_blank','width=380,height=640'); if(!w){toast('Allow pop-ups to print the receipt');return;} const hosp=(typeof MD_HOSPITAL!=='undefined'&&MD_HOSPITAL&&MD_HOSPITAL.name)||'MediCore Hospital'; const lines=(o.lines||[]).map(l=>`<tr><td style="padding:2px 0">${genEsc(l[0])}</td><td style="text-align:right;padding:2px 0">${money(l[1])}</td></tr>`).join(''); w.document.write(`<html><head><title>${genEsc(o.title||'Receipt')}</title></head><body style="font-family:system-ui,Arial;padding:16px;max-width:320px;color:#111"><h2 style="margin:0">${genEsc(hosp)}</h2><div style="color:#666;font-size:12px">${genEsc(o.dept||'')} · ${new Date().toLocaleString()}</div><hr><div style="font-size:13px"><b>Patient:</b> ${genEsc(o.patient||'—')}</div><table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:13px">${lines}<tr><td style="border-top:1px solid #000;font-weight:700;padding-top:4px">Total</td><td style="border-top:1px solid #000;text-align:right;font-weight:700;padding-top:4px">${money(o.total||0)}</td></tr></table><hr><div style="font-size:11px;color:#666">${genEsc(o.note||'Thank you. Get well soon.')}</div></body></html>`); w.document.close(); w.focus(); setTimeout(()=>{try{w.print();}catch(e){}},250); }
+function showVariancePopup(){ if(typeof document==='undefined'||!document.body)return; if(pendingVariance()===0)return; const list=VARIANCE_ALERTS.filter(v=>!v.ack); const byDept={}; list.forEach(v=>{byDept[v.module]=(byDept[v.module]||0)+1;}); let ov=document.getElementById('varAlertOverlay'); if(!ov){ov=document.createElement('div');ov.id='varAlertOverlay';ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:99999;padding:16px';document.body.appendChild(ov);} ov.innerHTML=`<div style="background:#fff;color:#111;max-width:460px;width:100%;border-radius:16px;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.35)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="font-size:26px">⚠️</span><h3 style="margin:0;color:#b91c1c">Billing overcharge alert</h3></div><p style="margin:0 0 12px;color:#666;font-size:13px">${list.length} bill(s) were charged <b>above the standard rate</b> — possible overcharging by staff:</p><div style="max-height:230px;overflow:auto;border:1px solid #eee;border-radius:10px">${list.slice(0,10).map(v=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:9px 12px;border-bottom:1px solid #f0f0f0"><span style="font-size:12.5px"><b>${genEsc(v.module)}</b> · ${genEsc(v.item)}<br><span style="color:#888;font-size:11px">by ${genEsc(v.by)} · ${genEsc(v.date)}</span></span><span style="text-align:right;white-space:nowrap;font-size:12.5px">std ${money(v.expected)}<br><b style="color:#b91c1c">got ${money(v.charged)}</b></span></div>`).join('')}</div><div style="margin-top:10px;font-weight:800;font-size:13px">Departments: ${Object.keys(byDept).map(d=>`${genEsc(d)} (${byDept[d]})`).join(', ')||'—'}</div><div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end"><button class="btn ghost" id="varReview" style="width:auto;padding:10px 16px">Review alerts</button><button class="btn" id="varClose" style="width:auto;padding:10px 16px">Dismiss</button></div></div>`; ov.style.display='flex'; const cl=document.getElementById('varClose'); if(cl)cl.onclick=()=>{ov.style.display='none';}; const rv=document.getElementById('varReview'); if(rv)rv.onclick=()=>{ ov.style.display='none'; mdTab='billingAlerts'; const mb=document.getElementById('mdBody'); if(mb)renderMaster(); else toast('Open Admin → Master data → Billing alerts'); }; }
+function renderMdBilling(body){
+  const rows=VARIANCE_ALERTS.length?VARIANCE_ALERTS.slice().reverse().map((v,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(v.module)}</b></td><td>${genEsc(v.item)}</td><td>${money(v.expected)}</td><td style="color:#b91c1c;font-weight:700">${money(v.charged)}</td><td style="color:#b91c1c">+${money(v.diff)}</td><td>${genEsc(v.by)}</td><td>${genEsc(v.date)}</td><td>${v.ack?'<span class="pill g">Reviewed</span>':`<button class="btn ghost tiny" data-ackv="${v.id}" style="width:auto;padding:6px 10px">Acknowledge</button>`}</td></tr>`).join(''):'<tr><td class="tempty" colspan="9">No billing alerts. Overcharges above the standard rate will appear here.</td></tr>';
+  body.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>Billing overcharge alerts</h3><p class="psub">Raised automatically when any bill is charged above the Standard Rate. Shows the department, the staff member and the extra amount taken.</p></div><div class="sec-head"><div><h3>Alerts</h3><p>${pendingVariance()} pending · ${VARIANCE_ALERTS.length} total</p></div><button class="btn ghost" id="varCsv" style="width:auto;padding:9px 13px">CSV</button></div><div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Department</th><th>Item</th><th>Standard</th><th>Charged</th><th>Extra</th><th>By</th><th>Date</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  body.querySelectorAll('[data-ackv]').forEach(b=>b.onclick=()=>{ const v=VARIANCE_ALERTS.find(x=>x.id===b.dataset.ackv); if(!v)return; v.ack=true; logAudit('Billing alert','Acknowledged · '+v.module); persist(); renderMaster(); toast('Acknowledged'); });
+  const cv=document.getElementById('varCsv'); if(cv)cv.onclick=()=>exportCSV('billing_alerts',['Department','Item','Standard','Charged','Extra','By','Date'],VARIANCE_ALERTS.map(v=>[v.module,v.item,v.expected,v.charged,v.diff,v.by,v.date]));
+}
+function renderMdDoctors(body){
+  const rows = MD_DOCTORS.length ? MD_DOCTORS.map((d,i)=>`<tr><td class="sno">${i+1}</td><td><b>Dr. ${genEsc(d.name)}</b></td><td>${genEsc(d.dept||'—')}</td><td>${genEsc(d.contact||'—')}</td><td>${genEsc(d.room||'—')}</td><td>${money(d.opdFee||0)}</td><td style="font-size:11.5px">${genEsc((d.days||[]).join(', ')||'—')}</td><td><span class="pill g">Active</span></td></tr>`).join('') : `<tr><td class="tempty" colspan="8">No doctors added yet.</td></tr>`;
+  body.innerHTML=`
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>Add Doctor</h3>
+      <p class="psub">Fees, availability and revenue share. Doctors listed here can be used across departments.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Doctor name</label><input id="dcName" placeholder="Name"></div>
+        <div class="fld"><label>Department</label><input id="dcDept" placeholder="e.g. Cardiology"></div>
+        <div class="fld"><label>Contact no.</label><input id="dcContact" placeholder="Phone"></div>
+        <div class="fld"><label>OPD room no.</label><input id="dcRoom" placeholder="Room"></div>
+        <div class="fld"><label>Qualification</label><input id="dcQual" placeholder="e.g. MBBS, MD"></div>
+        <div class="fld"><label>Blood group</label><select id="dcBlood"><option value="">—</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select></div>
+        <div class="fld"><label>OPD fee (₹)</label><input id="dcOpdFee" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Revisit fee (₹)</label><input id="dcReFee" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Emergency fee (₹)</label><input id="dcEmFee" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Revisit validity (days)</label><input id="dcReValid" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Share OPD %</label><input id="dcShareOpd" type="number" min="0" max="100" placeholder="0"></div>
+        <div class="fld"><label>Share IPD %</label><input id="dcShareIpd" type="number" min="0" max="100" placeholder="0"></div>
+      </div>
+      <div style="margin:12px 0 6px;font-size:12.5px;font-weight:700;color:#33465c">Access &amp; available days</div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;font-size:13px">
+        <label class="check"><input type="checkbox" id="dcOpd" checked> OPD charge</label>
+        <label class="check"><input type="checkbox" id="dcIpd"> IPD charge</label>
+        <span style="width:10px"></span>
+        ${MD_DAYS.map(d=>`<label class="check"><input type="checkbox" class="dc-day" value="${d}" checked> ${d}</label>`).join('')}
+      </div>
+      <div class="form-actions"><button class="btn" id="dcSave" style="width:auto;padding:12px 22px">Add doctor</button></div>
+    </div>
+    <div class="sec-head"><div><h3>Doctors</h3><p>${MD_DOCTORS.length} doctor${MD_DOCTORS.length===1?'':'s'}</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Name</th><th>Department</th><th>Contact</th><th>Room</th><th>OPD fee</th><th>Days</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('dcSave').onclick=addMdDoctor;
+}
+function addMdDoctor(){
+  const name=document.getElementById('dcName').value.trim();
+  if(!name){document.getElementById('dcName').focus();toast('Enter doctor name');return;}
+  const days=Array.from(document.querySelectorAll('.dc-day:checked')).map(x=>x.value);
+  MD_DOCTORS.push({ id:'DR'+Date.now().toString(36), name, dept:document.getElementById('dcDept').value.trim(),
+    contact:document.getElementById('dcContact').value.trim(), room:document.getElementById('dcRoom').value.trim(),
+    qual:document.getElementById('dcQual').value.trim(), blood:document.getElementById('dcBlood').value,
+    opdFee:Number(document.getElementById('dcOpdFee').value)||0, reFee:Number(document.getElementById('dcReFee').value)||0,
+    emFee:Number(document.getElementById('dcEmFee').value)||0, reValid:Number(document.getElementById('dcReValid').value)||0,
+    shareOpd:Number(document.getElementById('dcShareOpd').value)||0, shareIpd:Number(document.getElementById('dcShareIpd').value)||0,
+    opd:document.getElementById('dcOpd').checked, ipd:document.getElementById('dcIpd').checked, days, _ts:Date.now() });
+  persist(); renderMaster(); toast(`Dr. ${name} added`);
+}
+function renderMdStaff(body){
+  const rows = MD_STAFF.length ? MD_STAFF.map((s,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(s.name)}</b></td><td>${genEsc(s.dept||'—')}</td><td>${genEsc(s.designation||'—')}</td><td>${genEsc(s.contact||'—')}</td><td>${genEsc(s.doj||'—')}</td></tr>`).join('') : `<tr><td class="tempty" colspan="6">No staff added yet.</td></tr>`;
+  body.innerHTML=`
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>Add Staff</h3>
+      <div class="addgrid">
+        <div class="fld"><label>Name</label><input id="stName" placeholder="Name"></div>
+        <div class="fld"><label>Gender</label><select id="stGender"><option>Male</option><option>Female</option><option>Transgender</option><option>Other</option></select></div>
+        <div class="fld"><label>Department</label><input id="stDept" placeholder="Department"></div>
+        <div class="fld"><label>Designation</label><input id="stDesig" placeholder="e.g. Staff Nurse"></div>
+        <div class="fld"><label>Qualification</label><input id="stQual" placeholder="Qualification"></div>
+        <div class="fld"><label>Blood group</label><input id="stBlood" placeholder="Group"></div>
+        <div class="fld"><label>Age</label><input id="stAge" type="number" min="0" placeholder="Age"></div>
+        <div class="fld"><label>Date of joining</label><input id="stDoj" type="date"></div>
+        <div class="fld"><label>Contact no.</label><input id="stContact" placeholder="Phone"></div>
+        <div class="fld"><label>Alternate contact</label><input id="stAlt" placeholder="Phone"></div>
+        <div class="fld"><label>Aadhaar / Voter no.</label><input id="stId" placeholder="Number"></div>
+      </div>
+      <div style="margin:12px 0 6px;font-size:12.5px;font-weight:700;color:#33465c">Bank details</div>
+      <div class="addgrid">
+        <div class="fld"><label>Account no.</label><input id="stAcc" placeholder="Account number"></div>
+        <div class="fld"><label>Bank name</label><input id="stBank" placeholder="Bank"></div>
+        <div class="fld"><label>IFSC code</label><input id="stIfsc" placeholder="IFSC"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="stSave" style="width:auto;padding:12px 22px">Add staff</button></div>
+    </div>
+    <div class="sec-head"><div><h3>Staff</h3><p>${MD_STAFF.length} staff member${MD_STAFF.length===1?'':'s'}</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Name</th><th>Department</th><th>Designation</th><th>Contact</th><th>Joined</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('stSave').onclick=addMdStaff;
+}
+function addMdStaff(){
+  const name=document.getElementById('stName').value.trim();
+  if(!name){document.getElementById('stName').focus();toast('Enter staff name');return;}
+  MD_STAFF.push({ id:'ST'+Date.now().toString(36), name, gender:document.getElementById('stGender').value,
+    dept:document.getElementById('stDept').value.trim(), designation:document.getElementById('stDesig').value.trim(),
+    qual:document.getElementById('stQual').value.trim(), blood:document.getElementById('stBlood').value.trim(),
+    age:document.getElementById('stAge').value, doj:document.getElementById('stDoj').value,
+    contact:document.getElementById('stContact').value.trim(), alt:document.getElementById('stAlt').value.trim(),
+    idno:document.getElementById('stId').value.trim(), acc:document.getElementById('stAcc').value.trim(),
+    bank:document.getElementById('stBank').value.trim(), ifsc:document.getElementById('stIfsc').value.trim(), _ts:Date.now() });
+  persist(); renderMaster(); toast(`${name} added to staff`);
+}
+function renderMdRoles(body){
+  const rows = MD_ROLES.length ? MD_ROLES.map((r,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(r.name||'—')}</b></td><td>${genEsc(r.permission)}</td><td style="max-width:300px;font-size:11.5px">${genEsc((r.roles||[]).join(', ')||'—')}</td><td>${genEsc(r.username||'—')}</td><td><span class="pill g">Active</span></td></tr>`).join('') : `<tr><td class="tempty" colspan="6">No roles assigned yet.</td></tr>`;
+  body.innerHTML=`
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>Assign Role</h3>
+      <div class="addgrid">
+        <div class="fld"><label>User type</label><select id="rlUser"><option>Doctor</option><option>Staff</option></select></div>
+        <div class="fld"><label>Name</label><input id="rlName" placeholder="User's name"></div>
+        <div class="fld"><label>Permission</label><select id="rlPerm"><option>Executive</option><option>Master</option><option>General</option></select></div>
+        <div class="fld"><label>Back-date entry</label><select id="rlBack"><option>Disabled</option><option>Enabled</option></select></div>
+        <div class="fld"><label>Username</label><input id="rlUsername" placeholder="Login username"></div>
+        <div class="fld"><label>Password</label><input id="rlPassword" placeholder="Login password"></div>
+      </div>
+      <div style="margin:12px 0 6px;font-size:12.5px;font-weight:700;color:#33465c">Module access</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px 16px;font-size:13px">
+        <label class="check"><input type="checkbox" id="rlAll"> <b>All</b></label>
+        ${MD_ROLE_MODULES.map(m=>`<label class="check"><input type="checkbox" class="rl-mod" value="${m}"> ${m}</label>`).join('')}
+      </div>
+      <div class="form-actions"><button class="btn" id="rlSave" style="width:auto;padding:12px 22px">Assign role</button></div>
+    </div>
+    <div class="sec-head"><div><h3>Role list</h3><p>${MD_ROLES.length} assigned</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Name</th><th>Permission</th><th>Roles</th><th>Username</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('rlAll').onchange=function(){ document.querySelectorAll('.rl-mod').forEach(x=>x.checked=this.checked); };
+  document.getElementById('rlSave').onclick=addMdRole;
+}
+function addMdRole(){
+  const name=document.getElementById('rlName').value.trim();
+  if(!name){document.getElementById('rlName').focus();toast('Enter user name');return;}
+  const roles=Array.from(document.querySelectorAll('.rl-mod:checked')).map(x=>x.value);
+  MD_ROLES.push({ id:'RL'+Date.now().toString(36), user:document.getElementById('rlUser').value, name,
+    permission:document.getElementById('rlPerm').value, backdate:document.getElementById('rlBack').value,
+    username:document.getElementById('rlUsername').value.trim(), password:document.getElementById('rlPassword').value.trim(),
+    roles, _ts:Date.now() });
+  persist(); renderMaster(); toast(`Role assigned to ${name}`);
+}
+function renderMdInvest(body){
+  const rows = MD_INVEST.length ? MD_INVEST.map((v,i)=>`<tr><td class="sno">${i+1}</td><td>${genEsc(v.code||'—')}</td><td>${genEsc(v.dept||'—')}</td><td>${genEsc(v.name)}</td><td>${money(v.rate||0)}</td><td>${genEsc(v.room||'—')}</td><td>${v.active===false?'<span class="pill r">Inactive</span>':'<span class="pill g">Active</span>'}</td><td><button class="btn ghost tiny" data-inv="${v.id}" style="width:auto;padding:6px 10px">${v.active===false?'Activate':'Deactivate'}</button></td></tr>`).join('') : `<tr><td class="tempty" colspan="8">No investigations added yet.</td></tr>`;
+  body.innerHTML=`
+    <div class="panel" style="max-width:none;margin-bottom:16px">
+      <h3>Add Investigation</h3>
+      <div class="addgrid">
+        <div class="fld"><label>Code</label><input id="ivCode" placeholder="e.g. X-RAY"></div>
+        <div class="fld"><label>Department</label><input id="ivDept" placeholder="e.g. Radiology"></div>
+        <div class="fld"><label>Investigation name</label><input id="ivName" placeholder="e.g. X-Ray Chest PA"></div>
+        <div class="fld"><label>Rate (₹)</label><input id="ivRate" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Room type</label><input id="ivRoom" placeholder="e.g. Common Charges"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="ivSave" style="width:auto;padding:12px 22px">Add investigation</button></div>
+    </div>
+    <div class="sec-head"><div><h3>Investigations</h3><p>${MD_INVEST.length} item${MD_INVEST.length===1?'':'s'}</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Code</th><th>Department</th><th>Name</th><th>Rate</th><th>Room type</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('ivSave').onclick=addMdInvest;
+  body.querySelectorAll('[data-inv]').forEach(b=>b.onclick=()=>toggleMdInvest(b.dataset.inv));
+}
+function addMdInvest(){
+  const name=document.getElementById('ivName').value.trim();
+  if(!name){document.getElementById('ivName').focus();toast('Enter investigation name');return;}
+  MD_INVEST.push({ id:'IV'+Date.now().toString(36), code:document.getElementById('ivCode').value.trim(),
+    dept:document.getElementById('ivDept').value.trim(), name, rate:Number(document.getElementById('ivRate').value)||0,
+    room:document.getElementById('ivRoom').value.trim(), active:true, _ts:Date.now() });
+  persist(); renderMaster(); toast(`${name} added`);
+}
+function toggleMdInvest(id){ const v=MD_INVEST.find(x=>x.id===id); if(!v)return; v.active=(v.active===false); persist(); renderMaster(); }
+function renderMdHospital(body){
+  const h=MD_HOSPITAL||{};
+  body.innerHTML=`
+    <div class="panel" style="max-width:none">
+      <h3>About Hospital</h3>
+      <p class="psub">These details appear on receipts and reports.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Hospital name</label><input id="hoName" value="${genAttr(h.name)}" placeholder="Hospital name"></div>
+        <div class="fld"><label>Email / web</label><input id="hoEmail" value="${genAttr(h.email)}" placeholder="Email"></div>
+        <div class="fld"><label>Contact number</label><input id="hoContact" value="${genAttr(h.contact)}" placeholder="Contact"></div>
+        <div class="fld"><label>Helpline number</label><input id="hoHelpline" value="${genAttr(h.helpline)}" placeholder="Helpline"></div>
+        <div class="fld full"><label>Address</label><input id="hoAddress" value="${genAttr(h.address)}" placeholder="Address"></div>
+        <div class="fld"><label>PAN</label><input id="hoPan" value="${genAttr(h.pan)}" placeholder="PAN"></div>
+        <div class="fld"><label>GST / Service Tax no.</label><input id="hoGst" value="${genAttr(h.gst)}" placeholder="GST"></div>
+        <div class="fld"><label>Registration no.</label><input id="hoReg" value="${genAttr(h.reg)}" placeholder="Registration"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="hoSave" style="width:auto;padding:12px 22px">Save hospital info</button></div>
+    </div>`;
+  document.getElementById('hoSave').onclick=saveMdHospital;
+}
+function saveMdHospital(){
+  MD_HOSPITAL={ name:document.getElementById('hoName').value.trim(), email:document.getElementById('hoEmail').value.trim(),
+    contact:document.getElementById('hoContact').value.trim(), helpline:document.getElementById('hoHelpline').value.trim(),
+    address:document.getElementById('hoAddress').value.trim(), pan:document.getElementById('hoPan').value.trim(),
+    gst:document.getElementById('hoGst').value.trim(), reg:document.getElementById('hoReg').value.trim(), _ts:Date.now() };
+  persist(); toast('Hospital info saved');
+}
 
 /* ---------- danger zone: delete all & reset ---------- */
 let dangerCode='';
@@ -2832,6 +3829,230 @@ function phLow(m){ return phStock(m) <= (Number(m.need)||0); }
 function phSpentToday(){ const s=sodMs(); return PHARMA_MOVES.filter(x=>x.type==='in'&&tsOf(x)>=s).reduce((a,x)=>a+(Number(x.amount)||0),0); }
 function phEarnedToday(){ const s=sodMs(); return PHARMA_MOVES.filter(x=>x.type==='out'&&tsOf(x)>=s).reduce((a,x)=>a+(Number(x.amount)||0),0); }
 function phStockValue(){ return PHARMACY.reduce((a,m)=>a+phStock(m)*(Number(m.price)||0),0); }
+/* ---------- Ingredients / salt, allergies, expiry & compounding ---------- */
+let PH_ALLERGIES=[], PH_INGREDIENTS=[], PH_COMPOUNDS=[];
+function phSalt(m){ return String(m&&m.salt||'').trim(); }
+function phSaltKey(m){ return _norm(phSalt(m)); }
+function phSubstitutes(med){
+  const k=phSaltKey(med); if(!k) return [];
+  return PHARMACY.filter(m=>m.id!==med.id && phSaltKey(m)===k && phStock(m)>0 && !phExpired(m))
+    .sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0));
+}
+function phAllergyHit(patient,med){
+  const p=_norm(patient); if(!p) return null;
+  const salt=phSaltKey(med), name=_norm(med&&med.name);
+  return PH_ALLERGIES.find(a=>_norm(a.patient)===p && a.ingredient && (
+    (salt && salt.includes(_norm(a.ingredient))) || name.includes(_norm(a.ingredient))
+  )) || null;
+}
+function ingStock(x){ return Number(x&&x.stock)||0; }
+function ingLow(x){ return ingStock(x) <= (Number(x&&x.need)||0); }
+function ingFind(name){ return PH_INGREDIENTS.find(i=>_norm(i.name)===_norm(name))||null; }
+/* ---- drug–drug interaction checking ---- */
+let PH_INTERACTIONS=[];
+const INTERACTION_SEED=[
+  ['warfarin','aspirin','Severe','Greatly increased bleeding risk'],
+  ['warfarin','ibuprofen','Severe','Increased bleeding risk (GI)'],
+  ['aspirin','ibuprofen','Moderate','Reduced cardioprotection; GI irritation'],
+  ['metformin','alcohol','Severe','Risk of lactic acidosis'],
+  ['clopidogrel','omeprazole','Moderate','Reduced antiplatelet effect'],
+  ['amoxicillin','methotrexate','Moderate','Increased methotrexate toxicity'],
+  ['ciprofloxacin','tizanidine','Severe','Severe hypotension / sedation'],
+  ['simvastatin','clarithromycin','Severe','Risk of rhabdomyolysis'],
+  ['digoxin','furosemide','Moderate','Hypokalaemia increases digoxin toxicity'],
+  ['tramadol','sertraline','Severe','Serotonin syndrome risk'],
+  ['ace inhibitor','spironolactone','Moderate','Hyperkalaemia risk'],
+  ['methotrexate','trimethoprim','Severe','Bone-marrow suppression']
+];
+function seedInteractions(){
+  PH_INTERACTIONS=PH_INTERACTIONS||[];
+  INTERACTION_SEED.forEach(([a,b,sev,note])=>{
+    const id='IX_'+a.replace(/\W/g,'')+'_'+b.replace(/\W/g,'');
+    if(!PH_INTERACTIONS.some(x=>x.id===id)) PH_INTERACTIONS.push({id,a,b,severity:sev,note,active:true,_ts:0});
+  });
+}
+function phActiveMeds(patient, days){
+  const cutoff=Date.now()-((days||30)*86400000);
+  const p=_norm(patient); if(!p) return [];
+  const names={};
+  PHARMA_MOVES.filter(x=>x.type==='out' && _norm(x.who)===p && (x._ts||0)>=cutoff).forEach(x=>{
+    const med=PHARMACY.find(m=>m.id===x.medId);
+    const key=med?(phSalt(med)||med.name):(x.medName||'');
+    if(key) names[_norm(key)]={label:key, date:x.date};
+  });
+  return Object.values(names);
+}
+function _hasTerm(text, term){ return _norm(text).includes(_norm(term)); }
+function phInteractionCheck(patient, med, days){
+  const active=phActiveMeds(patient, days||30);
+  if(!active.length) return [];
+  const candText=(phSalt(med)||'')+' '+((med&&med.name)||'');
+  const hits=[];
+  (PH_INTERACTIONS||[]).filter(x=>x.active!==false).forEach(x=>{
+    [[x.a,x.b],[x.b,x.a]].forEach(([p1,p2])=>{
+      if(_hasTerm(candText,p1)){
+        active.forEach(am=>{ if(_hasTerm(am.label,p2) && !hits.some(h=>h.with===am.label && h.id===x.id))
+          hits.push({id:x.id, with:am.label, severity:x.severity, note:x.note, pair:`${x.a} + ${x.b}`}); });
+      }
+    });
+  });
+  return hits;
+}
+function dispenseGuard(med, qty, patient){
+  const problems=[];
+  if(phExpired(med)) problems.push({type:'expired',msg:`${med.name} expired on ${med.expiry} — cannot dispense.`,block:true});
+  if(qty>phStock(med)) problems.push({type:'stock',msg:`Only ${phStock(med)} in stock.`,block:true});
+  const hit=phAllergyHit(patient,med);
+  if(hit) problems.push({type:'allergy',msg:`⚠ ${patient} is allergic to ${hit.ingredient} (${hit.severity}).`,block:hit.severity==='Severe'});
+  (typeof phInteractionCheck==='function'?phInteractionCheck(patient,med,30):[]).forEach(ix=>{
+    problems.push({type:'interaction',msg:`⚠ Interaction (${ix.severity}): ${med.name} with ${ix.with} — ${ix.note}.`,block:ix.severity==='Severe'});
+  });
+  return problems;
+}
+function renderPharmaInteractions(){
+  const body=document.getElementById('pharmaBody');
+  const rows=PH_INTERACTIONS.length?PH_INTERACTIONS.map((x,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(x.a)}</b></td><td><b>${genEsc(x.b)}</b></td><td>${x.severity==='Severe'?'<span class="pill r">Severe</span>':x.severity==='Mild'?'<span class="pill g">Mild</span>':'<span class="pill a">Moderate</span>'}</td><td>${genEsc(x.note||'—')}</td><td>${x.active===false?'<span class="pill r">Off</span>':'<span class="pill g">On</span>'}</td><td><button class="btn ghost tiny" data-ixtog="${x.id}" style="width:auto;padding:6px 10px">${x.active===false?'Enable':'Disable'}</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="7">No interaction rules.</td></tr>';
+  body.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>Drug–drug interaction rules</h3>
+      <p class="psub">When dispensing, MediCore checks the medicine against everything the patient received in the last 30 days. <b>Severe</b> interactions block the dispense; others warn.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Drug / salt A</label><input id="ixA" placeholder="e.g. warfarin"></div>
+        <div class="fld"><label>Drug / salt B</label><input id="ixB" placeholder="e.g. aspirin"></div>
+        <div class="fld"><label>Severity</label><select id="ixSev"><option>Mild</option><option selected>Moderate</option><option>Severe</option></select></div>
+        <div class="fld full"><label>Clinical note</label><input id="ixNote" placeholder="Why it matters"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="ixSave" style="width:auto;padding:12px 20px">Add rule</button></div></div>
+    <div class="panel" style="max-width:none;margin-bottom:16px"><h3>Check a patient</h3>
+      <p class="psub">See a patient's active medicines and any conflicts with a medicine you're about to give.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Patient</label><input id="ixPatient" placeholder="Name"></div>
+        <div class="fld"><label>Medicine to give</label><select id="ixMed">${PHARMACY.map(m=>`<option value="${m.id}">${genEsc(m.name)}</option>`).join('')||'<option value="">— add a medicine first —</option>'}</select></div>
+      </div>
+      <div class="form-actions"><button class="btn ghost" id="ixCheck" style="width:auto;padding:12px 20px">Check interactions</button></div>
+      <div id="ixResult" style="margin-top:10px;font-size:13px"></div></div>
+    <div class="sec-head"><div><h3>Interaction rules</h3><p>${PH_INTERACTIONS.length} rule${PH_INTERACTIONS.length===1?'':'s'}</p></div>
+      <button class="btn ghost" id="ixCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Drug A</th><th>Drug B</th><th>Severity</th><th>Note</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const s=document.getElementById('ixSave'); if(s)s.onclick=()=>{ const a=document.getElementById('ixA').value.trim(), b=document.getElementById('ixB').value.trim();
+    if(!a||!b){toast('Enter both drugs');return;}
+    PH_INTERACTIONS.push({id:'IX'+Date.now().toString(36),a,b,severity:document.getElementById('ixSev').value,note:document.getElementById('ixNote').value.trim(),active:true,_ts:Date.now()});
+    if(typeof logAudit==='function')logAudit('Pharmacy',`Interaction rule added · ${a} + ${b}`); persist(); renderPharma(); toast('Rule added'); };
+  body.querySelectorAll('[data-ixtog]').forEach(b=>b.onclick=()=>{ const x=PH_INTERACTIONS.find(y=>y.id===b.dataset.ixtog); if(!x)return; x.active=(x.active===false); persist(); renderPharma(); });
+  const ck=document.getElementById('ixCheck'); if(ck)ck.onclick=()=>{
+    const p=document.getElementById('ixPatient').value.trim(); const med=PHARMACY.find(m=>m.id===document.getElementById('ixMed').value);
+    const out=document.getElementById('ixResult'); if(!p||!med||!out){toast('Enter patient and medicine');return;}
+    const act=phActiveMeds(p,30), hits=phInteractionCheck(p,med,30);
+    out.innerHTML=`<div style="color:var(--muted);margin-bottom:6px"><b>Active medicines (30 days):</b> ${act.length?act.map(a=>genEsc(a.label)).join(', '):'none on record'}</div>`+
+      (hits.length?hits.map(h=>`<div style="padding:8px 11px;border-radius:9px;margin-bottom:6px;background:${h.severity==='Severe'?'#fdeaea':'#fff7e6'};color:${h.severity==='Severe'?'#b91c1c':'#b45309'}"><b>${h.severity}</b> — with <b>${genEsc(h.with)}</b>: ${genEsc(h.note)} <span style="opacity:.7">(${genEsc(h.pair)})</span></div>`).join('')
+        :'<div style="padding:8px 11px;border-radius:9px;background:#e7f6ec;color:#15803d"><b>No known interactions.</b></div>');
+  };
+  const cv=document.getElementById('ixCsv'); if(cv)cv.onclick=()=>exportCSV('interactions',['Drug A','Drug B','Severity','Note','Active'],PH_INTERACTIONS.map(x=>[x.a,x.b,x.severity,x.note,x.active===false?'No':'Yes']));
+}
+function phCompound(recipeName, parts, units, opts){
+  const missing=[];
+  parts.forEach(p=>{ const ing=ingFind(p.name); const need=(Number(p.qty)||0)*(Number(units)||0);
+    if(!ing || ingStock(ing)<need) missing.push(p.name+' (need '+need+(ing?', have '+ingStock(ing):', not stocked')+')'); });
+  if(missing.length) return {ok:false, missing};
+  parts.forEach(p=>{ const ing=ingFind(p.name); ing.stock=ingStock(ing)-(Number(p.qty)||0)*(Number(units)||0); });
+  let med=PHARMACY.find(m=>_norm(m.name)===_norm(recipeName));
+  if(med) med.stock=phStock(med)+Number(units||0);
+  else { med={id:'M'+Date.now().toString(36),name:recipeName,salt:(opts&&opts.salt)||'',stock:Number(units)||0,need:0,price:(opts&&opts.price)||0,expiry:(opts&&opts.expiry)||'',batch:(opts&&opts.batch)||'',compounded:true,_ts:Date.now()}; PHARMACY.push(med); }
+  PH_COMPOUNDS.push({id:'CP'+Date.now().toString(36),name:recipeName,units:Number(units)||0,parts:parts.map(p=>p.name+'×'+p.qty).join(', '),date:new Date().toISOString().slice(0,10),_ts:Date.now()});
+  if(typeof logAudit==='function')logAudit('Pharmacy',`Compounded ${units} × ${recipeName}`);
+  return {ok:true, med};
+}
+function renderPharmaIngredients(){
+  const body=document.getElementById('pharmaBody');
+  const rows=PH_INGREDIENTS.length?PH_INGREDIENTS.map((x,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(x.name)}</b></td><td>${genEsc(x.unit||'')}</td><td><b>${ingStock(x)}</b></td><td>${genEsc(String(x.need||0))}</td><td>${ingLow(x)?'<span class="pill a">Low</span>':'<span class="pill g">OK</span>'}</td></tr>`).join(''):'<tr><td class="tempty" colspan="6">No raw ingredients yet. Add one to enable in-house compounding.</td></tr>';
+  const clog=PH_COMPOUNDS.length?PH_COMPOUNDS.slice().reverse().map((c,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(c.name)}</b></td><td>${c.units}</td><td>${genEsc(c.parts)}</td><td>${genEsc(c.date)}</td></tr>`).join(''):'<tr><td class="tempty" colspan="5">No preparations made yet.</td></tr>';
+  const ingOpts=PH_INGREDIENTS.map(x=>`<option value="${genAttr(x.name)}">`).join('');
+  body.innerHTML=`<datalist id="ingDL">${ingOpts}</datalist>
+    <div class="panel" style="max-width:none;margin-bottom:16px"><h3>Add raw ingredient</h3>
+      <p class="psub">Raw materials (APIs, excipients) used for in-house preparations.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Ingredient name</label><input id="igName" placeholder="e.g. Paracetamol API"></div>
+        <div class="fld"><label>Unit</label><select id="igUnit"><option>g</option><option>mg</option><option>ml</option><option>L</option><option>units</option></select></div>
+        <div class="fld"><label>Stock</label><input id="igStock" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Reorder level</label><input id="igNeed" type="number" min="0" placeholder="0"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="igSave" style="width:auto;padding:12px 20px">Add ingredient</button></div></div>
+    <div class="sec-head"><div><h3>Raw ingredients</h3><p>${PH_INGREDIENTS.length} item${PH_INGREDIENTS.length===1?'':'s'}</p></div>
+      <button class="btn ghost" id="igCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Ingredient</th><th>Unit</th><th>Stock</th><th>Reorder</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>Compound a preparation</h3>
+      <p class="psub">Deducts raw ingredients and adds the finished medicine to inventory.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Preparation name</label><input id="cpName" placeholder="e.g. Syrup PCM 100ml"></div>
+        <div class="fld"><label>Salt / composition</label><input id="cpSalt" placeholder="e.g. Paracetamol 250mg/5ml"></div>
+        <div class="fld"><label>Units to make</label><input id="cpUnits" type="number" min="1" placeholder="10"></div>
+        <div class="fld"><label>Price / unit (₹)</label><input id="cpPrice" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Expiry</label><input id="cpExpiry" type="date"></div>
+      </div>
+      <p class="psub" style="margin:8px 0 4px"><b>Recipe per unit</b> — ingredient &amp; quantity</p>
+      <div class="addgrid">
+        <div class="fld"><label>Ingredient 1</label><input id="cpI1" list="ingDL" placeholder="Ingredient"></div>
+        <div class="fld"><label>Qty 1</label><input id="cpQ1" type="number" min="0" step="any" placeholder="0"></div>
+        <div class="fld"><label>Ingredient 2</label><input id="cpI2" list="ingDL" placeholder="Optional"></div>
+        <div class="fld"><label>Qty 2</label><input id="cpQ2" type="number" min="0" step="any" placeholder="0"></div>
+        <div class="fld"><label>Ingredient 3</label><input id="cpI3" list="ingDL" placeholder="Optional"></div>
+        <div class="fld"><label>Qty 3</label><input id="cpQ3" type="number" min="0" step="any" placeholder="0"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="cpMake" style="width:auto;padding:12px 20px">Make preparation</button></div></div>
+    <div class="sec-head"><div><h3>Compounding log</h3><p>${PH_COMPOUNDS.length} batch${PH_COMPOUNDS.length===1?'':'es'}</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Preparation</th><th>Units</th><th>Ingredients used</th><th>Date</th></tr></thead><tbody>${clog}</tbody></table></div>`;
+  const s=document.getElementById('igSave'); if(s)s.onclick=()=>{ const n=document.getElementById('igName').value.trim(); if(!n){toast('Enter ingredient name');return;}
+    PH_INGREDIENTS.push({id:'IG'+Date.now().toString(36),name:n,unit:document.getElementById('igUnit').value,stock:Number(document.getElementById('igStock').value)||0,need:Number(document.getElementById('igNeed').value)||0,_ts:Date.now()});
+    if(typeof logAudit==='function')logAudit('Pharmacy','Ingredient added · '+n); persist(); renderPharma(); toast(n+' added'); };
+  const cv=document.getElementById('igCsv'); if(cv)cv.onclick=()=>exportCSV('ingredients',['Ingredient','Unit','Stock','Reorder'],PH_INGREDIENTS.map(x=>[x.name,x.unit,ingStock(x),x.need||0]));
+  const mk=document.getElementById('cpMake'); if(mk)mk.onclick=()=>{
+    const nm=document.getElementById('cpName').value.trim(); if(!nm){toast('Enter preparation name');return;}
+    const units=Number(document.getElementById('cpUnits').value)||0; if(units<=0){toast('Enter units to make');return;}
+    const parts=[[ 'cpI1','cpQ1' ],[ 'cpI2','cpQ2' ],[ 'cpI3','cpQ3' ]].map(([a,b])=>({name:document.getElementById(a).value.trim(),qty:Number(document.getElementById(b).value)||0})).filter(p=>p.name&&p.qty>0);
+    if(!parts.length){toast('Add at least one ingredient with quantity');return;}
+    const r=phCompound(nm,parts,units,{salt:document.getElementById('cpSalt').value.trim(),price:Number(document.getElementById('cpPrice').value)||0,expiry:document.getElementById('cpExpiry').value||''});
+    if(!r.ok){ toast('Not enough: '+r.missing.join('; ')); return; }
+    persist(); renderPharma(); toast(`${units} × ${nm} prepared`);
+  };
+}
+function renderPharmaAllergies(){
+  const body=document.getElementById('pharmaBody');
+  const rows=PH_ALLERGIES.length?PH_ALLERGIES.slice().reverse().map((a,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(a.patient)}</b></td><td>${genEsc(a.ingredient)}</td><td>${a.severity==='Severe'?'<span class="pill r">Severe</span>':a.severity==='Mild'?'<span class="pill g">Mild</span>':'<span class="pill a">Moderate</span>'}</td><td>${genEsc(a.note||'—')}</td><td><button class="btn ghost tiny" data-delal="${a.id}" style="width:auto;padding:6px 10px">Remove</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="6">No allergies recorded. Add one to enable dispensing alerts.</td></tr>';
+  body.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>Patient allergy register</h3>
+      <p class="psub">Record an allergy to an ingredient/salt. Dispensing a medicine containing it warns the pharmacist — <b>Severe</b> allergies block the dispense.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Patient</label><input id="alPatient" placeholder="Name"></div>
+        <div class="fld"><label>Ingredient / salt</label><input id="alIng" placeholder="e.g. Penicillin"></div>
+        <div class="fld"><label>Severity</label><select id="alSev"><option>Mild</option><option selected>Moderate</option><option>Severe</option></select></div>
+        <div class="fld"><label>Note</label><input id="alNote" placeholder="Reaction / remarks"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="alSave" style="width:auto;padding:12px 20px">Record allergy</button></div></div>
+    <div class="sec-head"><div><h3>Recorded allergies</h3><p>${PH_ALLERGIES.length} record${PH_ALLERGIES.length===1?'':'s'}</p></div>
+      <button class="btn ghost" id="alCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Ingredient</th><th>Severity</th><th>Note</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const s=document.getElementById('alSave'); if(s)s.onclick=()=>{ const p=document.getElementById('alPatient').value.trim(), ing=document.getElementById('alIng').value.trim();
+    if(!p||!ing){toast('Enter patient and ingredient');return;}
+    PH_ALLERGIES.push({id:'AL'+Date.now().toString(36),patient:p,ingredient:ing,severity:document.getElementById('alSev').value,note:document.getElementById('alNote').value.trim(),_ts:Date.now()});
+    if(typeof logAudit==='function')logAudit('Pharmacy',`Allergy recorded · ${ing}`,p); persist(); renderPharma(); toast('Allergy recorded'); };
+  body.querySelectorAll('[data-delal]').forEach(b=>b.onclick=()=>{ PH_ALLERGIES=PH_ALLERGIES.filter(x=>x.id!==b.dataset.delal); persist(); renderPharma(); });
+  const cv=document.getElementById('alCsv'); if(cv)cv.onclick=()=>exportCSV('allergies',['Patient','Ingredient','Severity','Note'],PH_ALLERGIES.map(a=>[a.patient,a.ingredient,a.severity,a.note]));
+}
+function renderPharmaExpiry(){
+  const body=document.getElementById('pharmaBody');
+  const expired=PHARMACY.filter(phExpired), soon=PHARMACY.filter(phExpiringSoon);
+  const val=(l)=>l.reduce((a,m)=>a+phStock(m)*(Number(m.price)||0),0);
+  const mk=(list,empty)=>list.length?list.slice().sort((a,b)=>String(a.expiry).localeCompare(String(b.expiry))).map((m,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(m.name)}</b></td><td>${genEsc(phSalt(m)||'—')}</td><td>${genEsc(m.batch||'—')}</td><td>${phStock(m)}</td><td>${genEsc(m.expiry||'—')}</td><td>${money(phStock(m)*(Number(m.price)||0))}</td></tr>`).join(''):`<tr><td class="tempty" colspan="7">${empty}</td></tr>`;
+  body.innerHTML=`
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="kbig"><div class="kt">Expired</div><b>${expired.length}</b><div class="ks">${money(val(expired))} value</div></div>
+      <div class="kbig"><div class="kt">Expiring ≤30 days</div><b>${soon.length}</b><div class="ks">${money(val(soon))} value</div></div>
+      <div class="kbig"><div class="kt">Total batches</div><b>${PHARMACY.length}</b><div class="ks">tracked</div></div>
+    </div>
+    <div class="sec-head"><div><h3>Expired stock</h3><p>Blocked from dispensing — quarantine &amp; write off</p></div>
+      <button class="btn ghost" id="exCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Medicine</th><th>Salt</th><th>Batch</th><th>Stock</th><th>Expiry</th><th>Value</th></tr></thead><tbody>${mk(expired,'No expired stock. 👍')}</tbody></table></div>
+    <div class="sec-head" style="margin-top:16px"><div><h3>Expiring soon (≤30 days)</h3><p>Use or return to supplier first</p></div></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Medicine</th><th>Salt</th><th>Batch</th><th>Stock</th><th>Expiry</th><th>Value</th></tr></thead><tbody>${mk(soon,'Nothing expiring in the next 30 days.')}</tbody></table></div>`;
+  const cv=document.getElementById('exCsv'); if(cv)cv.onclick=()=>exportCSV('expiry_report',['Medicine','Salt','Batch','Stock','Expiry','Status'],expired.map(m=>[m.name,phSalt(m),m.batch,phStock(m),m.expiry,'Expired']).concat(soon.map(m=>[m.name,phSalt(m),m.batch,phStock(m),m.expiry,'Expiring soon'])));
+}
 
 function openPharmacy(){
   document.getElementById('app').classList.add('hidden');
@@ -2861,16 +4082,24 @@ function renderPharma(){
   alertEl.innerHTML = alerts.length
     ? `<div class="ph-alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><div>${alerts.join('<br>')}</div></div>`
     : '';
-  if(pharmaTab==='stock') renderPharmaStock(); else renderPharmaMoves();
+  if(pharmaTab==='stock') renderPharmaStock();
+  else if(pharmaTab==='ingredients') renderPharmaIngredients();
+  else if(pharmaTab==='allergies') renderPharmaAllergies();
+  else if(pharmaTab==='expiry') renderPharmaExpiry();
+  else if(pharmaTab==='interactions') renderPharmaInteractions();
+  else renderPharmaMoves();
 }
 function renderPharmaStock(){
   const body=document.getElementById('pharmaBody');
   const rows = PHARMACY.length ? PHARMACY.map((m,i)=>{
     const st=phStock(m);
     const status = phExpired(m)?'<span class="pill r">Expired</span>' : phExpiringSoon(m)?'<span class="pill a">Expiring</span>' : phLow(m)?'<span class="pill a">Low</span>':'<span class="pill g">OK</span>';
-    return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(m.name)}</b></td><td>Rack ${genEsc(m.rack||'—')} · Box ${genEsc(m.box||'—')}</td><td><b>${st}</b></td><td>${genEsc(String(m.need||0))}</td><td>${genEsc(m.expiry||'—')}</td><td>${money(m.price||0)}</td><td>${status}</td></tr>`;
-  }).join('') : `<tr><td class="tempty" colspan="8">No medicines yet. Click “Add medicine”.</td></tr>`;
-  body.innerHTML = `
+    const subs=phSubstitutes(m);
+    const subCell = subs.length?`<button class="btn ghost tiny" data-sub="${m.id}" style="width:auto;padding:6px 10px">${subs.length} substitute${subs.length===1?'':'s'}</button>`:'—';
+    return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(m.name)}</b>${m.compounded?' <span class="pill b">made in-house</span>':''}</td><td>${genEsc(phSalt(m)||'—')}</td><td>Rack ${genEsc(m.rack||'—')} · Box ${genEsc(m.box||'—')}</td><td><b>${st}</b></td><td>${genEsc(String(m.need||0))}</td><td>${genEsc(m.expiry||'—')}</td><td>${money(m.price||0)}</td><td>${status}</td><td>${subCell}</td></tr>`;
+  }).join('') : `<tr><td class="tempty" colspan="10">No medicines yet. Click “Add medicine”.</td></tr>`;
+  const saltOpts=[...new Set(PHARMACY.map(phSalt).filter(Boolean))].map(s=>`<option value="${genAttr(s)}">`).join('');
+  body.innerHTML = `<datalist id="saltDL">${saltOpts}</datalist>
     <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
       <div class="kbig"><div class="kt">Spent today</div><b>${money(phSpentToday())}</b><div class="ks">purchases</div></div>
       <div class="kbig"><div class="kt">Earned today</div><b>${money(phEarnedToday())}</b><div class="ks">dispensed</div></div>
@@ -2882,7 +4111,8 @@ function renderPharmaStock(){
     <div class="addcard hidden" id="phAddCard">
       <h4>Add medicine</h4>
       <div class="addgrid">
-        <div class="fld"><label>Medicine name</label><input id="phName" placeholder="e.g. Paracetamol 650mg"></div>
+        <div class="fld"><label>Medicine name</label><input id="phName" placeholder="e.g. Dolo 650"></div>
+        <div class="fld"><label>Ingredient / salt composition</label><input id="phSalt" list="saltDL" placeholder="e.g. Paracetamol 650mg"></div>
         <div class="fld"><label>Batch</label><input id="phBatch" placeholder="e.g. B1234"></div>
         <div class="fld"><label>Rack</label><input id="phRack" placeholder="e.g. A3"></div>
         <div class="fld"><label>Box</label><input id="phBox" placeholder="e.g. 12"></div>
@@ -2893,15 +4123,21 @@ function renderPharmaStock(){
       </div>
       <div class="form-actions"><button class="btn" id="phSave" style="width:auto;padding:12px 20px">Save medicine</button><button class="btn ghost" id="phCancel" style="width:auto;padding:12px 20px">Cancel</button></div>
     </div>
-    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Medicine</th><th>Location</th><th>In stock</th><th>Reorder</th><th>Expiry</th><th>Price</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Medicine</th><th>Ingredient / salt</th><th>Location</th><th>In stock</th><th>Reorder</th><th>Expiry</th><th>Price</th><th>Status</th><th>Generic</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   document.getElementById('phAddBtn').onclick=()=>document.getElementById('phAddCard').classList.toggle('hidden');
   document.getElementById('phCancel').onclick=()=>document.getElementById('phAddCard').classList.add('hidden');
   document.getElementById('phSave').onclick=addMedicine;
+  body.querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>{
+    const med=PHARMACY.find(m=>m.id===b.dataset.sub); if(!med)return;
+    const subs=phSubstitutes(med);
+    toast(`Same salt (${phSalt(med)}): `+subs.map(s=>`${s.name} ${money(s.price||0)} (stock ${phStock(s)})`).join(' · '));
+  });
 }
 function addMedicine(){
   const name=document.getElementById('phName').value.trim();
   if(!name){document.getElementById('phName').focus();toast('Enter medicine name');return;}
   const m={ id:'M'+Date.now().toString(36), name,
+    salt:(document.getElementById('phSalt')?document.getElementById('phSalt').value.trim():''),
     batch:document.getElementById('phBatch').value.trim(),
     rack:document.getElementById('phRack').value.trim(),
     box:document.getElementById('phBox').value.trim(),
@@ -2950,12 +4186,23 @@ function addMove(){
   const qty=Number(document.getElementById('mvQty').value)||0;
   if(qty<=0){document.getElementById('mvQty').focus();toast('Enter quantity');return;}
   const amount=Number(document.getElementById('mvAmt').value)||0;
+  const _who=document.getElementById('mvWho').value.trim();
+  if(type==='out' && typeof dispenseGuard==='function'){
+    const probs=dispenseGuard(med,qty,_who);
+    const blocking=probs.filter(p=>p.block);
+    if(blocking.length){ toast(blocking[0].msg); if(typeof logAudit==='function')logAudit('Pharmacy','Dispense blocked · '+blocking[0].type,_who); return; }
+    const warns=probs.filter(p=>p.type==='allergy'||p.type==='interaction');
+    if(warns.length && !confirm(warns.map(w=>w.msg).join('\n')+'\n\nContinue dispensing anyway?')){ if(typeof logAudit==='function')logAudit('Pharmacy','Dispense cancelled after safety warning',_who); return; }
+    if(warns.length && typeof logAudit==='function')logAudit('Pharmacy','Dispensed despite warning · '+med.name,_who);
+  }
   if(type==='out' && qty>phStock(med)){ toast(`Only ${phStock(med)} in stock`); return; }
   const mv={ id:'MV'+Date.now().toString(36), medId, medName:med.name, type, qty, amount,
     pay:document.getElementById('mvPay').value, who:document.getElementById('mvWho').value.trim(),
     date:new Date().toISOString().slice(0,10), _ts:Date.now() };
   med.stock = phStock(med) + (type==='in'?qty:-qty);
-  PHARMA_MOVES.push(mv); persist(); renderPharma();
+  PHARMA_MOVES.push(mv);
+  if(type==='out' && mv.who && typeof captureCharge==='function') captureCharge(mv.who,'Pharmacy',qty+'× '+med.name,amount);
+  persist(); renderPharma();
   toast(type==='in'?`Stock added: ${med.name}`:`Dispensed ${qty} × ${med.name}`);
   if(phLow(med)) toast(`${med.name}: stock is in limited mode — recharge the stock`);
 }
@@ -3026,7 +4273,8 @@ let _stateV=0;
 function buildStateObject(){
   const rows={};
   Object.keys(MODULE_DEFS).forEach(n=>{rows[n]=MODULE_DEFS[n].sections.map(s=>s.rows);});
-  return {_v:_stateV,rows,QUEUE,TOKEN,BEDS,WARDS,LEDGER,VACANCIES,MODCREDS,ADMIN_CRED,PHARMACY,PHARMA_MOVES,SHIFTS,SANITIZE,OPD_BILLS,
+  return {_v:_stateV,rows,QUEUE,TOKEN,BEDS,WARDS,LEDGER,VACANCIES,MODCREDS,ADMIN_CRED,PHARMACY,PHARMA_MOVES,SHIFTS,SANITIZE,OPD_BILLS,MD_DOCTORS,MD_STAFF,MD_ROLES,MD_INVEST,MD_HOSPITAL,MD_LISTS,AUDIT,MD_COMPLIANCE,MD_INTEGRATIONS,
+    ABHA_REG,NABH_METRICS,CONSENTS,CHARGES,CLAIMS,DISCOUNTS,LIS_RESULTS,EMR_NOTES,DISCHARGE_LOCK,DISCHARGE_CLEARED,VARIANCE_ALERTS,PH_ALLERGIES,PH_INGREDIENTS,PH_COMPOUNDS,PH_INTERACTIONS,DEPARTMENTS,
     MODULES:MODULES.map(m=>({name:m.name,desc:m.desc,icon:m.icon,color:m.color,count:m.count}))};
 }
 function persist(){
@@ -3052,6 +4300,32 @@ function applyState(d){
     if(Array.isArray(d.SHIFTS))SHIFTS=d.SHIFTS;
     if(Array.isArray(d.SANITIZE))SANITIZE=d.SANITIZE;
     if(Array.isArray(d.OPD_BILLS))OPD_BILLS=d.OPD_BILLS;
+    if(Array.isArray(d.MD_DOCTORS))MD_DOCTORS=d.MD_DOCTORS;
+    if(Array.isArray(d.MD_STAFF))MD_STAFF=d.MD_STAFF;
+    if(Array.isArray(d.MD_ROLES))MD_ROLES=d.MD_ROLES;
+    if(Array.isArray(d.MD_INVEST))MD_INVEST=d.MD_INVEST;
+    if(d.MD_HOSPITAL&&typeof d.MD_HOSPITAL==='object')MD_HOSPITAL=d.MD_HOSPITAL;
+    if(d.MD_LISTS&&typeof d.MD_LISTS==='object')MD_LISTS=d.MD_LISTS;
+    if(Array.isArray(d.AUDIT))AUDIT=d.AUDIT;
+    if(d.MD_COMPLIANCE&&typeof d.MD_COMPLIANCE==='object')MD_COMPLIANCE=d.MD_COMPLIANCE;
+    if(d.MD_INTEGRATIONS&&typeof d.MD_INTEGRATIONS==='object')MD_INTEGRATIONS=d.MD_INTEGRATIONS;
+    if(Array.isArray(d.ABHA_REG))ABHA_REG=d.ABHA_REG;
+    if(Array.isArray(d.NABH_METRICS))NABH_METRICS=d.NABH_METRICS;
+    if(Array.isArray(d.CONSENTS))CONSENTS=d.CONSENTS;
+    if(Array.isArray(d.CHARGES))CHARGES=d.CHARGES;
+    if(Array.isArray(d.CLAIMS))CLAIMS=d.CLAIMS;
+    if(Array.isArray(d.DISCOUNTS))DISCOUNTS=d.DISCOUNTS;
+    if(Array.isArray(d.LIS_RESULTS))LIS_RESULTS=d.LIS_RESULTS;
+    if(Array.isArray(d.EMR_NOTES))EMR_NOTES=d.EMR_NOTES;
+    if(d.DISCHARGE_LOCK&&typeof d.DISCHARGE_LOCK==='object')DISCHARGE_LOCK=d.DISCHARGE_LOCK;
+    if(d.DISCHARGE_CLEARED&&typeof d.DISCHARGE_CLEARED==='object')DISCHARGE_CLEARED=d.DISCHARGE_CLEARED;
+    if(Array.isArray(d.VARIANCE_ALERTS))VARIANCE_ALERTS=d.VARIANCE_ALERTS;
+    if(Array.isArray(d.PH_ALLERGIES))PH_ALLERGIES=d.PH_ALLERGIES;
+    if(Array.isArray(d.PH_INGREDIENTS))PH_INGREDIENTS=d.PH_INGREDIENTS;
+    if(Array.isArray(d.PH_COMPOUNDS))PH_COMPOUNDS=d.PH_COMPOUNDS;
+    if(Array.isArray(d.PH_INTERACTIONS))PH_INTERACTIONS=d.PH_INTERACTIONS;
+    if(Array.isArray(d.DEPARTMENTS))DEPARTMENTS=d.DEPARTMENTS;
+    ensureSeedMasters();
     if(d.MODCREDS)Object.keys(d.MODCREDS).forEach(k=>MODCREDS[k]=d.MODCREDS[k]);
     if(d.ADMIN_CRED){ADMIN_CRED.user=d.ADMIN_CRED.user;ADMIN_CRED.pass=d.ADMIN_CRED.pass;}
     if(Array.isArray(d.MODULES))d.MODULES.forEach(m=>{if(!MODULES.find(x=>x.name===m.name))MODULES.push(m);});
@@ -3181,6 +4455,7 @@ function toast(msg){const t=document.getElementById('toast');document.getElement
 
 loadState();       // pull any shared data saved by other tabs (local)
 ensureCreds();      // make sure every module (incl. restored custom ones) has creds
+ensureSeedMasters(); // pre-load ICD-10 library, Schedule IV tariffs & compliance defaults
 renderModules();
 /* on a fresh device, hydrate from the cloud so previously-entered data shows */
 if(CLOUD){ cloudPull().then(d=>{ if(d && (d._v||0)>=_stateV){ applyState(d); try{localStorage.setItem(LS_KEY,JSON.stringify(d));}catch(e){} refreshView(); } }); }
