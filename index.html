@@ -1586,6 +1586,7 @@ document.getElementById('loginForm').addEventListener('submit',e=>{
   document.getElementById('rolePage').classList.remove('hidden');
 });
 document.getElementById('rpBack').onclick=()=>{
+  if(typeof clearRoute==='function')clearRoute();
   document.getElementById('rolePage').classList.add('hidden');
   document.getElementById('auth').classList.remove('hidden');
 };
@@ -1604,6 +1605,7 @@ function enterApp(r){
   document.getElementById('greeting').textContent = `${greet()}, ${disp} 👋`;
   renderHub();
   document.getElementById('app').classList.remove('hidden');
+  if(typeof setRoute==='function')setRoute('hub');
 }
 function renderHub(){
   if(typeof QUEUE==='undefined')return;
@@ -1618,6 +1620,7 @@ function renderHub(){
 document.getElementById('logout').onclick=()=>{
   document.getElementById('app').classList.add('hidden');
   document.getElementById('rolePage').classList.remove('hidden');
+  if(typeof clearRoute==='function')clearRoute();
 };
 
 /* ---------- top-bar menus: Settings + Notifications ---------- */
@@ -1780,6 +1783,7 @@ document.getElementById('resetCreds').onclick=()=>{
   persist(); renderAdminCreds(); toast('Credentials reset to defaults');
 };
 document.getElementById('adminBack').onclick=()=>{
+  if(typeof clearRoute==='function')clearRoute();
   document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('rolePage').classList.remove('hidden');
 };
@@ -2546,6 +2550,7 @@ document.getElementById('adminSeg').addEventListener('click',e=>{
   document.getElementById('adTabDanger').classList.toggle('hidden',t!=='danger');
   if(t==='danger')genDangerCode();
   if(t==='feedback'){ renderFeedbackQR(); loadAdminFeedback(); wireFeedbackQR(); }
+  if(typeof setRoute==='function')setRoute('admin',{tab:t});
   if(t==='master')renderMaster();
 });
 /* ---------- QR feedback (Package G) ---------- */
@@ -4197,8 +4202,10 @@ function backFromModule(){
     document.getElementById('adminPage').classList.remove('hidden');
     document.querySelector('#adminSeg [data-tab="mods"]').click();
     renderAdminDash();
+    if(typeof setRoute==='function')setRoute('admin',{tab:'mods'});
   } else {
     document.getElementById('app').classList.remove('hidden');
+    if(typeof setRoute==='function')setRoute('hub');
   }
 }
 document.getElementById('genBack').onclick=backFromModule;
@@ -4374,7 +4381,7 @@ function openShift(){
   document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('shiftPage').classList.remove('hidden');
   document.getElementById('shiftBackLbl').textContent = moduleReturn==='close'?'Close tab':(moduleReturn==='admin'?'Admin':'Modules');
-  renderShift(); window.scrollTo(0,0);
+  renderShift(); if(typeof setRoute==='function')setRoute('shift'); window.scrollTo(0,0);
 }
 document.getElementById('shiftBack').onclick=()=>backFromModule();
 function renderShift(){
@@ -4840,7 +4847,7 @@ function openPharmacy(){
   document.getElementById('pharmaBackLbl').textContent = moduleReturn==='close'?'Close tab':(moduleReturn==='admin'?'Admin':'Modules');
   pharmaTab='stock';
   document.querySelectorAll('#pharmaSeg button').forEach(x=>x.classList.toggle('active',x.dataset.ptab==='stock'));
-  renderPharma(); window.scrollTo(0,0);
+  renderPharma(); if(typeof setRoute==='function')setRoute('pharmacy'); window.scrollTo(0,0);
 }
 document.getElementById('pharmaBack').onclick=()=>backFromModule();
 document.getElementById('pharmaSeg').addEventListener('click',e=>{
