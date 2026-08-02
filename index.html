@@ -504,6 +504,63 @@
   .amod .ai svg{width:22px;height:22px}
   .amod b{font-size:14.5px;display:block}.amod span{font-size:11.5px;color:var(--muted)}
 
+  /* ---------- admin portal theme ---------- */
+  #adminPage{background:linear-gradient(180deg,#f7f9fc,#f2f5f9);min-height:100vh}
+  #adminPage .mod-bar{background:linear-gradient(135deg,#0f2744,#173a63);border-bottom:0;box-shadow:0 8px 26px -18px rgba(15,39,68,.9)}
+  #adminPage .mod-bar h2,#adminPage .mod-bar .crumb{color:#fff}
+  #adminPage .mod-bar .crumb{opacity:.72}
+  #adminPage .mod-bar .m-ico{background:rgba(255,255,255,.14);color:#fff}
+  #adminPage .mod-back{color:#dbe6f5;border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.08)}
+  #adminPage .mod-back:hover{background:rgba(255,255,255,.16)}
+  #adminPage .mod-bar .btn.ghost{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.22)}
+  #adminPage .mod-stats .mstat{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.16)}
+  #adminPage .mod-stats .mstat b{color:#fff}#adminPage .mod-stats .mstat span{color:#c8d8ee}
+  #adminSeg{background:#fff;border:1px solid var(--line);border-radius:14px;padding:6px;gap:4px;box-shadow:var(--shadow-sm);margin-bottom:20px}
+  #adminSeg button{border:0;background:none;border-radius:10px;padding:10px 16px;font-weight:700;font-size:13px;color:var(--muted)}
+  #adminSeg button:hover{background:var(--bg);color:var(--ink)}
+  #adminSeg button.active{background:var(--brand);color:#fff;box-shadow:0 8px 16px -10px rgba(31,111,235,.95)}
+  #adminSeg button.active svg{color:#fff}
+
+  /* ---------- master data: grouped sidebar ---------- */
+  .md-shell{display:grid;grid-template-columns:246px 1fr;gap:20px;align-items:start}
+  @media(max-width:900px){.md-shell{grid-template-columns:1fr}}
+  .md-side{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:var(--shadow-sm);position:sticky;top:84px;max-height:calc(100vh - 110px);overflow:auto}
+  @media(max-width:900px){.md-side{position:static;max-height:none}}
+  .md-search{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 11px;margin-bottom:10px;color:var(--muted)}
+  .md-search svg{width:15px;height:15px;flex:none}
+  .md-search input{border:0;background:transparent;outline:0;width:100%;font-size:13px;color:var(--ink);font-family:inherit}
+  .md-grp{margin-bottom:12px}
+  .md-grp>span{display:block;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:4px 10px 6px}
+  .md-grp button{display:block;width:100%;text-align:left;background:none;border:0;border-radius:9px;padding:8px 10px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;font-family:inherit;transition:.12s}
+  .md-grp button:hover{background:var(--bg)}
+  .md-grp button.active{background:var(--brand);color:#fff;box-shadow:0 6px 14px -8px rgba(31,111,235,.9)}
+  .md-main{min-width:0}
+  .md-crumb{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+  .md-crumb svg{width:13px;height:13px;opacity:.6}
+  .md-crumb b{color:var(--ink);font-size:15px;font-weight:800}
+  #mdBody .panel{box-shadow:var(--shadow-sm)}
+  #mdBody>.sec-head:first-child{margin-top:0}
+
+  /* ---------- dashboard section headers ---------- */
+  .dsec{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:28px 0 12px;padding-bottom:9px;border-bottom:2px solid var(--line)}
+  .dsec.first{margin-top:4px}
+  .dsec h4{margin:0;font-size:15.5px;font-weight:800;letter-spacing:-.01em}
+  .dsec span{font-size:12px;color:var(--muted)}
+  #adTabDash .dash-2,#adTabDash .kpi-grid,#adTabDash .win-grid,#adTabDash>.breakdown{margin-top:0}
+
+  /* ---------- feedback QR ---------- */
+  .qr-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:6px 0}
+  .qr-wrap img{border-radius:12px;border:1px solid var(--line);background:#fff}
+  .qr-note{font-size:12px;color:var(--muted);text-align:center;line-height:1.5}
+  .qr-url{font-size:12px;word-break:break-all;text-align:center;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:8px 11px;width:100%}
+
+  /* ---------- module tab rows (pharmacy etc.) ---------- */
+  #pharmaSeg{background:#fff;border:1px solid var(--line);border-radius:14px;padding:6px;gap:4px;flex-wrap:wrap;box-shadow:var(--shadow-sm)}
+  #pharmaSeg button{border:0;background:none;border-radius:9px;padding:9px 13px;font-weight:700;font-size:12.5px;color:var(--muted)}
+  #pharmaSeg button:hover{background:var(--bg);color:var(--ink)}
+  #pharmaSeg button.active{background:var(--brand);color:#fff}
+  #pharmaSeg button.active svg{color:#fff}
+
   /* ---------- danger zone ---------- */
   .danger{border:1.5px solid #f3c9c9;background:linear-gradient(180deg,#fff7f7,#fff);border-radius:18px;padding:24px;max-width:640px}
   .danger .dhead{display:flex;align-items:center;gap:11px;margin-bottom:6px}
@@ -1082,6 +1139,7 @@
 
     <!-- DASHBOARD -->
     <div id="adTabDash">
+      <div class="dsec first"><h4>Today at a glance</h4><span>Key numbers for the current day</span></div>
       <div class="kpi-grid">
         <div class="kbig"><div class="kt"><span class="ci" style="background:#e9f7ee;color:#16a34a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Revenue today</div><b id="adRev">₹0</b><div class="ks up" id="adRevD">▲ collections</div></div>
         <div class="kbig"><div class="kt"><span class="ci" style="background:#fdeaea;color:#dc2626"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Expenses today</div><b id="adExp">₹0</b><div class="ks dn" id="adExpD">▼ spend</div></div>
@@ -1090,6 +1148,7 @@
       </div>
 
       <!-- time-window revenue (live) -->
+      <div class="dsec"><h4>Revenue over time</h4><span>Collections across rolling periods</span></div>
       <div class="win-grid">
         <div class="win hl"><div class="wl">Today</div><b id="winToday">₹0</b><div class="ws">revenue collected</div></div>
         <div class="win"><div class="wl">Yesterday</div><b id="winYest">₹0</b><div class="ws">revenue</div></div>
@@ -1113,7 +1172,8 @@
           <div class="brow"><span class="bn"><i style="background:#1f6feb"></i>Staff vacancies</span><b id="gVac">0</b></div>
         </div>
       </div>
-      <div class="dash-2" style="margin-top:16px">
+      <div class="dsec"><h4>Where the money came from</h4><span>Department and payment-mode split, today</span></div>
+      <div class="dash-2">
         <div class="breakdown">
           <div class="sec-head"><div><h3>Revenue by department (today)</h3><p style="margin:2px 0 0;color:var(--muted);font-size:12.5px">Money collected per department today</p></div>
             <span class="qh-live"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></span> LIVE</span></div>
@@ -1126,7 +1186,8 @@
         </div>
       </div>
 
-      <div class="dash-2" style="margin-top:16px">
+      <div class="dsec"><h4>Patient flow &amp; billing</h4><span>OPD queue, waiting times, bills and patient mix</span></div>
+      <div class="dash-2">
         <div class="breakdown">
           <h3>OPD operations</h3>
           <p class="psub" style="margin:2px 0 12px">Live from the OPD queue</p>
@@ -1141,7 +1202,24 @@
         </div>
       </div>
 
-      <div class="breakdown" style="margin-top:16px">
+      <div class="dash-2" style="margin-top:16px">
+        <div class="breakdown">
+          <h3>OPD billing (live)</h3>
+          <p class="psub" style="margin:2px 0 12px">All patient/bed bills from OPD (pharmacy is separate)</p>
+          <div class="brow"><span class="bn"><i style="background:#16a34a"></i>Collected today</span><b id="adOpdCollected">₹0</b></div>
+          <div class="brow"><span class="bn"><i style="background:#dc2626"></i>Outstanding (unpaid)</span><b id="adOpdOutstanding">₹0</b></div>
+          <div class="brow"><span class="bn"><i style="background:#1f6feb"></i>Total bills</span><b id="adOpdBills">0</b></div>
+        </div>
+        <div class="breakdown">
+          <h3>OPD patient mix</h3>
+          <p class="psub" style="margin:2px 0 12px">Insurance vs normal patients registered</p>
+          <div class="brow"><span class="bn"><i style="background:#7c3aed"></i>Insurance patients</span><b id="adInsPat">0</b></div>
+          <div class="brow"><span class="bn"><i style="background:#0ea5a4"></i>Normal patients</span><b id="adNormPat">0</b></div>
+        </div>
+      </div>
+
+      <div class="dsec"><h4>Staff &amp; facility</h4><span>Attendance and cleaning status across the hospital</span></div>
+      <div class="breakdown">
         <div class="sec-head"><div><h3>Staff attendance (live)</h3><p style="margin:2px 0 0;color:var(--muted);font-size:12.5px">Doctors &amp; nurses clock-in / out &amp; leave — who's on duty and when</p></div>
           <span class="qh-live"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></span> LIVE</span></div>
         <div class="win-grid" style="grid-template-columns:repeat(3,1fr);margin:10px 0 0">
@@ -1163,23 +1241,8 @@
         <div class="tablewrap" style="margin-top:12px"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Area</th><th>Trigger</th><th>Status</th><th>Staff</th><th>Updated</th></tr></thead><tbody id="adSanBody"></tbody></table></div>
       </div>
 
-      <div class="dash-2" style="margin-top:16px">
-        <div class="breakdown">
-          <h3>OPD billing (live)</h3>
-          <p class="psub" style="margin:2px 0 12px">All patient/bed bills from OPD (pharmacy is separate)</p>
-          <div class="brow"><span class="bn"><i style="background:#16a34a"></i>Collected today</span><b id="adOpdCollected">₹0</b></div>
-          <div class="brow"><span class="bn"><i style="background:#dc2626"></i>Outstanding (unpaid)</span><b id="adOpdOutstanding">₹0</b></div>
-          <div class="brow"><span class="bn"><i style="background:#1f6feb"></i>Total bills</span><b id="adOpdBills">0</b></div>
-        </div>
-        <div class="breakdown">
-          <h3>OPD patient mix</h3>
-          <p class="psub" style="margin:2px 0 12px">Insurance vs normal patients registered</p>
-          <div class="brow"><span class="bn"><i style="background:#7c3aed"></i>Insurance patients</span><b id="adInsPat">0</b></div>
-          <div class="brow"><span class="bn"><i style="background:#0ea5a4"></i>Normal patients</span><b id="adNormPat">0</b></div>
-        </div>
-      </div>
-
-      <div class="breakdown" style="margin-top:16px">
+      <div class="dsec"><h4>Live activity</h4><span>Every payment entered anywhere in the hospital</span></div>
+      <div class="breakdown">
         <div class="sec-head"><div><h3>Live payments feed</h3><p style="margin:2px 0 0;color:var(--muted);font-size:12.5px">Every amount entered in any department appears here within seconds</p></div>
           <span class="qh-live"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></span> LIVE</span></div>
         <div class="tablewrap" style="margin-top:8px"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Source</th><th>Detail</th><th>Amount</th><th>Mode</th></tr></thead><tbody id="adPayments"></tbody></table></div>
@@ -1243,9 +1306,15 @@
       <div class="dash-2">
         <div class="panel" style="max-width:none">
           <h3>Feedback QR code</h3>
-          <p class="psub">Print or display this QR. Patients and visitors scan it to send feedback or complaints straight to you. Admin-only.</p>
-          <div id="fbQR" style="display:flex;justify-content:center;padding:10px 0"></div>
-          <div style="font-size:12.5px;color:var(--muted);word-break:break-all;text-align:center">Link: <b id="fbUrl">—</b></div>
+          <p class="psub">Print or display this QR. Patients scan it to send feedback or complaints straight to you.</p>
+          <div class="fld" style="margin-bottom:10px"><label>Public link for the QR</label>
+            <input id="fbBase" placeholder="https://your-hospital.onrender.com">
+          </div>
+          <div class="form-actions" style="margin-bottom:8px">
+            <button class="btn" id="fbGen" style="width:auto;padding:11px 18px">Generate QR</button>
+            <button class="btn ghost" id="fbPrint" style="width:auto;padding:11px 18px">Print</button>
+          </div>
+          <div id="fbQR" class="qr-wrap"></div>
         </div>
         <div class="breakdown">
           <div class="sec-head"><div><h3>Responses received</h3><p style="margin:2px 0 0;color:var(--muted);font-size:12.5px"><b id="fbCount">0</b> total · live</p></div>
@@ -1257,46 +1326,19 @@
 
     <!-- MASTER DATA -->
     <div id="adTabMaster" class="hidden">
-      <div class="seg" id="mdSeg" style="flex-wrap:wrap">
-        <button data-md="doctors" class="active">Doctors</button>
-        <button data-md="staff">Staff</button>
-        <button data-md="roles">Roles &amp; access</button>
-        <button data-md="invest">Investigations</button>
-        <button data-md="departments">Departments</button>
-        <button data-md="diagnostics">Diagnostics</button>
-        <button data-md="qualifications">Qualifications</button>
-        <button data-md="referrals">Referred doctors</button>
-        <button data-md="pathologists">Pathologists</button>
-        <button data-md="radiologists">Radiologists</button>
-        <button data-md="sonologists">Sonologists</button>
-        <button data-md="cardiologists">Cardiologists</button>
-        <button data-md="expenseHeads">Expense heads</button>
-        <button data-md="incomeHeads">Income heads</button>
-        <button data-md="outsourceLabs">Outsource labs</button>
-        <button data-md="insurance">Insurance</button>
-        <button data-md="tpa">TPA</button>
-        <button data-md="ratelists">Rate lists</button>
-        <button data-md="dischargeTypes">Discharge types</button>
-        <button data-md="roomCategories">Room categories</button>
-        <button data-md="certificates">Certificates</button>
-        <button data-md="icd10">ICD-10 codes</button>
-        <button data-md="tariffs">Schedule IV tariffs</button>
-        <button data-md="compliance">Compliance &amp; audit</button>
-        <button data-md="integrations">ERP / SAP</button>
-        <button data-md="abha">ABHA check-in</button>
-        <button data-md="nabh">NABH audit engine</button>
-        <button data-md="dischargeLock">Discharge lock</button>
-        <button data-md="consent">DPDP consent</button>
-        <button data-md="charges">Charge capture</button>
-        <button data-md="claims">TPA / cashless claims</button>
-        <button data-md="discounts">Discount approvals</button>
-        <button data-md="voice">Voice-to-EMR</button>
-        <button data-md="lis">LIS results</button>
-        <button data-md="stdRates">Standard rates</button>
-        <button data-md="billingAlerts">Billing alerts</button>
-        <button data-md="hospital">Hospital settings</button>
+      <div class="md-shell">
+        <aside class="md-side">
+          <div class="md-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="mdNav" placeholder="Search settings…">
+          </div>
+          <nav id="mdSeg"></nav>
+        </aside>
+        <section class="md-main">
+          <div class="md-crumb"><span id="mdGroupLbl">People</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg><b id="mdPageLbl">Doctors</b></div>
+          <div id="mdBody"></div>
+        </section>
       </div>
-      <div id="mdBody"></div>
       <datalist id="docNameList"></datalist>
     </div>
 
@@ -1756,6 +1798,7 @@ function openOPD(){
   populateOpdMasters();
   renderQueue(); showConsult();
   renderDeptTools('OPD','opdToolBar','opdToolHost');
+  if(typeof setRoute==='function')setRoute('opd');
   window.scrollTo(0,0);
 }
 document.getElementById('opdBack').onclick=()=>backFromModule();
@@ -2026,6 +2069,7 @@ function openIPD(){
   populateIpdMasters();
   fillWardSelects(); renderBoard(); renderAdmitted();
   renderDeptTools('IPD','ipdToolBar','ipdToolHost');
+  if(typeof setRoute==='function')setRoute('ipd');
   window.scrollTo(0,0);
 }
 document.getElementById('ipdBack').onclick=()=>backFromModule();
@@ -2327,7 +2371,9 @@ function openGeneric(m){
   document.getElementById('app').classList.add('hidden');
   document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('genPage').classList.remove('hidden');
-  renderGenSeg(); renderGenBody(); renderDeptTools(m.name,'genToolBar','genToolHost'); renderModCustom(m.name); window.scrollTo(0,0);
+  renderGenSeg(); renderGenBody(); renderDeptTools(m.name,'genToolBar','genToolHost'); renderModCustom(m.name);
+  if(typeof setRoute==='function')setRoute('generic',{module:m.name});
+  window.scrollTo(0,0);
 }
 /* ---------- per-module customization: custom fields, daily target, notes ---------- */
 let MODULE_CFG={};
@@ -2469,6 +2515,7 @@ function openAdmin(){
   document.querySelector('#adminSeg [data-tab="dash"]').classList.add('active');
   document.getElementById('adminPage').classList.remove('hidden');
   if(typeof showVariancePopup==='function')showVariancePopup();
+  if(typeof setRoute==='function')setRoute('admin');
   window.scrollTo(0,0);
 }
 document.getElementById('adminRefresh').onclick=()=>{
@@ -2498,21 +2545,49 @@ document.getElementById('adminSeg').addEventListener('click',e=>{
   document.getElementById('adTabMaster').classList.toggle('hidden',t!=='master');
   document.getElementById('adTabDanger').classList.toggle('hidden',t!=='danger');
   if(t==='danger')genDangerCode();
-  if(t==='feedback'){ renderFeedbackQR(); loadAdminFeedback(); }
+  if(t==='feedback'){ renderFeedbackQR(); loadAdminFeedback(); wireFeedbackQR(); }
   if(t==='master')renderMaster();
 });
 /* ---------- QR feedback (Package G) ---------- */
-function feedbackURL(){ const o=location.origin; return (o && /^https?:/.test(o)) ? o+'/feedback' : ''; }
+let FB_BASE='';
+function feedbackURL(){
+  const manual=String(FB_BASE||'').trim().replace(/\/+$/,'');
+  if(manual) return /\/feedback$/.test(manual)?manual:manual+'/feedback';
+  const o=location.origin;
+  return (o && /^https?:/.test(o)) ? o+'/feedback' : '';
+}
 function renderFeedbackQR(){
-  const url=feedbackURL(), box=document.getElementById('fbQR'), link=document.getElementById('fbUrl');
-  if(!box)return;
-  if(url){
-    box.innerHTML=`<img alt="Feedback QR" width="220" height="220" style="border-radius:12px;border:1px solid var(--line)" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(url)}">`;
-    if(link) link.textContent=url;
-  } else {
-    box.innerHTML='<div class="tempty">Deploy the app to a public URL (e.g. Render) to generate a scannable QR — a local file has no address to encode.</div>';
-    if(link) link.textContent='—';
+  const box=document.getElementById('fbQR'); if(!box)return;
+  const inp=document.getElementById('fbBase');
+  if(inp && !inp.value && FB_BASE) inp.value=FB_BASE;
+  const url=feedbackURL();
+  if(!url){
+    box.innerHTML='<div class="qr-note">You\'re opening this as a local file, so there\'s no web address to encode yet.<br><b>Type your deployed link above</b> (e.g. https://your-app.onrender.com) and press <b>Generate QR</b>.</div>';
+    return;
   }
+  const src='https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=10&data='+encodeURIComponent(url);
+  box.innerHTML=`<img id="fbQRImg" alt="Feedback QR code" width="240" height="240" src="${genAttr(src)}">
+    <div class="qr-url">${genEsc(url)}</div>
+    <div class="qr-note">Patients scan this to open the feedback form.</div>`;
+  const img=document.getElementById('fbQRImg');
+  if(img)img.onerror=()=>{ box.innerHTML=`<div class="qr-note">The QR image couldn't load — this device may be offline (the QR is generated online).<br>The feedback link still works:</div><div class="qr-url">${genEsc(url)}</div>`; };
+}
+function wireFeedbackQR(){
+  const gen=document.getElementById('fbGen'), pr=document.getElementById('fbPrint'), inp=document.getElementById('fbBase');
+  if(inp&&!inp.value)inp.value=FB_BASE||'';
+  if(gen)gen.onclick=()=>{ FB_BASE=(document.getElementById('fbBase').value||'').trim(); persist(); renderFeedbackQR();
+    toast(feedbackURL()?'QR generated':'Enter a valid link'); };
+  if(pr)pr.onclick=printFeedbackQR;
+}
+function printFeedbackQR(){
+  const url=feedbackURL(); if(!url){toast('Enter your public link first');return;}
+  const w=window.open('','_blank','width=420,height=560'); if(!w){toast('Allow pop-ups to print');return;}
+  const hosp=(typeof MD_HOSPITAL!=='undefined'&&MD_HOSPITAL&&MD_HOSPITAL.name)||'MediCore Hospital';
+  w.document.write(`<html><head><title>Feedback QR</title></head><body style="font-family:system-ui,Arial;text-align:center;padding:26px">
+    <h2 style="margin:0 0 4px">${genEsc(hosp)}</h2><p style="color:#555;margin:0 0 18px">Scan to share your feedback</p>
+    <img width="300" height="300" src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=${encodeURIComponent(url)}">
+    <p style="font-size:11px;color:#777;word-break:break-all;margin-top:14px">${genEsc(url)}</p></body></html>`);
+  w.document.close(); w.focus(); setTimeout(()=>{try{w.print();}catch(e){}},400);
 }
 function loadAdminFeedback(){
   fetch('/api/feedback',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{
@@ -2560,8 +2635,35 @@ const MDLIST_CONFIG={
   tariffs:{title:'Schedule IV Tariffs',noun:'tariff head',fields:[{k:'code',label:'Code'},{k:'rate',label:'Rate (₹)',type:'number'}],cols:[{k:'code',label:'Code'},{k:'rate',label:'Rate'}]},
   stdRates:{title:'Standard Rates',noun:'rate',nameLabel:'Item / service',fields:[{k:'module',label:'Module / department'},{k:'amount',label:'Standard amount (₹)',type:'number'}],cols:[{k:'module',label:'Module'},{k:'amount',label:'Standard ₹'}]}
 };
-(function initMdSeg(){ const seg=document.getElementById('mdSeg'); if(!seg)return;
-  seg.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; mdTab=b.dataset.md; renderMaster(); }); })();
+/* ---- Master Data: grouped navigation ---- */
+const MD_GROUPS=[
+  {g:'People & roles',items:[['doctors','Doctors'],['staff','Staff'],['roles','Roles & access'],['qualifications','Qualifications'],['referrals','Referred doctors'],['pathologists','Pathologists'],['radiologists','Radiologists'],['sonologists','Sonologists'],['cardiologists','Cardiologists']]},
+  {g:'Clinical setup',items:[['departments','Departments'],['diagnostics','Diagnostics'],['invest','Investigations'],['icd10','ICD-10 codes'],['roomCategories','Room categories'],['dischargeTypes','Discharge types'],['certificates','Certificates'],['outsourceLabs','Outsource labs']]},
+  {g:'Billing & finance',items:[['stdRates','Standard rates'],['tariffs','Schedule IV tariffs'],['ratelists','Rate lists'],['charges','Charge capture'],['billingAlerts','Billing alerts'],['discounts','Discount approvals'],['expenseHeads','Expense heads'],['incomeHeads','Income heads']]},
+  {g:'Insurance & claims',items:[['insurance','Insurance'],['tpa','TPA'],['claims','TPA / cashless claims']]},
+  {g:'Compliance & records',items:[['compliance','Compliance & audit'],['nabh','NABH audit engine'],['consent','DPDP consent'],['abha','ABHA check-in'],['dischargeLock','Discharge lock']]},
+  {g:'Clinical tools',items:[['voice','Voice-to-EMR'],['lis','LIS results']]},
+  {g:'System',items:[['integrations','ERP / SAP'],['hospital','Hospital settings']]}
+];
+const MD_LABEL=(k)=>{ for(const gr of MD_GROUPS){ const f=gr.items.find(i=>i[0]===k); if(f)return {group:gr.g,label:f[1]}; } return {group:'',label:k}; };
+let _mdNavQuery='';
+function renderMdNav(){
+  const seg=document.getElementById('mdSeg'); if(!seg)return;
+  const q=_norm(_mdNavQuery);
+  seg.innerHTML=MD_GROUPS.map(gr=>{
+    const items=gr.items.filter(([k,l])=>!q||_norm(l).includes(q)||_norm(gr.g).includes(q));
+    if(!items.length)return '';
+    return `<div class="md-grp"><span>${genEsc(gr.g)}</span>${items.map(([k,l])=>`<button data-md="${k}" class="${mdTab===k?'active':''}">${genEsc(l)}</button>`).join('')}</div>`;
+  }).join('')||'<div class="md-grp"><span>No matches</span></div>';
+  seg.querySelectorAll('button[data-md]').forEach(b=>b.onclick=()=>{ mdTab=b.dataset.md; _dpOpen=null; renderMaster(); });
+  const meta=MD_LABEL(mdTab);
+  const gl=document.getElementById('mdGroupLbl'), pl=document.getElementById('mdPageLbl');
+  if(gl)gl.textContent=meta.group; if(pl)pl.textContent=meta.label;
+}
+(function initMdSeg(){
+  const nav=document.getElementById('mdNav');
+  if(nav)nav.oninput=function(){ _mdNavQuery=this.value; renderMdNav(); };
+})();
 function renderMaster(){
   const body=document.getElementById('mdBody');
   if(!body){ if(typeof _deptHost!=='undefined'&&_deptHost){ const _h=document.getElementById(_deptHost.elId); if(_h&&DEPT_FEATURES[_deptHost.key])DEPT_FEATURES[_deptHost.key](_h); } return; }
@@ -2569,7 +2671,7 @@ function renderMaster(){
   if(typeof _deptCtx!=='undefined')_deptCtx='Admin';
   const _dl=document.getElementById('docNameList');
   if(_dl)_dl.innerHTML=(typeof MD_DOCTORS!=='undefined'?MD_DOCTORS:[]).map(x=>`<option value="${genAttr('Dr. '+x.name)}">`).join('');
-  document.querySelectorAll('#mdSeg button').forEach(b=>b.classList.toggle('active',b.dataset.md===mdTab));
+  renderMdNav();
   if(mdTab==='doctors')renderMdDoctors(body);
   else if(mdTab==='staff')renderMdStaff(body);
   else if(mdTab==='roles')renderMdRoles(body);
@@ -4126,7 +4228,7 @@ function openAccounts(){
   document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('accountsPage').classList.remove('hidden');
   document.getElementById('accBackLbl').textContent = moduleReturn==='close'?'Close tab':(moduleReturn==='admin'?'Admin':'Modules');
-  renderAccounts(); window.scrollTo(0,0);
+  renderAccounts(); if(typeof setRoute==='function')setRoute('accounts'); window.scrollTo(0,0);
 }
 document.getElementById('accBack').onclick=()=>backFromModule();
 document.getElementById('accSearch').addEventListener('input',function(){ _accQuery=this.value; renderAccountsBody(); });
@@ -4198,7 +4300,7 @@ function openSanitize(){
   document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('sanitizePage').classList.remove('hidden');
   document.getElementById('sanBackLbl').textContent = moduleReturn==='close'?'Close tab':(moduleReturn==='admin'?'Admin':'Modules');
-  renderSanitize(); window.scrollTo(0,0);
+  renderSanitize(); if(typeof setRoute==='function')setRoute('sanitize'); window.scrollTo(0,0);
 }
 document.getElementById('sanBack').onclick=()=>backFromModule();
 function renderSanitize(){
@@ -4958,7 +5060,7 @@ function buildStateObject(){
   const rows={};
   Object.keys(MODULE_DEFS).forEach(n=>{rows[n]=MODULE_DEFS[n].sections.map(s=>s.rows);});
   return {_v:_stateV,rows,QUEUE,TOKEN,BEDS,WARDS,LEDGER,VACANCIES,MODCREDS,ADMIN_CRED,PHARMACY,PHARMA_MOVES,SHIFTS,SANITIZE,OPD_BILLS,MD_DOCTORS,MD_STAFF,MD_ROLES,MD_INVEST,MD_HOSPITAL,MD_LISTS,AUDIT,MD_COMPLIANCE,MD_INTEGRATIONS,
-    ABHA_REG,NABH_METRICS,CONSENTS,CHARGES,CLAIMS,DISCOUNTS,LIS_RESULTS,EMR_NOTES,DISCHARGE_LOCK,DISCHARGE_CLEARED,VARIANCE_ALERTS,PH_ALLERGIES,PH_INGREDIENTS,PH_COMPOUNDS,PH_INTERACTIONS,DEPARTMENTS,PH_SUPPLIERS,PH_ORDERS,PH_RETURNS,PH_AUDITS,PH_RX,MODULE_CFG,APPOINTMENTS,VITALS,NURSE_NOTES,LAB_SAMPLES,OT_BOOKINGS,RAD_ORDERS,RAD_TEMPLATES,PKG_PLANS,PKG_BILLS,PHYSIO_PLANS,PHYSIO_SESSIONS,INS_POLICIES,MRD_FILES,MRD_MOVES,
+    ABHA_REG,NABH_METRICS,CONSENTS,CHARGES,CLAIMS,DISCOUNTS,LIS_RESULTS,EMR_NOTES,DISCHARGE_LOCK,DISCHARGE_CLEARED,VARIANCE_ALERTS,PH_ALLERGIES,PH_INGREDIENTS,PH_COMPOUNDS,PH_INTERACTIONS,DEPARTMENTS,PH_SUPPLIERS,PH_ORDERS,PH_RETURNS,PH_AUDITS,PH_RX,MODULE_CFG,APPOINTMENTS,VITALS,NURSE_NOTES,LAB_SAMPLES,OT_BOOKINGS,RAD_ORDERS,RAD_TEMPLATES,PKG_PLANS,PKG_BILLS,PHYSIO_PLANS,PHYSIO_SESSIONS,INS_POLICIES,MRD_FILES,MRD_MOVES,FB_BASE,
     MODULES:MODULES.map(m=>({name:m.name,desc:m.desc,icon:m.icon,color:m.color,count:m.count}))};
 }
 function persist(){
@@ -5029,6 +5131,7 @@ function applyState(d){
     if(Array.isArray(d.INS_POLICIES))INS_POLICIES=d.INS_POLICIES;
     if(Array.isArray(d.MRD_FILES))MRD_FILES=d.MRD_FILES;
     if(Array.isArray(d.MRD_MOVES))MRD_MOVES=d.MRD_MOVES;
+    if(typeof d.FB_BASE==='string')FB_BASE=d.FB_BASE;
     ensureSeedMasters();
     if(d.MODCREDS)Object.keys(d.MODCREDS).forEach(k=>MODCREDS[k]=d.MODCREDS[k]);
     if(d.ADMIN_CRED){ADMIN_CRED.user=d.ADMIN_CRED.user;ADMIN_CRED.pass=d.ADMIN_CRED.pass;}
@@ -5163,6 +5266,38 @@ ensureSeedMasters(); // pre-load ICD-10 library, Schedule IV tariffs & complianc
 renderModules();
 /* on a fresh device, hydrate from the cloud so previously-entered data shows */
 if(CLOUD){ cloudPull().then(d=>{ if(d && (d._v||0)>=_stateV){ applyState(d); try{localStorage.setItem(LS_KEY,JSON.stringify(d));}catch(e){} refreshView(); } }); }
+
+/* ---------- keep the page you're on across a refresh ---------- */
+const RT_KEY='medicore_route';
+function setRoute(view,extra){
+  try{ sessionStorage.setItem(RT_KEY,JSON.stringify(Object.assign({user:userName||'user',view},extra||{}))); }catch(e){}
+}
+function clearRoute(){ try{ sessionStorage.removeItem(RT_KEY); }catch(e){} }
+function readRoute(){ try{ return JSON.parse(sessionStorage.getItem(RT_KEY)||'null'); }catch(e){ return null; } }
+function showHubPage(){
+  ['auth','rolePage','opdPage','ipdPage','genPage','pharmaPage','shiftPage','sanitizePage','accountsPage','adminPage'].forEach(id=>{const e=document.getElementById(id); if(e)e.classList.add('hidden');});
+  const app=document.getElementById('app'); if(app)app.classList.remove('hidden');
+}
+function restoreRoute(){
+  const r=readRoute(); if(!r||!r.user)return false;
+  userName=r.user;
+  const who=document.getElementById('rpWho'); if(who)who.textContent=userName;
+  const av=document.getElementById('avName'); if(av)av.textContent=userName;
+  try{
+    ['auth','rolePage'].forEach(id=>{const e=document.getElementById(id); if(e)e.classList.add('hidden');});
+    const mod=r.module?MODULES.find(x=>x.name===r.module):null;
+    if(r.view==='admin'){ openAdmin(); if(r.tab){ const b=document.querySelector(`#adminSeg [data-tab="${r.tab}"]`); if(b)b.click(); } return true; }
+    if(r.view==='opd'&&typeof openOPD==='function'){ openOPD(); return true; }
+    if(r.view==='ipd'&&typeof openIPD==='function'){ openIPD(); return true; }
+    if(r.view==='pharmacy'&&typeof openPharmacy==='function'){ openPharmacy(); return true; }
+    if(r.view==='shift'&&typeof openShift==='function'){ openShift(); return true; }
+    if(r.view==='sanitize'&&typeof openSanitize==='function'){ openSanitize(); return true; }
+    if(r.view==='accounts'&&typeof openAccounts==='function'){ openAccounts(); return true; }
+    if(r.view==='generic'&&mod&&MODULE_DEFS[mod.name]){ openGeneric(mod); return true; }
+    showHubPage(); renderModules(); return true;
+  }catch(e){ showHubPage(); return true; }
+}
+restoreRoute();
 
 /* ---------- if opened as a module tab (#m=NAME), route straight in ---------- */
 (function routeModuleTab(){
