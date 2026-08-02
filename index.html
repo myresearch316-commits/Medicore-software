@@ -623,9 +623,9 @@
     </div>
 
     <div class="brand-stats">
-      <div class="st"><b>12+</b><span>Departments</span></div>
-      <div class="st"><b>99.98%</b><span>Uptime</span></div>
-      <div class="st"><b>HIPAA</b><span>Compliant</span></div>
+      <div class="st"><b>17</b><span>Departments</span></div>
+      <div class="st"><b>NABH</b><span>Audit trail ready</span></div>
+      <div class="st"><b>DPDP</b><span>Act 2023 aligned</span></div>
     </div>
   </div>
 
@@ -671,7 +671,32 @@
           </button>
         </div>
         <div class="err" id="err"></div>
+        <div style="text-align:center;margin-top:10px"><a class="link" href="#" id="showChangeCred">Change email or password</a></div>
       </form>
+
+      <div id="setupBox" style="display:none">
+        <div class="field"><label>Your email address</label>
+          <div class="inp"><input type="email" id="suEmail" placeholder="you@hospital.com"></div></div>
+        <div class="field"><label>Create a password</label>
+          <div class="inp"><input type="password" id="suPw" placeholder="8+ characters, letters and numbers"></div></div>
+        <div class="field"><label>Confirm password</label>
+          <div class="inp"><input type="password" id="suPw2" placeholder="Repeat the password"></div></div>
+        <div class="signin-row"><button class="btn signin" type="button" id="suCreate">Create account</button></div>
+        <div class="err" id="suErr"></div>
+        <p class="auth-sub" style="font-size:11.5px;margin-top:8px">This is the only account that will be able to open MediCore on this device. You can change it later from this screen.</p>
+      </div>
+
+      <div id="changeCredBox" style="display:none">
+        <div class="field"><label>Current password</label>
+          <div class="inp"><input type="password" id="ccCur" placeholder="Your current password"></div></div>
+        <div class="field"><label>New email (leave blank to keep)</label>
+          <div class="inp"><input type="email" id="ccEmail" placeholder="new@hospital.com"></div></div>
+        <div class="field"><label>New password (leave blank to keep)</label>
+          <div class="inp"><input type="password" id="ccPw" placeholder="8+ characters, letters and numbers"></div></div>
+        <div class="signin-row"><button class="btn signin" type="button" id="ccSave">Save changes</button></div>
+        <div style="text-align:center;margin-top:8px"><a class="link" href="#" id="ccCancel">Back to sign in</a></div>
+        <div class="err" id="ccErr"></div>
+      </div>
 
       <div class="trust">
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Encrypted</span>
@@ -1571,22 +1596,69 @@ let userName='admin';
 document.getElementById('eye').onclick=()=>{
   const p=document.getElementById('pwd'); p.type=p.type==='password'?'text':'password';
 };
-document.getElementById('loginForm').addEventListener('submit',e=>{
+document.getElementById('loginForm').addEventListener('submit',async e=>{
   e.preventDefault();
   const uid=document.getElementById('uid').value.trim();
   const pwd=document.getElementById('pwd').value.trim();
   const err=document.getElementById('err');
   if(!uid||!pwd){err.textContent='Please enter your credentials.';return;}
-  if(pwd.length<4){err.textContent='Password is too short.';return;}
   err.textContent='';
+  if(typeof SERVER!=='undefined'){
+    if(!SERVER.online && typeof repoProbe==='function'){ try{ await repoProbe(); }catch(x){} }
+    if(SERVER.online){
+      err.textContent='Signing in…';
+      const r=await repoLogin(uid.includes('@')?uid.split('@')[0]:uid,pwd);
+      if(!r.ok){ err.textContent=r.msg||'Wrong username or password.'; return; }
+      err.textContent='';
+      userName=r.user.name||r.user.username;
+      document.getElementById('rpWho').textContent=userName;
+      renderRoles(); await repoHydrate();
+      document.getElementById('auth').classList.add('hidden');
+      document.getElementById('rolePage').classList.remove('hidden');
+      return;
+    }
+  }
+  const chk=credCheck(uid,pwd);
+  if(!chk.ok){ err.textContent=chk.msg; if(chk.setup)renderAuthMode(); return; }
   userName = uid.includes('@')? uid.split('@')[0] : uid;
   document.getElementById('rpWho').textContent = userName;
   renderRoles();
   document.getElementById('auth').classList.add('hidden');
   document.getElementById('rolePage').classList.remove('hidden');
 });
+(function initAuthUI(){
+  const c=document.getElementById('suCreate');
+  if(c)c.onclick=()=>{
+    const e=document.getElementById('suErr');
+    const em=document.getElementById('suEmail').value.trim();
+    const p1=document.getElementById('suPw').value, p2=document.getElementById('suPw2').value;
+    if(p1!==p2){e.textContent='The two passwords do not match.';return;}
+    const r=credSet(em,p1);
+    if(!r.ok){e.textContent=r.msg;return;}
+    e.textContent=''; renderAuthMode();
+    document.getElementById('uid').value=em;
+    const errEl=document.getElementById('err'); if(errEl)errEl.textContent='Account created — sign in with it now.';
+  };
+  const sc=document.getElementById('showChangeCred');
+  if(sc)sc.onclick=(ev)=>{ ev.preventDefault();
+    document.getElementById('loginForm').style.display='none';
+    document.getElementById('changeCredBox').style.display=''; };
+  const cc=document.getElementById('ccCancel');
+  if(cc)cc.onclick=(ev)=>{ ev.preventDefault(); renderAuthMode(); };
+  const cs=document.getElementById('ccSave');
+  if(cs)cs.onclick=()=>{
+    const e=document.getElementById('ccErr');
+    const r=credChange(document.getElementById('ccCur').value,document.getElementById('ccEmail').value.trim(),document.getElementById('ccPw').value);
+    if(!r.ok){e.textContent=r.msg;return;}
+    e.textContent=''; ['ccCur','ccEmail','ccPw'].forEach(id=>document.getElementById(id).value='');
+    renderAuthMode();
+    const errEl=document.getElementById('err'); if(errEl)errEl.textContent='Updated — sign in with your new details.';
+  };
+  renderAuthMode();
+})();
 document.getElementById('rpBack').onclick=()=>{
   if(typeof clearRoute==='function')clearRoute();
+  if(typeof repoLogout==='function')repoLogout();
   document.getElementById('rolePage').classList.add('hidden');
   document.getElementById('auth').classList.remove('hidden');
 };
@@ -1940,7 +2012,7 @@ document.getElementById('btnCallNext').onclick=()=>{
 /* registration */
 document.getElementById('btnNewReg').onclick=()=>{goTab('reg');document.getElementById('rName').focus();};
 document.getElementById('regClear').onclick=()=>document.getElementById('regForm').reset();
-document.getElementById('regForm').addEventListener('submit',e=>{
+document.getElementById('regForm').addEventListener('submit',async e=>{
   e.preventDefault();
   const name=document.getElementById('rName').value.trim();
   if(!name){document.getElementById('rName').focus();toast('Enter patient name');return;}
@@ -1957,12 +2029,16 @@ document.getElementById('regForm').addEventListener('submit',e=>{
     policy:document.getElementById('rPolicy').value.trim(),
     status:'wait', reg:Date.now()
   };
+  if(!repoCan('appointments','w')){toast('Your role cannot register patients in the queue');return;}
+  p.id='Q'+Date.now().toString(36);
   QUEUE.push(p); persist();
   document.getElementById('regForm').reset();
   document.getElementById('rInsurerWrap').style.display='none';
   document.getElementById('rPolicyWrap').style.display='none';
   renderQueue();
-  toast(`Registered ${name} · Token ${p.tok}`);
+  const sv=await repoSave('appointments',p);
+  if(!sv.ok&&!sv.offline){ QUEUE=QUEUE.filter(x=>x.id!==p.id); renderQueue(); toast(sv.msg||'Could not register'); return; }
+  repoReport(sv,`Registered ${name} · Token ${p.tok}`);
 });
 document.getElementById('rType').addEventListener('change',function(){
   const ins=this.value==='Insurance';
@@ -2009,9 +2085,10 @@ function renderOpdBills(){
   body.querySelectorAll('[data-bill-toggle]').forEach(x=>x.onclick=()=>opdBillToggle(x.dataset.billToggle));
   body.querySelectorAll('[data-bill-rcpt]').forEach(x=>x.onclick=()=>printOpdReceipt(x.dataset.billRcpt));
 }
-function addOpdBill(){
+async function addOpdBill(){
   const patient=document.getElementById('obName').value.trim();
   if(!patient){document.getElementById('obName').focus();toast('Enter patient name');return;}
+  if(!repoCan('opd_bills','w')){toast('Your role cannot create bills');return;}
   const payer=document.getElementById('obPayer').value;
   OPD_BILLS.push({ id:'OB'+Date.now().toString(36), patient, type:document.getElementById('obType').value,
     amount:Number(document.getElementById('obAmt').value)||0, pay:document.getElementById('obPay').value,
@@ -2020,7 +2097,11 @@ function addOpdBill(){
     date:new Date().toISOString().slice(0,10), _ts:Date.now() });
   logAudit('OPD billing',`Bill created · ${money(Number(document.getElementById('obAmt').value)||0)}`,patient);
   if(typeof stdRateFor==='function'){ const _t=document.getElementById('obType').value, _a=Number(document.getElementById('obAmt').value)||0, _e=stdRateFor(_t,'OPD'); if(_e!=null&&_a>_e&&typeof raiseVariance==='function')raiseVariance('OPD',_t,_e,_a); }
-  persist(); renderOpdBills(); toast(`Bill added for ${patient}`);
+  persist(); renderOpdBills();
+  const _bill=OPD_BILLS[OPD_BILLS.length-1];
+  const sv=await repoSave('opd_bills',_bill);
+  if(!sv.ok&&!sv.offline){ OPD_BILLS=OPD_BILLS.filter(x=>x.id!==_bill.id); renderOpdBills(); toast(sv.msg||'Could not save bill'); return; }
+  repoReport(sv,`Bill added for ${patient}`);
 }
 function opdBillToggle(id){
   const b=OPD_BILLS.find(x=>x.id===id); if(!b)return;
@@ -2228,13 +2309,15 @@ document.getElementById('btnAddAdmitted').onclick=()=>{
   ipdGoTab('admit'); fillWardSelects(); document.getElementById('aName').focus();
 };
 
-document.getElementById('admForm').addEventListener('submit',e=>{
+document.getElementById('admForm').addEventListener('submit',async e=>{
   e.preventDefault();
   const name=document.getElementById('aName').value.trim();
   const bedId=document.getElementById('aBed').value;
   if(!name){document.getElementById('aName').focus();toast('Enter patient name');return;}
   if(!bedId){toast('No vacant bed in this ward');return;}
   const b=BEDS.find(x=>x.id===bedId); if(!b||b.status!=='vacant'){toast('Bed no longer available');fillBedSelect();return;}
+  if(!repoCan('patients','w')){toast('Your role cannot admit patients');return;}
+  const _prev={status:b.status,patient:b.patient};
   b.status='occupied';
   b.patient={
     name, age:document.getElementById('aAge').value||'—',
@@ -2246,7 +2329,14 @@ document.getElementById('admForm').addEventListener('submit',e=>{
   persist();
   document.getElementById('admForm').reset(); fillWardSelects();
   renderBoard(); renderAdmitted();
-  toast(`${name} admitted to bed ${bedId}`);
+  const sv=await repoSave('beds',b);
+  if(sv.conflict){
+    b.status=_prev.status; b.patient=_prev.patient;
+    await repoList('beds'); persist(); renderBoard(); renderAdmitted(); fillWardSelects();
+    toast('That bed was just taken by another desk — please pick another'); return;
+  }
+  if(!sv.ok&&!sv.offline){ b.status=_prev.status; b.patient=_prev.patient; persist(); renderBoard(); renderAdmitted(); toast(sv.msg||'Could not admit'); return; }
+  repoReport(sv,`${name} admitted to bed ${bedId}`);
   ipdGoTab('board');
 });
 
@@ -2277,7 +2367,7 @@ function renderAdmitted(){
     const b=BEDS.find(x=>x.id===btn.dataset.dis); const nm=b.patient.name;
     if(typeof DISCHARGE_LOCK!=='undefined' && DISCHARGE_LOCK.enabled && !dischargeCleared(nm)){ if(typeof logAudit==='function')logAudit('Discharge lock','Discharge blocked — clinical clearance pending',nm); toast('Discharge locked — clear "'+nm+'" in Admin → Discharge lock first'); return; }
     b.status='cleaning'; b.patient=null; if(typeof logAudit==='function')logAudit('IPD','Patient discharged',nm); persist(); renderBoard(); renderAdmitted();
-    toast(`${nm} discharged · bed ${b.id} in cleaning`);
+    repoSave('beds',b).then(sv=>repoReport(sv,`${nm} discharged · bed ${b.id} in cleaning`));
   });
   wrap.querySelectorAll('[data-mov]').forEach(btn=>btn.onclick=()=>{
     const vac=BEDS.find(x=>x.status==='vacant');
@@ -2285,7 +2375,7 @@ function renderAdmitted(){
     const b=BEDS.find(x=>x.id===btn.dataset.mov);
     vac.status='occupied'; vac.patient=b.patient; b.status='cleaning'; b.patient=null;
     persist(); renderBoard(); renderAdmitted();
-    toast(`Transferred to bed ${vac.id}`);
+    repoSave('beds',vac).then(sv=>{ repoSave('beds',b); repoReport(sv,`Transferred to bed ${vac.id}`); });
   });
 }
 
@@ -2644,8 +2734,10 @@ const MDLIST_CONFIG={
 const MD_GROUPS=[
   {g:'People & roles',items:[['doctors','Doctors'],['staff','Staff'],['roles','Roles & access'],['qualifications','Qualifications'],['referrals','Referred doctors'],['pathologists','Pathologists'],['radiologists','Radiologists'],['sonologists','Sonologists'],['cardiologists','Cardiologists']]},
   {g:'Clinical setup',items:[['departments','Departments'],['diagnostics','Diagnostics'],['invest','Investigations'],['icd10','ICD-10 codes'],['roomCategories','Room categories'],['dischargeTypes','Discharge types'],['certificates','Certificates'],['outsourceLabs','Outsource labs']]},
-  {g:'Billing & finance',items:[['stdRates','Standard rates'],['tariffs','Schedule IV tariffs'],['ratelists','Rate lists'],['charges','Charge capture'],['billingAlerts','Billing alerts'],['discounts','Discount approvals'],['expenseHeads','Expense heads'],['incomeHeads','Income heads']]},
-  {g:'Insurance & claims',items:[['insurance','Insurance'],['tpa','TPA'],['claims','TPA / cashless claims']]},
+  {g:'Billing & finance',items:[['stdRates','Standard rates'],['tariffs','Schedule IV tariffs'],['ratelists','Rate lists'],['charges','Charge capture'],['bill','Print patient bill'],['billingAlerts','Billing alerts'],['discounts','Discount approvals'],['expenseHeads','Expense heads'],['incomeHeads','Income heads']]},
+  {g:'Insurance & claims',items:[['insurance','Insurance'],['tpa','TPA'],['claims','TPA / cashless claims'],['irda','IRDA IV-A / IV-B bill']]},
+  {g:'Patient identity (ABDM)',items:[['uhid','UHID & ABHA'],['discharge','Discharge summary (ICD-10)']]},
+  {g:'HR & payroll',items:[['payroll','Payroll']]},
   {g:'Compliance & records',items:[['compliance','Compliance & audit'],['nabh','NABH audit engine'],['consent','DPDP consent'],['abha','ABHA check-in'],['dischargeLock','Discharge lock']]},
   {g:'Clinical tools',items:[['voice','Voice-to-EMR'],['lis','LIS results']]},
   {g:'System',items:[['integrations','ERP / SAP'],['hospital','Hospital settings']]}
@@ -2695,6 +2787,11 @@ function renderMaster(){
   else if(mdTab==='lis')renderMdLis(body);
   else if(mdTab==='billingAlerts')renderMdBilling(body);
   else if(mdTab==='departments')renderMdDepartments(body);
+  else if(mdTab==='uhid')renderUhidTool(body);
+  else if(mdTab==='irda')renderIrdaTool(body);
+  else if(mdTab==='discharge')renderDischargeTool(body);
+  else if(mdTab==='payroll')renderPayrollTool(body);
+  else if(mdTab==='bill')renderBillTool(body);
   else if(MDLIST_CONFIG[mdTab])renderMdList(mdTab,body);
   else renderMdDoctors(body);
 }
@@ -2888,7 +2985,12 @@ function renderMdCharges(body){
   const item=document.getElementById('chItem'),amt=document.getElementById('chAmt'),hint=document.getElementById('chHint'),src=document.getElementById('chSource');
   const refresh=()=>{ if(!item||!amt||!hint)return; const exp=stdRateFor(item.value,src?src.value:''); if(exp!=null){ if(!amt.value)amt.value=exp; const got=Number(amt.value)||0; hint.innerHTML=`Standard rate: <b>${money(exp)}</b>`+(got>exp?` · <span style="color:#b91c1c;font-weight:700">₹${got-exp} over — this will alert the admin</span>`:''); } else hint.textContent=''; };
   if(item){item.oninput=refresh;item.onchange=refresh;} if(amt)amt.oninput=refresh; if(src)src.onchange=refresh;
-  const s=document.getElementById('chSave'); if(s)s.onclick=()=>{ const p=document.getElementById('chPatient').value.trim(); const it=(item.value||'').trim()||'Charge'; const a=Number(amt.value)||0; const mod=(typeof _deptCtx!=='undefined'&&_deptCtx&&_deptCtx!=='Admin')?_deptCtx:(src?src.value:'Other'); if(!p){toast('Enter patient');return;} captureCharge(p,src?src.value:'Other',it,a,{module:mod}); persist(); renderMaster(); toast('Charge captured — use Print for the receipt'); };
+  const s=document.getElementById('chSave'); if(s)s.onclick=async()=>{ const p=document.getElementById('chPatient').value.trim(); const it=(item.value||'').trim()||'Charge'; const a=Number(amt.value)||0; const mod=(typeof _deptCtx!=='undefined'&&_deptCtx&&_deptCtx!=='Admin')?_deptCtx:(src?src.value:'Other'); if(!p){toast('Enter patient');return;}
+    if(!repoCan('charges','w')){toast('Your role cannot capture charges');return;}
+    const rec=captureCharge(p,src?src.value:'Other',it,a,{module:mod});
+    const sv=rec?await repoSave('charges',rec):{ok:true};
+    if(!sv.ok&&!sv.offline){ CHARGES=CHARGES.filter(x=>x.id!==rec.id); toast(sv.msg||'Could not save'); renderMaster(); return; }
+    persist(); renderMaster(); repoReport(sv,'Charge captured — use Print for the receipt'); };
   const cv=document.getElementById('chCsv'); if(cv)cv.onclick=()=>exportCSV('charges',['Patient','Source','Item','Standard','Charged','Date'],CHARGES.map(c=>[c.patient,c.source,c.item,c.expected!=null?c.expected:'',c.amount,c.date]));
   body.querySelectorAll('[data-rcpt]').forEach(b=>b.onclick=()=>{ const c=CHARGES.find(x=>x.id===b.dataset.rcpt); if(c)printReceipt({title:'Bill Receipt',dept:c.source,patient:c.patient,lines:[[c.item,c.amount]],total:c.amount}); });
 }
@@ -3315,14 +3417,22 @@ function vitalsFor(p){ return VITALS.filter(x=>_norm(x.patient)===_norm(p)).sort
 function notesFor(p){ return NURSE_NOTES.filter(x=>_norm(x.patient)===_norm(p)); }
 function sampleAdd(patient,test,type,by){
   const s={id:'S'+String(LAB_SAMPLES.length+1).padStart(5,'0'),patient,test,type:type||'Blood',status:'Collected',by:by||'',date:new Date().toISOString().slice(0,10),_ts:Date.now()};
-  LAB_SAMPLES.push(s); if(typeof logAudit==='function')logAudit('Laboratory',`Sample ${s.id} collected · ${test}`,patient); return s;
+  LAB_SAMPLES.push(s); if(typeof logAudit==='function')logAudit('Laboratory',`Sample ${s.id} collected · ${test}`,patient);
+  if(typeof repoSave==='function')repoSave('lab_samples',s); return s;
 }
 function sampleAdvance(id){
   const s=LAB_SAMPLES.find(x=>x.id===id); if(!s)return {ok:false};
   if(s.status==='Reported'||s.status==='Rejected')return {ok:false};
   s.status=LAB_FLOW[Math.min(LAB_FLOW.indexOf(s.status)+1,2)];
-  if(s.status==='Reported')s.reportedTs=Date.now();
-  if(typeof logAudit==='function')logAudit('Laboratory',`Sample ${s.id} → ${s.status}`,s.patient); return {ok:true,status:s.status};
+  if(s.status==='Reported'){
+    s.reportedTs=Date.now();
+    if(!s.billed&&typeof captureCharge==='function'){
+      const rate=(typeof stdRateFor==='function'?stdRateFor(s.test,'Laboratory'):null)||0;
+      if(rate>0){ captureCharge(s.patient,'Laboratory',s.test,rate,{module:'Laboratory'}); s.billed=true; }
+    }
+  }
+  if(typeof logAudit==='function')logAudit('Laboratory',`Sample ${s.id} → ${s.status}`,s.patient);
+  if(typeof repoSave==='function')repoSave('lab_samples',s); return {ok:true,status:s.status};
 }
 function labPending(){ return LAB_SAMPLES.filter(s=>s.status==='Collected'||s.status==='In process').length; }
 function labTAT(){ const d=LAB_SAMPLES.filter(s=>s.status==='Reported'&&s.reportedTs); return d.length?Math.round(d.reduce((a,s)=>a+(s.reportedTs-s._ts),0)/d.length/3600000*10)/10:0; }
@@ -3439,18 +3549,21 @@ function otBook(o){
   if(!o.date||!o.start)return {ok:false,msg:'Pick a date and start time'};
   if(otOverlaps(o.room,o.date,o.start,o.mins))return {ok:false,msg:'That theatre is already booked in this slot'};
   const b=Object.assign({id:'OT'+Date.now().toString(36),status:'Scheduled',_ts:Date.now()},o);
-  OT_BOOKINGS.push(b); if(typeof logAudit==='function')logAudit('OT',`Scheduled ${o.procedure||'procedure'} · ${o.room} ${o.date} ${o.start}`,o.patient); return {ok:true,booking:b};
+  OT_BOOKINGS.push(b); if(typeof logAudit==='function')logAudit('OT',`Scheduled ${o.procedure||'procedure'} · ${o.room} ${o.date} ${o.start}`,o.patient);
+  if(typeof repoSave==='function')repoSave('ot_bookings',b); return {ok:true,booking:b};
 }
 function otUtilisation(room,date){ return OT_BOOKINGS.filter(b=>b.room===room&&b.date===date&&b.status!=='Cancelled').reduce((a,b)=>a+(Number(b.mins)||0),0); }
 function radOrder(patient,modality,study,doctor){
   const o={id:'R'+String(RAD_ORDERS.length+1).padStart(5,'0'),patient,modality,study,doctor:doctor||'',status:'Ordered',report:'',date:new Date().toISOString().slice(0,10),_ts:Date.now()};
-  RAD_ORDERS.push(o); if(typeof logAudit==='function')logAudit('Radiology',`${modality} ordered · ${study}`,patient); return o;
+  RAD_ORDERS.push(o); if(typeof logAudit==='function')logAudit('Radiology',`${modality} ordered · ${study}`,patient);
+  if(typeof repoSave==='function')repoSave('rad_orders',o); return o;
 }
 function radAdvance(id){
   const o=RAD_ORDERS.find(x=>x.id===id); if(!o||o.status==='Reported')return {ok:false};
   o.status=RAD_FLOW[Math.min(RAD_FLOW.indexOf(o.status)+1,3)];
   if(o.status==='Reported')o.reportedTs=Date.now();
-  if(typeof logAudit==='function')logAudit('Radiology',`${o.id} → ${o.status}`,o.patient); return {ok:true,status:o.status};
+  if(typeof logAudit==='function')logAudit('Radiology',`${o.id} → ${o.status}`,o.patient);
+  if(typeof repoSave==='function')repoSave('rad_orders',o); return {ok:true,status:o.status};
 }
 function tplFor(modality){ return RAD_TEMPLATES.filter(t=>_norm(t.modality)===_norm(modality)); }
 function pkgBill(patient,pkgId,installments,paidNow){
@@ -3746,26 +3859,400 @@ function renderMrdTool(host){
     f.status='Missing'; logAudit('MRD','File reported missing · '+f.mrn,f.patient); persist(); renderMaster(); toast('Marked missing'); });
   const cv=document.getElementById('mfCsv'); if(cv)cv.onclick=()=>exportCSV('mrd_files',['MRN','Patient','Shelf','Status','Held by','Issued on'],MRD_FILES.map(f=>[f.mrn,f.patient,f.shelf,f.status,f.holder||'',f.issuedOn||'']));
 }
+/* ===================== UHID · ABHA/ABDM · IRDA IV-A/IV-B · Discharge ICD · Payroll ===================== */
+let UHID_REG=[], DISCHARGES=[], PAYROLL=[], HOSP_CODE='MC';
+function uhidNext(){
+  const yr=String(new Date().getFullYear()).slice(2);
+  const seq=UHID_REG.filter(u=>String(u.id).indexOf(HOSP_CODE+yr)===0).length+1;
+  return HOSP_CODE+yr+String(seq).padStart(6,'0');
+}
+function uhidCreate(name,phone,dob,gender,abha){
+  if(!name)return {ok:false,msg:'Enter patient name'};
+  const dup=UHID_REG.find(u=>_norm(u.name)===_norm(name)&&u.phone&&u.phone===phone);
+  if(dup)return {ok:false,msg:'Already registered as '+dup.id,existing:dup};
+  const rec={id:uhidNext(),name,phone:phone||'',dob:dob||'',gender:gender||'',abha:abha||'',abhaAddr:'',date:new Date().toISOString().slice(0,10),_ts:Date.now()};
+  UHID_REG.push(rec); if(typeof logAudit==='function')logAudit('Registration','UHID created · '+rec.id,name); return {ok:true,rec};
+}
+function uhidFind(q){ const s=_norm(q); if(!s)return []; return UHID_REG.filter(u=>_norm(u.id)===s||_norm(u.name).includes(s)||u.phone===q); }
+function abhaValid(v){ return String(v||'').replace(/\D/g,'').length===14; }
+function abhaAddrValid(a){ return /^[a-z0-9._]{4,}@(abdm|sbx)$/i.test(String(a||'').trim()); }
+function abhaLink(uhid,abha,addr,consent){
+  const u=UHID_REG.find(x=>x.id===uhid); if(!u)return {ok:false,msg:'UHID not found'};
+  if(!abhaValid(abha))return {ok:false,msg:'ABHA must be 14 digits'};
+  if(addr&&!abhaAddrValid(addr))return {ok:false,msg:'ABHA address should look like name@abdm'};
+  u.abha=String(abha).replace(/\D/g,''); u.abhaAddr=addr||'';
+  if(typeof ABHA_REG!=='undefined')ABHA_REG.push({id:'AB'+Date.now().toString(36),name:u.name,abha:u.abha,phone:u.phone,consent:!!consent,date:new Date().toISOString().slice(0,10),_ts:Date.now()});
+  if(consent&&typeof CONSENTS!=='undefined')CONSENTS.push({id:'CN'+Date.now().toString(36),patient:u.name,purpose:'ABDM health information exchange',scope:'Full record',granted:true,date:new Date().toISOString().slice(0,10),_ts:Date.now()});
+  if(typeof logAudit==='function')logAudit('ABDM','ABHA linked to '+uhid,u.name);
+  return {ok:true};
+}
+const IRDA_HEADS=['Room & Nursing','Consultation','Investigations','Procedures','Medicines & Consumables','Others'];
+function irdaMap(source){
+  const s=_norm(source);
+  if(s.includes('ipd')||s.includes('room')||s.includes('ward')||s.includes('nurs'))return 'Room & Nursing';
+  if(s.includes('opd')||s.includes('consult'))return 'Consultation';
+  if(s.includes('lab')||s.includes('patho')||s.includes('radio')||s.includes('imaging'))return 'Investigations';
+  if(s.includes('ot')||s.includes('theatre')||s.includes('procedure')||s.includes('physio'))return 'Procedures';
+  if(s.includes('pharm')||s.includes('medicine'))return 'Medicines & Consumables';
+  return 'Others';
+}
+function irdaBill(patient){
+  const lines=(typeof CHARGES!=='undefined'?CHARGES:[]).filter(c=>_norm(c.patient)===_norm(patient));
+  const summary={}; IRDA_HEADS.forEach(h=>summary[h]=0);
+  lines.forEach(c=>{ summary[irdaMap(c.module||c.source)]+=Number(c.amount)||0; });
+  return {patient,lines,summary,total:Object.values(summary).reduce((a,b)=>a+b,0)};
+}
+function printIrda(patient,kind){
+  const b=irdaBill(patient); if(!b.total&&!b.lines.length){toast('No charges for this patient');return;}
+  const u=UHID_REG.find(x=>_norm(x.name)===_norm(patient))||{};
+  const hosp=(typeof MD_HOSPITAL!=='undefined'&&MD_HOSPITAL&&MD_HOSPITAL.name)||'MediCore Hospital';
+  const w=window.open('','_blank','width=780,height=900'); if(!w){toast('Allow pop-ups to print');return;}
+  const head=`<h2 style="margin:0">${genEsc(hosp)}</h2>
+    <div style="font-size:12px;color:#555">IRDA Schedule ${kind==='b'?'IV-B — Detailed bill':'IV-A — Summary bill'}</div>
+    <table style="width:100%;font-size:12px;margin:12px 0"><tr><td><b>Patient:</b> ${genEsc(patient)}</td><td><b>UHID:</b> ${genEsc(u.id||'—')}</td></tr>
+    <tr><td><b>ABHA:</b> ${genEsc(u.abha||'—')}</td><td><b>Date:</b> ${new Date().toLocaleDateString()}</td></tr></table>`;
+  const body=kind==='b'
+    ? `<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr><th style="text-align:left;border-bottom:1px solid #000">Sr</th><th style="text-align:left;border-bottom:1px solid #000">Particulars</th><th style="text-align:left;border-bottom:1px solid #000">IRDA head</th><th style="text-align:right;border-bottom:1px solid #000">Amount</th></tr></thead><tbody>
+        ${b.lines.map((l,i)=>`<tr><td>${i+1}</td><td>${genEsc(l.item)}</td><td>${genEsc(irdaMap(l.module||l.source))}</td><td style="text-align:right">${money(l.amount)}</td></tr>`).join('')}
+        <tr><td colspan="3" style="border-top:1px solid #000;font-weight:700">Total</td><td style="border-top:1px solid #000;text-align:right;font-weight:700">${money(b.total)}</td></tr></tbody></table>`
+    : `<table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr><th style="text-align:left;border-bottom:1px solid #000">IRDA head</th><th style="text-align:right;border-bottom:1px solid #000">Amount</th></tr></thead><tbody>
+        ${IRDA_HEADS.map(h=>`<tr><td>${h}</td><td style="text-align:right">${money(b.summary[h]||0)}</td></tr>`).join('')}
+        <tr><td style="border-top:1px solid #000;font-weight:700">Total</td><td style="border-top:1px solid #000;text-align:right;font-weight:700">${money(b.total)}</td></tr></tbody></table>`;
+  w.document.write(`<html><head><title>IRDA IV-${kind==='b'?'B':'A'} — ${genEsc(patient)}</title></head><body style="font-family:system-ui,Arial;padding:26px;color:#111">${head}${body}
+    <p style="font-size:10.5px;color:#777;margin-top:18px">Generated by MediCore HMS · heads mapped per IRDA Schedule IV. Verify against your TPA's format before submission.</p></body></html>`);
+  w.document.close(); w.focus(); setTimeout(()=>{try{w.print();}catch(e){}},350);
+}
+
+function renderUhidTool(host){
+  const rows=UHID_REG.length?UHID_REG.slice().reverse().slice(0,40).map((u,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(u.id)}</b></td><td>${genEsc(u.name)}</td><td>${genEsc(u.phone||'—')}</td><td>${genEsc(u.gender||'—')}</td><td>${u.abha?`<span class="pill g">${genEsc(u.abha)}</span>${u.abhaAddr?'<br><span style="font-size:11px;color:var(--muted)">'+genEsc(u.abhaAddr)+'</span>':''}`:'<span class="pill r">Not linked</span>'}</td><td>${genEsc(u.date)}</td><td><button class="btn ghost tiny" data-abhalink="${genAttr(u.id)}" style="width:auto;padding:6px 10px">${u.abha?'Update ABHA':'Link ABHA'}</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="8">No patients registered yet.</td></tr>';
+  const linked=UHID_REG.filter(u=>u.abha).length;
+  host.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kbig"><div class="kt">Registered patients</div><b>${UHID_REG.length}</b><div class="ks">unique UHIDs</div></div>
+      <div class="kbig"><div class="kt">ABHA linked</div><b>${linked}</b><div class="ks">${UHID_REG.length?Math.round(linked/UHID_REG.length*100):0}% of patients</div></div>
+      <div class="kbig"><div class="kt">Next UHID</div><b style="font-size:18px">${genEsc(uhidNext())}</b><div class="ks">auto-generated</div></div>
+      <div class="kbig"><div class="kt">Hospital code</div><b>${genEsc(HOSP_CODE)}</b><div class="ks">UHID prefix</div></div></div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>Register patient (UHID)</h3>
+      <p class="psub">NABH requires one permanent unique ID per patient. Duplicate name+phone is blocked.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Full name</label><input id="uhName" placeholder="Patient name"></div>
+        <div class="fld"><label>Mobile</label><input id="uhPhone" placeholder="10-digit"></div>
+        <div class="fld"><label>Date of birth</label><input id="uhDob" type="date"></div>
+        <div class="fld"><label>Gender</label><select id="uhGender"><option>Male</option><option>Female</option><option>Other</option></select></div>
+        <div class="fld"><label>ABHA number (optional)</label><input id="uhAbha" inputmode="numeric" placeholder="14-digit ABHA"></div>
+        <div class="fld"><label>ABHA address (optional)</label><input id="uhAddr" placeholder="name@abdm"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="uhSave" style="width:auto;padding:12px 20px">Register &amp; issue UHID</button></div></div>
+    <div class="panel" style="max-width:none;margin-bottom:16px"><h3>Find a patient</h3>
+      <div class="addgrid"><div class="fld"><label>UHID, name or mobile</label><input id="uhSearch" placeholder="Search…"></div></div>
+      <div id="uhResult" style="margin-top:8px"></div></div>
+    <div class="sec-head"><div><h3>Patient register</h3><p>${UHID_REG.length} patient${UHID_REG.length===1?'':'s'} · latest 40 shown</p></div>
+      <button class="btn ghost" id="uhCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>UHID</th><th>Name</th><th>Mobile</th><th>Gender</th><th>ABHA</th><th>Registered</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('uhSave').onclick=async()=>{
+    if(!repoCan('patients','w')){toast('Your role cannot register patients');return;}
+    const r=uhidCreate(document.getElementById('uhName').value.trim(),document.getElementById('uhPhone').value.trim(),document.getElementById('uhDob').value,document.getElementById('uhGender').value);
+    if(!r.ok){toast(r.msg);return;}
+    const ab=document.getElementById('uhAbha').value.trim(), ad=document.getElementById('uhAddr').value.trim();
+    if(ab){ const l=abhaLink(r.rec.id,ab,ad,true); if(!l.ok)toast(l.msg); }
+    const sv=await repoSave('patients',r.rec);
+    if(!sv.ok&&!sv.offline){ UHID_REG=UHID_REG.filter(x=>x.id!==r.rec.id); toast(sv.msg||'Could not save'); renderMaster(); return; }
+    persist(); renderMaster(); repoReport(sv,'UHID '+r.rec.id+' issued'); };
+  const s=document.getElementById('uhSearch');
+  if(s)s.oninput=function(){ const out=document.getElementById('uhResult'); const list=uhidFind(this.value);
+    out.innerHTML=list.length?list.slice(0,8).map(u=>`<div class="brow"><span class="bn"><b>${genEsc(u.id)}</b> · ${genEsc(u.name)} ${u.phone?'· '+genEsc(u.phone):''}</span><span>${u.abha?'<span class="pill g">ABHA</span>':'<span class="pill r">No ABHA</span>'}</span></div>`).join(''):(this.value?'<div class="tempty">No match.</div>':''); };
+  host.querySelectorAll('[data-abhalink]').forEach(b=>b.onclick=async()=>{
+    if(!repoCan('patients','w')){toast('Your role cannot edit patients');return;}
+    const ab=(typeof prompt!=='undefined'?prompt('ABHA number (14 digits):'):'')||''; if(!ab)return;
+    const ad=(typeof prompt!=='undefined'?prompt('ABHA address (optional, e.g. name@abdm):'):'')||'';
+    const r=abhaLink(b.dataset.abhalink,ab,ad,true); if(!r.ok){toast(r.msg);return;}
+    const rec=UHID_REG.find(x=>x.id===b.dataset.abhalink);
+    const sv=await repoSave('patients',rec);
+    persist(); renderMaster(); repoReport(sv,'ABHA linked'); });
+  const cv=document.getElementById('uhCsv'); if(cv)cv.onclick=()=>exportCSV('uhid_register',['UHID','Name','Mobile','DOB','Gender','ABHA','ABHA address','Registered'],UHID_REG.map(u=>[u.id,u.name,u.phone,u.dob,u.gender,u.abha,u.abhaAddr,u.date]));
+}
+function renderIrdaTool(host){
+  const names=[...new Set((typeof CHARGES!=='undefined'?CHARGES:[]).map(c=>c.patient))];
+  host.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>IRDA Schedule IV bill</h3>
+      <p class="psub">Generates the two formats insurers ask for: <b>IV-A</b> (summary by head) and <b>IV-B</b> (itemised detail). Charges are mapped to IRDA heads automatically.</p>
+      <div class="addgrid"><div class="fld"><label>Patient</label><input id="irPat" list="irPatList" placeholder="Patient name"></div></div>
+      <datalist id="irPatList">${names.map(n=>`<option value="${genAttr(n)}">`).join('')}</datalist>
+      <div class="form-actions"><button class="btn ghost" id="irShow" style="width:auto;padding:12px 20px">Preview</button>
+        <button class="btn" id="irA" style="width:auto;padding:12px 20px">Print IV-A summary</button>
+        <button class="btn" id="irB" style="width:auto;padding:12px 20px">Print IV-B detailed</button></div>
+      <div id="irOut" style="margin-top:12px"></div></div>`;
+  const show=()=>{
+    const p=document.getElementById('irPat').value.trim(); const out=document.getElementById('irOut');
+    if(!p){out.innerHTML='';return;}
+    const b=irdaBill(p), u=UHID_REG.find(x=>_norm(x.name)===_norm(p))||{};
+    out.innerHTML=`<div class="brow"><span class="bn">UHID</span><b>${genEsc(u.id||'not registered')}</b></div>
+      <div class="brow"><span class="bn">ABHA</span><b>${genEsc(u.abha||'not linked')}</b></div>
+      ${IRDA_HEADS.map(h=>`<div class="brow"><span class="bn"><i style="background:#1f6feb"></i>${h}</span><b>${money(b.summary[h]||0)}</b></div>`).join('')}
+      <div class="brow"><span class="bn"><b>Total claimable</b></span><b>${money(b.total)}</b></div>
+      <p class="psub" style="margin-top:8px">${b.lines.length} itemised line(s) will appear on the IV-B bill.</p>`;
+  };
+  document.getElementById('irShow').onclick=show;
+  document.getElementById('irA').onclick=()=>printIrda(document.getElementById('irPat').value.trim(),'a');
+  document.getElementById('irB').onclick=()=>printIrda(document.getElementById('irPat').value.trim(),'b');
+}
+/* Pull the patient's whole stay together: bed, labs, imaging, medicines, vitals and money. */
+function summaryFor(patient){
+  const p=_norm(patient);
+  const uh=(typeof UHID_REG!=='undefined'?UHID_REG:[]).find(u=>_norm(u.name)===p)||{};
+  const bed=(typeof BEDS!=='undefined'?BEDS:[]).filter(b=>b.patient&&_norm(b.patient.name)===p)
+    .map(b=>({bed:b.id,ward:b.ward,admitted:b.patient.date,doctor:b.patient.doc,diagnosis:b.patient.diag}));
+  const labs=(typeof LAB_SAMPLES!=='undefined'?LAB_SAMPLES:[]).filter(s=>_norm(s.patient)===p);
+  const imaging=(typeof RAD_ORDERS!=='undefined'?RAD_ORDERS:[]).filter(o=>_norm(o.patient)===p);
+  const meds=(typeof PHARMA_MOVES!=='undefined'?PHARMA_MOVES:[]).filter(m=>m.type==='out'&&_norm(m.who)===p)
+    .map(m=>({name:m.medName,qty:m.qty,amount:Number(m.amount)||0,date:m.date}));
+  const vit=(typeof VITALS!=='undefined'?VITALS:[]).filter(v=>_norm(v.patient)===p);
+  const charges=(typeof CHARGES!=='undefined'?CHARGES:[]).filter(c=>_norm(c.patient)===p)
+    .map(c=>({item:c.item,source:c.source||c.module,amount:Number(c.amount)||0,date:c.date}));
+  const bills=(typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).filter(b=>_norm(b.patient)===p)
+    .map(b=>({item:b.type||'OPD bill',amount:Number(b.amount)||0,status:b.status,date:b.date}));
+  const byHead={};
+  charges.forEach(c=>{ const k=c.source||'Other'; byHead[k]=(byHead[k]||0)+c.amount; });
+  bills.forEach(b=>{ byHead['OPD']=(byHead['OPD']||0)+b.amount; });
+  const total=Object.values(byHead).reduce((a,b)=>a+b,0);
+  const paid=bills.filter(b=>b.status==='Paid').reduce((a,b)=>a+b.amount,0);
+  return {patient,uhid:uh.id||'',abha:uh.abha||'',bed,labs,imaging,meds,vitals:vit,charges,bills,byHead,total,paid,due:Math.max(0,total-paid)};
+}
+function renderSummaryPreview(patient,el){
+  if(!el)return;
+  if(!patient){ el.innerHTML=''; return; }
+  const s=summaryFor(patient);
+  const sec=(t,inner)=>`<div class="panel" style="max-width:none;margin:10px 0"><h3 style="font-size:14px">${t}</h3>${inner}</div>`;
+  const rows=(arr,cols,empty)=>arr.length
+    ? `<div class="tablewrap"><table class="dtable"><thead><tr>${cols.map(c=>`<th>${c[0]}</th>`).join('')}</tr></thead><tbody>${arr.map(x=>`<tr>${cols.map(c=>`<td>${genEsc(String(c[1](x)??'—'))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
+    : `<div class="tempty">${empty}</div>`;
+  el.innerHTML=`
+    <div class="brow"><span class="bn">UHID</span><b>${genEsc(s.uhid||'not registered')}</b></div>
+    <div class="brow"><span class="bn">ABHA</span><b>${genEsc(s.abha||'not linked')}</b></div>
+    ${sec('Admission &amp; bed',rows(s.bed,[['Bed',x=>x.bed],['Ward',x=>x.ward],['Admitted',x=>x.admitted],['Doctor',x=>x.doctor],['Diagnosis',x=>x.diagnosis]],'No inpatient admission on record.'))}
+    ${sec('Laboratory',rows(s.labs,[['Sample',x=>x.id],['Test',x=>x.test],['Type',x=>x.type],['Status',x=>x.status],['Date',x=>x.date]],'No lab tests.'))}
+    ${sec('Imaging',rows(s.imaging,[['Order',x=>x.id],['Modality',x=>x.modality],['Study',x=>x.study],['Status',x=>x.status],['Report',x=>(x.report||'').slice(0,60)]],'No imaging.'))}
+    ${sec('Medicines dispensed',rows(s.meds,[['Medicine',x=>x.name],['Qty',x=>x.qty],['Amount',x=>money(x.amount)],['Date',x=>x.date]],'No medicines dispensed.'))}
+    ${sec('Vitals recorded',rows(s.vitals,[['Temp',x=>x.temp],['BP',x=>x.bp],['Pulse',x=>x.pulse],['SpO₂',x=>x.spo2],['Date',x=>x.date]],'No vitals recorded.'))}
+    ${sec('Money spent',
+      Object.keys(s.byHead).map(k=>`<div class="brow"><span class="bn"><i style="background:#1f6feb"></i>${genEsc(k)}</span><b>${money(s.byHead[k])}</b></div>`).join('')+
+      `<div class="brow"><span class="bn"><b>Total</b></span><b>${money(s.total)}</b></div>
+       <div class="brow"><span class="bn">Paid</span><b>${money(s.paid)}</b></div>
+       <div class="brow"><span class="bn" style="color:#b91c1c"><b>Balance due</b></span><b style="color:#b91c1c">${money(s.due)}</b></div>`)}`;
+}
+function printFullSummary(d){
+  const s=summaryFor(d.patient);
+  const hosp=(typeof MD_HOSPITAL!=='undefined'&&MD_HOSPITAL&&MD_HOSPITAL.name)||'MediCore Hospital';
+  const w=window.open('','_blank','width=820,height=960'); if(!w){toast('Allow pop-ups to print');return;}
+  const tbl=(title,head,body)=>body?`<h3 style="margin:16px 0 6px;font-size:13px">${title}</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:11.5px"><thead><tr>${head.map(h=>`<th style="text-align:left;border-bottom:1px solid #999;padding:3px 0">${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table>`:'';
+  const td=v=>`<td style="padding:3px 0">${genEsc(String(v??'—'))}</td>`;
+  w.document.write(`<html><head><title>Discharge summary — ${genEsc(d.patient)}</title></head>
+  <body style="font-family:system-ui,Arial;padding:26px;color:#111">
+    <h2 style="margin:0">${genEsc(hosp)}</h2><div style="color:#555;font-size:12px">Discharge Summary</div><hr>
+    <table style="width:100%;font-size:12px"><tr><td><b>Patient:</b> ${genEsc(d.patient)}</td><td><b>UHID:</b> ${genEsc(s.uhid||d.uhid||'—')}</td></tr>
+      <tr><td><b>ABHA:</b> ${genEsc(s.abha||'—')}</td><td><b>Date:</b> ${genEsc(d.date)}</td></tr></table>
+    <p style="font-size:12.5px"><b>Final diagnosis:</b> ${genEsc(d.dx||'—')}<br>
+      <b>ICD-10:</b> ${(d.codes||[]).map(genEsc).join('; ')||'—'}</p>
+    ${tbl('Admission &amp; bed',['Bed','Ward','Admitted','Doctor','Diagnosis'],s.bed.map(b=>`<tr>${td(b.bed)}${td(b.ward)}${td(b.admitted)}${td(b.doctor)}${td(b.diagnosis)}</tr>`).join(''))}
+    ${tbl('Laboratory',['Sample','Test','Type','Status','Date'],s.labs.map(x=>`<tr>${td(x.id)}${td(x.test)}${td(x.type)}${td(x.status)}${td(x.date)}</tr>`).join(''))}
+    ${tbl('Imaging',['Order','Modality','Study','Status','Report'],s.imaging.map(x=>`<tr>${td(x.id)}${td(x.modality)}${td(x.study)}${td(x.status)}${td((x.report||'').slice(0,80))}</tr>`).join(''))}
+    ${tbl('Medicines dispensed',['Medicine','Qty','Amount','Date'],s.meds.map(x=>`<tr>${td(x.name)}${td(x.qty)}${td(money(x.amount))}${td(x.date)}</tr>`).join(''))}
+    ${tbl('Vitals',['Temp','BP','Pulse','SpO₂','Date'],s.vitals.map(x=>`<tr>${td(x.temp)}${td(x.bp)}${td(x.pulse)}${td(x.spo2)}${td(x.date)}</tr>`).join(''))}
+    <h3 style="margin:16px 0 6px;font-size:13px">Account summary</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      ${Object.keys(s.byHead).map(k=>`<tr><td style="padding:3px 0">${genEsc(k)}</td><td style="text-align:right">${money(s.byHead[k])}</td></tr>`).join('')}
+      <tr><td style="border-top:1px solid #000;font-weight:700;padding-top:4px">Total</td><td style="border-top:1px solid #000;text-align:right;font-weight:700;padding-top:4px">${money(s.total)}</td></tr>
+      <tr><td>Paid</td><td style="text-align:right">${money(s.paid)}</td></tr>
+      <tr><td style="font-weight:700">Balance due</td><td style="text-align:right;font-weight:700">${money(s.due)}</td></tr>
+    </table>
+    <p style="font-size:12.5px;margin-top:14px"><b>Advice on discharge:</b><br>${genEsc(d.advice||'—')}</p>
+    <p style="margin-top:34px"><b>${genEsc(d.by||'Doctor')}</b><br><span style="font-size:11px;color:#777">Discharging doctor</span></p>
+  </body></html>`);
+  w.document.close(); w.focus(); setTimeout(()=>{try{w.print();}catch(e){}},350);
+}
+/* ---------- consolidated patient bill (printable from any module) ---------- */
+function billFor(patient){
+  const p=_norm(patient);
+  const uh=(typeof UHID_REG!=='undefined'?UHID_REG:[]).find(u=>_norm(u.name)===p)||{};
+  const lines=[];
+  (typeof CHARGES!=='undefined'?CHARGES:[]).filter(c=>_norm(c.patient)===p)
+    .forEach(c=>lines.push({dept:c.module||c.source||'Other',item:c.item,amount:Number(c.amount)||0,date:c.date}));
+  (typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).filter(b=>_norm(b.patient)===p)
+    .forEach(b=>lines.push({dept:'OPD',item:b.type||'OPD bill',amount:Number(b.amount)||0,date:b.date,status:b.status}));
+  const sub=lines.reduce((a,l)=>a+l.amount,0);
+  const paid=(typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).filter(b=>_norm(b.patient)===p&&b.status==='Paid')
+    .reduce((a,b)=>a+(Number(b.amount)||0),0);
+  const byDept={}; lines.forEach(l=>{byDept[l.dept]=(byDept[l.dept]||0)+l.amount;});
+  return {patient,uhid:uh.id||'',abha:uh.abha||'',phone:uh.phone||'',lines,byDept,sub,paid,due:Math.max(0,sub-paid),count:lines.length};
+}
+function billNo(){ const d=new Date(); return 'INV'+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+'-'+String(Date.now()%100000).padStart(5,'0'); }
+function printPatientBill(patient){
+  const b=billFor(patient);
+  if(!b.count){toast('No charges found for this patient');return;}
+  const h=(typeof MD_HOSPITAL!=='undefined'&&MD_HOSPITAL)||{};
+  const hosp=h.name||'MediCore Hospital';
+  const w=window.open('','_blank','width=800,height=950'); if(!w){toast('Allow pop-ups to print the bill');return;}
+  w.document.write(`<html><head><title>Bill — ${genEsc(patient)}</title></head>
+  <body style="font-family:system-ui,Arial;padding:26px;color:#111">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><h2 style="margin:0">${genEsc(hosp)}</h2>
+        <div style="font-size:11.5px;color:#555">${genEsc(h.address||'')}${h.phone?' · '+genEsc(h.phone):''}</div>
+        ${h.gst?`<div style="font-size:11.5px;color:#555">GSTIN: ${genEsc(h.gst)}</div>`:''}</div>
+      <div style="text-align:right;font-size:11.5px">
+        <div><b>${genEsc(billNo())}</b></div><div>${new Date().toLocaleString()}</div></div>
+    </div><hr>
+    <table style="width:100%;font-size:12px;margin:10px 0">
+      <tr><td><b>Patient:</b> ${genEsc(patient)}</td><td><b>UHID:</b> ${genEsc(b.uhid||'—')}</td></tr>
+      <tr><td><b>ABHA:</b> ${genEsc(b.abha||'—')}</td><td><b>Mobile:</b> ${genEsc(b.phone||'—')}</td></tr>
+    </table>
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr>
+        <th style="text-align:left;border-bottom:1.5px solid #000;padding:5px 0">Sr</th>
+        <th style="text-align:left;border-bottom:1.5px solid #000">Particulars</th>
+        <th style="text-align:left;border-bottom:1.5px solid #000">Department</th>
+        <th style="text-align:left;border-bottom:1.5px solid #000">Date</th>
+        <th style="text-align:right;border-bottom:1.5px solid #000">Amount</th></tr></thead>
+      <tbody>${b.lines.map((l,i)=>`<tr>
+        <td style="padding:4px 0">${i+1}</td><td>${genEsc(l.item)}</td>
+        <td>${genEsc(l.dept)}</td><td>${genEsc(l.date||'')}</td>
+        <td style="text-align:right">${money(l.amount)}</td></tr>`).join('')}</tbody>
+      <tfoot>
+        <tr><td colspan="4" style="border-top:1.5px solid #000;padding-top:6px;font-weight:700">Total</td>
+            <td style="border-top:1.5px solid #000;padding-top:6px;text-align:right;font-weight:700">${money(b.sub)}</td></tr>
+        <tr><td colspan="4">Paid</td><td style="text-align:right">${money(b.paid)}</td></tr>
+        <tr><td colspan="4" style="font-weight:700">Balance due</td>
+            <td style="text-align:right;font-weight:700">${money(b.due)}</td></tr>
+      </tfoot>
+    </table>
+    <p style="font-size:11px;color:#666;margin-top:18px">Department split: ${Object.keys(b.byDept).map(k=>genEsc(k)+' '+money(b.byDept[k])).join(' · ')}</p>
+    <p style="margin-top:34px;font-size:12px">Authorised signatory</p>
+  </body></html>`);
+  w.document.close(); w.focus(); setTimeout(()=>{try{w.print();}catch(e){}},350);
+}
+function renderBillTool(host){
+  const names=[...new Set(((typeof CHARGES!=='undefined'?CHARGES:[]).map(c=>c.patient))
+    .concat((typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).map(b=>b.patient)).filter(Boolean))];
+  host.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>Patient bill</h3>
+      <p class="psub">Everything the patient was charged across every department — printable as one itemised bill.</p>
+      <div class="addgrid"><div class="fld"><label>Patient</label><input id="blPat" list="blList" placeholder="Patient name"></div></div>
+      <datalist id="blList">${names.map(n=>`<option value="${genAttr(n)}">`).join('')}</datalist>
+      <div class="form-actions">
+        <button class="btn ghost" id="blShow" style="width:auto;padding:12px 20px">Show bill</button>
+        <button class="btn" id="blPrint" style="width:auto;padding:12px 20px">Print bill</button>
+      </div>
+      <div id="blOut" style="margin-top:12px"></div></div>`;
+  const show=()=>{
+    const p=document.getElementById('blPat').value.trim(), out=document.getElementById('blOut');
+    if(!p){out.innerHTML='';return;}
+    const b=billFor(p);
+    out.innerHTML=!b.count?'<div class="tempty">No charges recorded for this patient yet.</div>':`
+      <div class="brow"><span class="bn">UHID</span><b>${genEsc(b.uhid||'not registered')}</b></div>
+      <div class="tablewrap" style="margin-top:8px"><table class="dtable">
+        <thead><tr><th class="sno">S.No</th><th>Particulars</th><th>Department</th><th>Date</th><th>Amount</th></tr></thead>
+        <tbody>${b.lines.map((l,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(l.item)}</b></td><td>${genEsc(l.dept)}</td><td>${genEsc(l.date||'')}</td><td>${money(l.amount)}</td></tr>`).join('')}</tbody></table></div>
+      <div class="brow" style="margin-top:8px"><span class="bn"><b>Total</b></span><b>${money(b.sub)}</b></div>
+      <div class="brow"><span class="bn">Paid</span><b>${money(b.paid)}</b></div>
+      <div class="brow"><span class="bn" style="color:#b91c1c"><b>Balance due</b></span><b style="color:#b91c1c">${money(b.due)}</b></div>`;
+  };
+  document.getElementById('blShow').onclick=show;
+  document.getElementById('blPrint').onclick=()=>printPatientBill(document.getElementById('blPat').value.trim());
+}
+function renderDischargeTool(host){
+  const codes=(MD_LISTS.icd10||[]).filter(x=>x.active!==false);
+  const rows=DISCHARGES.length?DISCHARGES.slice().reverse().map((d,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(d.patient)}</b></td><td>${genEsc(d.uhid||'—')}</td><td>${genEsc(d.dx||'—')}</td><td>${(d.codes||[]).map(c=>`<span class="pill b" style="margin:1px">${genEsc(String(c).split(' — ')[0])}</span>`).join(' ')||'—'}</td><td>${genEsc(d.by||'—')}</td><td>${genEsc(d.date)}</td><td><button class="btn ghost tiny" data-dsprint="${d.id}" style="width:auto;padding:6px 10px">Print</button></td></tr>`).join(''):'<tr><td class="tempty" colspan="8">No discharge summaries yet.</td></tr>';
+  host.innerHTML=`<datalist id="icdDL2">${codes.map(c=>`<option value="${genAttr(c.name)}">`).join('')}</datalist>
+    <div class="panel" style="max-width:none;margin-bottom:16px"><h3>Discharge summary with ICD-10</h3>
+      <p class="psub">NABH &amp; insurer requirement — every discharge must carry coded diagnoses.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Patient</label><input id="dsPat" placeholder="Name"></div>
+        <div class="fld"><label>UHID</label><input id="dsUhid" placeholder="e.g. MC26000001"></div>
+        <div class="fld"><label>Primary ICD-10</label><input id="dsIcd1" list="icdDL2" placeholder="Search code"></div>
+        <div class="fld"><label>Secondary ICD-10</label><input id="dsIcd2" list="icdDL2" placeholder="Optional"></div>
+        <div class="fld full"><label>Final diagnosis</label><input id="dsDx" placeholder="Diagnosis in words"></div>
+        <div class="fld full"><label>Advice on discharge</label><textarea id="dsAdv" placeholder="Medications, follow-up, red flags…"></textarea></div>
+        <div class="fld"><label>Discharging doctor</label><input id="dsBy" list="docNameList" placeholder="Doctor"></div>
+      </div>
+      <div class="form-actions"><button class="btn ghost" id="dsLoad" style="width:auto;padding:12px 20px">Load full stay record</button><button class="btn" id="dsSaveBtn" style="width:auto;padding:12px 20px">Save discharge summary</button></div>
+      <div id="dsPreview" style="margin-top:12px"></div></div>
+    <div class="sec-head"><div><h3>Discharge summaries</h3><p>${DISCHARGES.length} summar${DISCHARGES.length===1?'y':'ies'}</p></div>
+      <button class="btn ghost" id="dsCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>UHID</th><th>Diagnosis</th><th>ICD-10</th><th>Doctor</th><th>Date</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('dsSaveBtn').onclick=()=>{
+    const p=document.getElementById('dsPat').value.trim();
+    const c=[document.getElementById('dsIcd1').value.trim(),document.getElementById('dsIcd2').value.trim()].filter(Boolean);
+    if(!p||!c.length){toast('Patient and at least one ICD-10 code are required');return;}
+    DISCHARGES.push({id:'DS'+Date.now().toString(36),patient:p,uhid:document.getElementById('dsUhid').value.trim(),dx:document.getElementById('dsDx').value.trim(),codes:c,advice:document.getElementById('dsAdv').value.trim(),by:document.getElementById('dsBy').value.trim(),date:new Date().toISOString().slice(0,10),_ts:Date.now()});
+    logAudit('Discharge','Summary with ICD-10 saved',p);
+    repoSave('discharges',DISCHARGES[DISCHARGES.length-1]);
+    persist(); renderMaster(); toast('Discharge summary saved'); };
+  const ld=document.getElementById('dsLoad');
+  if(ld)ld.onclick=()=>{
+    const p=document.getElementById('dsPat').value.trim();
+    if(!p){toast('Enter the patient name first');return;}
+    const s=summaryFor(p);
+    const u=document.getElementById('dsUhid'); if(u&&!u.value&&s.uhid)u.value=s.uhid;
+    const dx=document.getElementById('dsDx'); if(dx&&!dx.value&&s.bed[0]&&s.bed[0].diagnosis)dx.value=s.bed[0].diagnosis;
+    const by=document.getElementById('dsBy'); if(by&&!by.value&&s.bed[0]&&s.bed[0].doctor)by.value=s.bed[0].doctor;
+    renderSummaryPreview(p,document.getElementById('dsPreview'));
+    toast(`Loaded · ${s.labs.length} lab, ${s.imaging.length} imaging, ${s.meds.length} medicine(s), ${money(s.total)} spent`);
+  };
+  host.querySelectorAll('[data-dsprint]').forEach(b=>b.onclick=()=>{
+    const d=DISCHARGES.find(x=>x.id===b.dataset.dsprint); if(d)printFullSummary(d); });
+  const cv=document.getElementById('dsCsv'); if(cv)cv.onclick=()=>exportCSV('discharge_summaries',['Patient','UHID','Diagnosis','ICD-10','Doctor','Date'],DISCHARGES.map(d=>[d.patient,d.uhid,d.dx,(d.codes||[]).join('; '),d.by,d.date]));
+}
+function renderPayrollTool(host){
+  const rows=PAYROLL.length?PAYROLL.slice().reverse().map((p,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(p.name)}</b></td><td>${genEsc(p.role||'—')}</td><td>${money(p.basic)}</td><td>${money(p.allow)}</td><td>${p.present}/${p.days}</td><td>${money(p.earned)}</td><td>${money(p.deduct)}</td><td><b>${money(p.net)}</b></td><td>${genEsc(p.month)}</td></tr>`).join(''):'<tr><td class="tempty" colspan="10">No payroll runs yet.</td></tr>';
+  const totNet=PAYROLL.reduce((a,p)=>a+(Number(p.net)||0),0);
+  host.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="kbig"><div class="kt">Payslips</div><b>${PAYROLL.length}</b><div class="ks">generated</div></div>
+      <div class="kbig"><div class="kt">Net payout</div><b>${money(totNet)}</b><div class="ks">all runs</div></div>
+      <div class="kbig"><div class="kt">This month</div><b>${money(PAYROLL.filter(p=>p.month===new Date().toISOString().slice(0,7)).reduce((a,p)=>a+(Number(p.net)||0),0))}</b><div class="ks">${new Date().toISOString().slice(0,7)}</div></div></div>
+    <div class="panel" style="max-width:none;margin:16px 0"><h3>Run payroll</h3>
+      <p class="psub">Salary is pro-rated on days present. Net can never go below zero.</p>
+      <div class="addgrid">
+        <div class="fld"><label>Staff name</label><input id="prName" placeholder="Name"></div>
+        <div class="fld"><label>Role</label><input id="prRole" placeholder="e.g. Nurse"></div>
+        <div class="fld"><label>Basic (₹)</label><input id="prBasic" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Allowances (₹)</label><input id="prAllow" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Deductions (₹)</label><input id="prDed" type="number" min="0" placeholder="0"></div>
+        <div class="fld"><label>Working days</label><input id="prDays" type="number" min="1" value="30"></div>
+        <div class="fld"><label>Days present</label><input id="prPresent" type="number" min="0" value="30"></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="prRun" style="width:auto;padding:12px 20px">Generate payslip</button></div></div>
+    <div class="sec-head"><div><h3>Payroll register</h3><p>${PAYROLL.length} payslip${PAYROLL.length===1?'':'s'}</p></div>
+      <button class="btn ghost" id="prCsv" style="width:auto;padding:9px 13px">CSV</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Staff</th><th>Role</th><th>Basic</th><th>Allowances</th><th>Present</th><th>Earned</th><th>Deductions</th><th>Net pay</th><th>Month</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('prRun').onclick=()=>{
+    const n=document.getElementById('prName').value.trim(); if(!n){toast('Enter staff name');return;}
+    const b=Number(document.getElementById('prBasic').value)||0, a=Number(document.getElementById('prAllow').value)||0;
+    const d=Number(document.getElementById('prDed').value)||0, dd=Number(document.getElementById('prDays').value)||30;
+    const pp=Math.min(Number(document.getElementById('prPresent').value)||0,dd);
+    const earned=Math.round((b+a)*(pp/dd));
+    PAYROLL.push({id:'PR'+Date.now().toString(36),name:n,role:document.getElementById('prRole').value.trim(),basic:b,allow:a,deduct:d,days:dd,present:pp,earned,net:Math.max(0,earned-d),month:new Date().toISOString().slice(0,7),_ts:Date.now()});
+    logAudit('Payroll','Payslip generated · '+n); persist(); renderMaster(); toast('Payslip generated'); };
+  const cv=document.getElementById('prCsv'); if(cv)cv.onclick=()=>exportCSV('payroll',['Staff','Role','Basic','Allowances','Days','Present','Earned','Deductions','Net','Month'],PAYROLL.map(p=>[p.name,p.role,p.basic,p.allow,p.days,p.present,p.earned,p.deduct,p.net,p.month]));
+}
 /* ===================== Department tools: admin features embedded inside modules ===================== */
 let _deptHost=null;
-const DEPT_FEATURES={abha:renderMdAbha,voice:renderMdVoice,charges:renderMdCharges,claims:renderMdClaims,discounts:renderMdDiscounts,consent:renderMdConsent,lis:renderMdLis,dischargeLock:renderMdDischargeLock,nabh:renderMdNabh,appointments:renderApptTool,vitals:renderVitalsTool,samples:renderSamplesTool,ot:renderOtTool,imaging:renderRadTool,packages:renderPkgTool,physio:renderPhysioTool,policies:renderInsuranceTool,files:renderMrdTool};
-const DEPT_TOOL_LABELS={abha:'ABHA check-in',voice:'Voice-to-EMR',charges:'Charge capture',claims:'TPA / cashless claim',discounts:'Discount request',consent:'DPDP consent',lis:'LIS results',dischargeLock:'Discharge clearance',nabh:'NABH metrics',appointments:'Appointments',vitals:'Vitals & nursing notes',samples:'Sample tracking',ot:'Surgery scheduling',imaging:'Imaging orders',packages:'Packages & payment plans',physio:'Treatment plans',policies:'Insurance policies',files:'File tracking'};
+const DEPT_FEATURES={abha:renderMdAbha,voice:renderMdVoice,charges:renderMdCharges,claims:renderMdClaims,discounts:renderMdDiscounts,consent:renderMdConsent,lis:renderMdLis,dischargeLock:renderMdDischargeLock,nabh:renderMdNabh,appointments:renderApptTool,vitals:renderVitalsTool,samples:renderSamplesTool,ot:renderOtTool,imaging:renderRadTool,packages:renderPkgTool,physio:renderPhysioTool,policies:renderInsuranceTool,files:renderMrdTool,uhid:renderUhidTool,irda:renderIrdaTool,discharge:renderDischargeTool,payroll:renderPayrollTool,bill:renderBillTool};
+const DEPT_TOOL_LABELS={abha:'ABHA check-in',voice:'Voice-to-EMR',charges:'Charge capture',claims:'TPA / cashless claim',discounts:'Discount request',consent:'DPDP consent',lis:'LIS results',dischargeLock:'Discharge clearance',nabh:'NABH metrics',appointments:'Appointments',vitals:'Vitals & nursing notes',samples:'Sample tracking',ot:'Surgery scheduling',imaging:'Imaging orders',packages:'Packages & payment plans',physio:'Treatment plans',policies:'Insurance policies',files:'File tracking',uhid:'UHID & ABHA',irda:'IRDA IV-A / IV-B bill',discharge:'Discharge summary (ICD-10)',payroll:'Payroll',bill:'Print bill'};
 function deptToolsFor(name){
   const n=(name||'').toLowerCase();
-  if(n.includes('opd')||n.includes('consult')) return ['appointments','abha','voice','charges','claims','discounts','consent'];
-  if(n.includes('doctor')) return ['appointments','voice','vitals','charges','claims','consent'];
-  if(n.includes('ipd')||n.includes('ward')||n.includes('inpatient')) return ['vitals','charges','claims','dischargeLock','discounts','consent'];
-  if(n.includes('lab')||n.includes('patho')||n.includes('diagn')) return ['samples','lis','charges','consent'];
-  if(n.includes('radio')||n.includes('imaging')||n.includes('scan')||n.includes('sono')) return ['imaging','samples','lis','charges','consent'];
-  if(n.includes('operation')||n.includes('theatre')||n.includes('theater')||n.includes('surg')||n===' ot') return ['ot','charges','consent','claims'];
-  if(n.includes('pharm')) return ['charges','consent'];
+  if(n.includes('opd')||n.includes('consult')) return ['uhid','appointments','abha','voice','charges','bill','discharge','irda','claims','discounts','consent'];
+  if(n.includes('doctor')) return ['appointments','voice','discharge','vitals','charges','bill','claims','consent'];
+  if(n.includes('ipd')||n.includes('ward')||n.includes('inpatient')) return ['vitals','discharge','bill','irda','charges','claims','dischargeLock','discounts','consent'];
+  if(n.includes('lab')||n.includes('patho')||n.includes('diagn')) return ['samples','lis','charges','bill','consent'];
+  if(n.includes('radio')||n.includes('imaging')||n.includes('scan')||n.includes('sono')) return ['imaging','samples','lis','charges','bill','consent'];
+  if(n.includes('operation')||n.includes('theatre')||n.includes('theater')||n.includes('surg')||n===' ot') return ['ot','charges','bill','consent','claims'];
+  if(n.includes('pharm')) return ['charges','bill','consent'];
   if(n.includes('nurs')) return ['vitals','charges','voice','dischargeLock'];
-  if(n.includes('mrd')||n.includes('record')) return ['files','consent','abha','nabh'];
-  if(n.includes('physio')||n.includes('rehab')||n.includes('therap')) return ['physio','charges','consent'];
-  if(n.includes('insur')||n.includes('tpa')) return ['policies','claims','charges'];
-  if(n.includes('account')||n.includes('billing')||n.includes('finance')||n.includes('revenue')) return ['packages','charges','claims','discounts'];
+  if(n.includes('mrd')||n.includes('record')) return ['files','uhid','discharge','bill','consent','abha','nabh'];
+  if(n.includes('hr')||n.includes('payroll')||n.includes('human')) return ['payroll','charges'];
+  if(n.includes('physio')||n.includes('rehab')||n.includes('therap')) return ['physio','charges','bill','consent'];
+  if(n.includes('insur')||n.includes('tpa')) return ['policies','irda','claims','charges'];
+  if(n.includes('account')&&n.includes('hr')) return ['payroll','irda','charges'];
+  if(n.includes('account')||n.includes('billing')||n.includes('finance')||n.includes('revenue')) return ['bill','packages','charges','irda','claims','discounts'];
   if(n.includes('quality')||n.includes('nabh')) return ['nabh','consent'];
-  return ['abha','charges','claims','consent','voice'];
+  return ['abha','charges','bill','claims','consent','voice'];
 }
 function renderDeptTools(name,barId,hostId){
   const bar=document.getElementById(barId); if(!bar)return;
@@ -4940,8 +5427,11 @@ function addMedicine(){
     expiry:document.getElementById('phExpiry').value||'',
     _ts:Date.now() };
   PHARMACY.push(m); persist(); renderPharma();
-  toast(`${name} added to inventory`);
-  if(phLow(m)) toast('Stock is in limited mode — recharge the stock');
+  repoSave('pharmacy',m).then(sv=>{
+    if(!sv.ok&&!sv.offline){ PHARMACY=PHARMACY.filter(x=>x.id!==m.id); renderPharma(); toast(sv.msg||'Could not save'); return; }
+    repoReport(sv,`${name} added to inventory`);
+    if(phLow(m)) toast('Stock is in limited mode — recharge the stock');
+  });
 }
 function renderPharmaMoves(){
   const body=document.getElementById('pharmaBody');
@@ -4992,10 +5482,14 @@ function addMove(){
   const mv={ id:'MV'+Date.now().toString(36), medId, medName:med.name, type, qty, amount,
     pay:document.getElementById('mvPay').value, who:document.getElementById('mvWho').value.trim(),
     date:new Date().toISOString().slice(0,10), _ts:Date.now() };
+  if(!repoCan('pharma_moves','w')){toast('Your role cannot record stock movements');return;}
   med.stock = phStock(med) + (type==='in'?qty:-qty);
   PHARMA_MOVES.push(mv);
-  if(type==='out' && mv.who && typeof captureCharge==='function') captureCharge(mv.who,'Pharmacy',qty+'× '+med.name,amount);
+  let _chg=null;
+  if(type==='out' && mv.who && typeof captureCharge==='function') _chg=captureCharge(mv.who,'Pharmacy',qty+'× '+med.name,amount);
   persist(); renderPharma();
+  repoSave('pharma_moves',mv).then(sv=>{ repoSave('pharmacy',med); if(_chg)repoSave('charges',_chg);
+    if(!sv.ok&&!sv.offline)toast(sv.msg||'Movement not saved to server'); });
   toast(type==='in'?`Stock added: ${med.name}`:`Dispensed ${qty} × ${med.name}`);
   if(phLow(med)) toast(`${med.name}: stock is in limited mode — recharge the stock`);
 }
@@ -5067,7 +5561,7 @@ function buildStateObject(){
   const rows={};
   Object.keys(MODULE_DEFS).forEach(n=>{rows[n]=MODULE_DEFS[n].sections.map(s=>s.rows);});
   return {_v:_stateV,rows,QUEUE,TOKEN,BEDS,WARDS,LEDGER,VACANCIES,MODCREDS,ADMIN_CRED,PHARMACY,PHARMA_MOVES,SHIFTS,SANITIZE,OPD_BILLS,MD_DOCTORS,MD_STAFF,MD_ROLES,MD_INVEST,MD_HOSPITAL,MD_LISTS,AUDIT,MD_COMPLIANCE,MD_INTEGRATIONS,
-    ABHA_REG,NABH_METRICS,CONSENTS,CHARGES,CLAIMS,DISCOUNTS,LIS_RESULTS,EMR_NOTES,DISCHARGE_LOCK,DISCHARGE_CLEARED,VARIANCE_ALERTS,PH_ALLERGIES,PH_INGREDIENTS,PH_COMPOUNDS,PH_INTERACTIONS,DEPARTMENTS,PH_SUPPLIERS,PH_ORDERS,PH_RETURNS,PH_AUDITS,PH_RX,MODULE_CFG,APPOINTMENTS,VITALS,NURSE_NOTES,LAB_SAMPLES,OT_BOOKINGS,RAD_ORDERS,RAD_TEMPLATES,PKG_PLANS,PKG_BILLS,PHYSIO_PLANS,PHYSIO_SESSIONS,INS_POLICIES,MRD_FILES,MRD_MOVES,FB_BASE,
+    ABHA_REG,NABH_METRICS,CONSENTS,CHARGES,CLAIMS,DISCOUNTS,LIS_RESULTS,EMR_NOTES,DISCHARGE_LOCK,DISCHARGE_CLEARED,VARIANCE_ALERTS,PH_ALLERGIES,PH_INGREDIENTS,PH_COMPOUNDS,PH_INTERACTIONS,DEPARTMENTS,PH_SUPPLIERS,PH_ORDERS,PH_RETURNS,PH_AUDITS,PH_RX,MODULE_CFG,APPOINTMENTS,VITALS,NURSE_NOTES,LAB_SAMPLES,OT_BOOKINGS,RAD_ORDERS,RAD_TEMPLATES,PKG_PLANS,PKG_BILLS,PHYSIO_PLANS,PHYSIO_SESSIONS,INS_POLICIES,MRD_FILES,MRD_MOVES,FB_BASE,UHID_REG,DISCHARGES,PAYROLL,HOSP_CODE,
     MODULES:MODULES.map(m=>({name:m.name,desc:m.desc,icon:m.icon,color:m.color,count:m.count}))};
 }
 function persist(){
@@ -5139,6 +5633,10 @@ function applyState(d){
     if(Array.isArray(d.MRD_FILES))MRD_FILES=d.MRD_FILES;
     if(Array.isArray(d.MRD_MOVES))MRD_MOVES=d.MRD_MOVES;
     if(typeof d.FB_BASE==='string')FB_BASE=d.FB_BASE;
+    if(Array.isArray(d.UHID_REG))UHID_REG=d.UHID_REG;
+    if(Array.isArray(d.DISCHARGES))DISCHARGES=d.DISCHARGES;
+    if(Array.isArray(d.PAYROLL))PAYROLL=d.PAYROLL;
+    if(typeof d.HOSP_CODE==='string'&&d.HOSP_CODE)HOSP_CODE=d.HOSP_CODE;
     ensureSeedMasters();
     if(d.MODCREDS)Object.keys(d.MODCREDS).forEach(k=>MODCREDS[k]=d.MODCREDS[k]);
     if(d.ADMIN_CRED){ADMIN_CRED.user=d.ADMIN_CRED.user;ADMIN_CRED.pass=d.ADMIN_CRED.pass;}
@@ -5263,6 +5761,68 @@ function ipdExport(type){
   type==='csv'?exportCSV('IPD_Admitted',headers,matrix):exportPDF('IPD — Admitted Patients',headers,matrix);
 }
 
+/* ===================== PHONE FIELDS: DIGITS ONLY =====================
+ * One delegated guard covers every phone/mobile box in every module, department
+ * and admin screen — including panels that are rendered later.
+ * ==================================================================== */
+const PHONE_RE=/(phone|mobile|whatsapp|contact\s*no|contact\s*number|\btel\b)/i;
+const EMAIL_HINT=/e-?mail/i;
+function _phoneFieldText(el){
+  let lbl='';
+  try{ const f=el.closest('.fld,.field,.vital'); const l=f&&f.querySelector('label'); if(l)lbl=l.textContent||''; }catch(e){}
+  const raw=[el.id,el.name,el.placeholder,lbl].filter(Boolean).join(' ');
+  return raw+' '+raw.replace(/([a-z])([A-Z])/g,'$1 $2');   // so "uhPhone" reads as words
+}
+function isPhoneField(el){
+  if(!el||el.tagName!=='INPUT')return false;                // never a <select> or <textarea>
+  const t=String(el.type||'text').toLowerCase();
+  if(['checkbox','radio','date','time','number','file','password','email','color','range'].includes(t))return false;
+  const txt=_phoneFieldText(el);
+  if(EMAIL_HINT.test(txt))return false;                     // "Phone / email" stays free text
+  return PHONE_RE.test(txt);
+}
+function sanitizePhone(v){
+  const s=String(v==null?'':v);
+  const plus=s.trim().startsWith('+');
+  return (plus?'+':'')+s.replace(/\D/g,'');
+}
+(function phoneGuard(){
+  const clean=(el)=>{
+    if(!isPhoneField(el))return;
+    const before=el.value, after=sanitizePhone(before);
+    if(before===after)return;
+    const drop=before.length-after.length;
+    const pos=(el.selectionStart||after.length)-drop;
+    el.value=after;
+    try{ el.setSelectionRange(Math.max(0,pos),Math.max(0,pos)); }catch(e){}
+  };
+  document.addEventListener('input',e=>clean(e.target),true);
+  document.addEventListener('change',e=>clean(e.target),true);
+  document.addEventListener('blur',e=>clean(e.target),true);
+  document.addEventListener('paste',e=>{ const el=e.target; if(isPhoneField(el))setTimeout(()=>clean(el),0); },true);
+  document.addEventListener('keypress',e=>{
+    const el=e.target;
+    if(!isPhoneField(el))return;
+    if(e.ctrlKey||e.metaKey||e.altKey)return;
+    const ch=e.key;
+    if(ch&&ch.length===1&&!/[0-9]/.test(ch)&&!(ch==='+'&&(el.selectionStart===0))) e.preventDefault();
+  },true);
+  const hint=()=>document.querySelectorAll('input').forEach(el=>{
+    if(isPhoneField(el)&&el.dataset.phoneReady!=='1'){
+      /* type=tel stops the browser offering unrelated saved values (ward names etc.)
+         and brings up the numeric keypad on phones */
+      try{ el.type='tel'; }catch(e){}
+      el.setAttribute('inputmode','numeric');
+      el.setAttribute('autocomplete','off');
+      el.setAttribute('maxlength','15');
+      el.setAttribute('pattern','[0-9+]*');
+      el.dataset.phoneReady='1';
+    }
+  });
+  document.addEventListener('focusin',hint);
+  setInterval(hint,3000); hint();
+})();
+
 /* ---------- toast ---------- */
 let tt;
 function toast(msg){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200);}
@@ -5273,6 +5833,182 @@ ensureSeedMasters(); // pre-load ICD-10 library, Schedule IV tariffs & complianc
 renderModules();
 /* on a fresh device, hydrate from the cloud so previously-entered data shows */
 if(CLOUD){ cloudPull().then(d=>{ if(d && (d._v||0)>=_stateV){ applyState(d); try{localStorage.setItem(LS_KEY,JSON.stringify(d));}catch(e){} refreshView(); } }); }
+
+/* ===================== SERVER DATA LAYER (per-record API + RBAC) =====================
+ * Online  : reads/writes go to /api/r/:resource with revision checks, so two users
+ *           can't silently overwrite each other and permissions are enforced server-side.
+ * Offline : everything still works locally (file:// preview) and queues writes,
+ *           which are flushed automatically once the server is reachable again.
+ * ------------------------------------------------------------------------------------ */
+const REPO_Q='medicore_outbox';
+let SERVER={online:false,user:null};
+let REPO_CACHE={}, REPO_REVS={};
+function repoOutbox(){ try{ return JSON.parse(localStorage.getItem(REPO_Q)||'[]'); }catch(e){ return []; } }
+function repoQueue(op){ const q=repoOutbox(); q.push(op); try{localStorage.setItem(REPO_Q,JSON.stringify(q));}catch(e){} }
+async function apiFetch(path,opts){
+  try{
+    const r=await fetch(path,Object.assign({credentials:'same-origin',headers:{'Content-Type':'application/json'}},opts||{}));
+    const body=await r.json().catch(()=>({}));
+    return {status:r.status,body};
+  }catch(e){ return {status:0,body:{error:'offline'}}; }
+}
+async function repoProbe(){
+  const r=await apiFetch('/api/health');
+  SERVER.online = r.status===200 && !!r.body.db;
+  if(SERVER.online && r.body.signedIn){ const me=await apiFetch('/api/auth/me'); if(me.status===200)SERVER.user=me.body.user; }
+  updateServerBadge();
+  return SERVER.online;
+}
+async function repoLogin(username,password){
+  const r=await apiFetch('/api/auth/login',{method:'POST',body:JSON.stringify({username,password})});
+  if(r.status===200){ SERVER.user=r.body.user; SERVER.online=true; updateServerBadge(); repoFlush(); return {ok:true,user:r.body.user}; }
+  return {ok:false,status:r.status,msg:(r.body&&r.body.error)||'Sign-in failed'};
+}
+async function repoLogout(){ await apiFetch('/api/auth/logout',{method:'POST'}); SERVER.user=null; updateServerBadge(); }
+function repoCan(resource,mode){
+  if(!SERVER.user)return true;                        // no server session → local demo mode
+  const p=(SERVER.user.permissions||{})[resource];
+  if(!p)return false;
+  return mode==='r'?!!p.read:!!p.write;
+}
+async function repoList(resource){
+  if(!SERVER.online) return REPO_CACHE[resource]||[];
+  const r=await apiFetch('/api/r/'+resource);
+  if(r.status===200){
+    REPO_CACHE[resource]=(r.body.records||[]).map(x=>x.doc);
+    REPO_REVS[resource]={}; (r.body.records||[]).forEach(x=>{REPO_REVS[resource][x.rec_id]=x.rev;});
+    return REPO_CACHE[resource];
+  }
+  if(r.status===401){ SERVER.user=null; updateServerBadge(); }
+  return REPO_CACHE[resource]||[];
+}
+async function repoSave(resource,rec){
+  REPO_CACHE[resource]=REPO_CACHE[resource]||[];
+  const known=!!rec.id&&REPO_CACHE[resource].some(x=>x.id===rec.id);
+  if(!rec.id)rec.id='L'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+  const i=REPO_CACHE[resource].findIndex(x=>x.id===rec.id);
+  if(i>=0)REPO_CACHE[resource][i]=rec; else REPO_CACHE[resource].push(rec);
+  if(!SERVER.online){ repoQueue({resource,rec,op:known?'update':'create'}); return {ok:true,offline:true}; }
+  const rev=(REPO_REVS[resource]||{})[rec.id];
+  const r=known
+    ? await apiFetch('/api/r/'+resource+'/'+rec.id,{method:'PUT',body:JSON.stringify(Object.assign({},rec,{_rev:rev}))})
+    : await apiFetch('/api/r/'+resource,{method:'POST',body:JSON.stringify(rec)});
+  if(r.status===200){ REPO_REVS[resource]=REPO_REVS[resource]||{}; REPO_REVS[resource][rec.id]=r.body.rev; return {ok:true}; }
+  if(r.status===409) return {ok:false,conflict:true,currentRev:r.body.currentRev,msg:'Someone else changed this record — reload before saving'};
+  if(r.status===403) return {ok:false,denied:true,msg:(r.body&&r.body.error)||'You do not have permission for this'};
+  if(r.status===401){ SERVER.user=null; updateServerBadge(); return {ok:false,auth:true,msg:'Session expired — please sign in again'}; }
+  repoQueue({resource,rec,op:known?'update':'create'});
+  return {ok:true,offline:true};
+}
+async function repoDelete(resource,id){
+  REPO_CACHE[resource]=(REPO_CACHE[resource]||[]).filter(x=>x.id!==id);
+  if(!SERVER.online)return {ok:true,offline:true};
+  const r=await apiFetch('/api/r/'+resource+'/'+id,{method:'DELETE'});
+  if(r.status===403)return {ok:false,denied:true,msg:'Not allowed to delete'};
+  return {ok:r.status===200};
+}
+async function repoFlush(){
+  if(!SERVER.online)return {sent:0};
+  const q=repoOutbox(); if(!q.length)return {sent:0};
+  let sent=0; const left=[];
+  for(const op of q){
+    const r=op.op==='create'
+      ? await apiFetch('/api/r/'+op.resource,{method:'POST',body:JSON.stringify(op.rec)})
+      : await apiFetch('/api/r/'+op.resource+'/'+op.rec.id,{method:'PUT',body:JSON.stringify(op.rec)});
+    if(r.status===200||r.status===409)sent++; else left.push(op);
+  }
+  try{ if(left.length)localStorage.setItem(REPO_Q,JSON.stringify(left)); else localStorage.removeItem(REPO_Q); }catch(e){}
+  if(sent&&typeof toast==='function')toast(`${sent} offline change${sent===1?'':'s'} synced to the server`);
+  return {sent,left:left.length};
+}
+function repoReport(r,successMsg){
+  if(!r)return false;
+  if(r.ok){ toast(r.offline?(successMsg+' · saved locally, will sync'):successMsg); return true; }
+  toast(r.msg||'Could not save'); return false;
+}
+function updateServerBadge(){
+  const el=document.getElementById('syncBadge'); if(!el)return;
+  const t=el.querySelector('.sb-txt'); if(!t)return;
+  const q=repoOutbox().length;
+  if(SERVER.user){ el.className='syncbadge on'; t.textContent=`${SERVER.user.name||SERVER.user.username} · ${(SERVER.user.role||'').toUpperCase()}${q?` · ${q} queued`:''}`; }
+  else if(SERVER.online){ el.className='syncbadge on'; t.textContent='Server online — sign in for multi-user'; }
+  else { el.className='syncbadge off'; t.textContent=`Local mode${q?` · ${q} queued`:' — this device only'}`; }
+}
+async function repoHydrate(){
+  if(!SERVER.online||!SERVER.user)return;
+  await repoFlush();
+  if(repoCan('patients','r')){
+    const list=await repoList('patients');
+    if(Array.isArray(list)&&list.length){
+      list.forEach(rec=>{ const i=UHID_REG.findIndex(u=>u.id===rec.id); if(i>=0)UHID_REG[i]=rec; else UHID_REG.push(rec); });
+    }
+  }
+  const merge=(arr,list)=>{ if(!Array.isArray(list))return; list.forEach(rec=>{ const i=arr.findIndex(x=>x.id===rec.id); if(i>=0)arr[i]=rec; else arr.push(rec); }); };
+  if(repoCan('charges','r'))       merge(CHARGES,       await repoList('charges'));
+  if(repoCan('appointments','r'))  merge(QUEUE,         await repoList('appointments'));
+  if(repoCan('opd_bills','r'))     merge(OPD_BILLS,     await repoList('opd_bills'));
+  if(repoCan('pharmacy','r'))      merge(PHARMACY,      await repoList('pharmacy'));
+  if(repoCan('pharma_moves','r'))  merge(PHARMA_MOVES,  await repoList('pharma_moves'));
+  if(repoCan('lab_samples','r'))   merge(LAB_SAMPLES,   await repoList('lab_samples'));
+  if(repoCan('vitals','r'))        merge(VITALS,        await repoList('vitals'));
+  if(repoCan('discharges','r'))    merge(DISCHARGES,    await repoList('discharges'));
+  if(repoCan('rad_orders','r'))    merge(RAD_ORDERS,    await repoList('rad_orders'));
+  if(repoCan('ot_bookings','r'))   merge(OT_BOOKINGS,   await repoList('ot_bookings'));
+  /* Beds are fixed slots — replace in place so a bed freed elsewhere shows free here. */
+  if(repoCan('beds','r')){
+    const bl=await repoList('beds');
+    if(Array.isArray(bl))bl.forEach(rec=>{ const i=BEDS.findIndex(b=>b.id===rec.id); if(i>=0)BEDS[i]=rec; });
+  }
+  try{ const maxTok=QUEUE.reduce((a,q)=>Math.max(a,Number(q.tok)||0),0); if(maxTok>TOKEN)TOKEN=maxTok; }catch(e){}
+  try{ if(typeof refreshView==='function')refreshView(); }catch(e){}
+  updateServerBadge();
+}
+repoProbe().then(()=>repoHydrate());
+setInterval(()=>{ if(!SERVER.online)repoProbe(); else { repoFlush(); repoHydrate(); } },60000);
+
+/* ===================== LOCAL ACCOUNT (used when no server is reachable) ===================== */
+const CRED_KEY='medicore_local_cred';
+const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
+function validEmail(e){ return EMAIL_RE.test(String(e||'').trim()); }
+function pwStrong(p){ p=String(p||''); return p.length>=8 && /[A-Za-z]/.test(p) && /[0-9]/.test(p); }
+function _h(pw,salt){
+  const s=salt+'|'+String(pw); let h1=0x811c9dc5,h2=0x01000193;
+  for(let i=0;i<s.length;i++){ const c=s.charCodeAt(i); h1=(h1^c)>>>0; h1=(h1*0x01000193)>>>0; h2=(h2+c*(i+7))>>>0; h2=(h2^(h2<<5))>>>0; }
+  let out=''; for(let r=0;r<4;r++){ h1=(h1*0x01000193+r)>>>0; h2=(h2^(h1>>>3))>>>0; out+=('00000000'+((h1^h2)>>>0).toString(16)).slice(-8); }
+  return out;
+}
+function credGet(){ try{ return JSON.parse(localStorage.getItem(CRED_KEY)||'null'); }catch(e){ return null; } }
+function credSave(c){ try{ localStorage.setItem(CRED_KEY,JSON.stringify(c)); }catch(e){} }
+function credSet(email,pw){
+  if(!validEmail(email))return {ok:false,msg:'Enter a valid email address'};
+  if(!pwStrong(pw))return {ok:false,msg:'Password needs 8+ characters with letters and numbers'};
+  const salt=Math.random().toString(36).slice(2)+Date.now().toString(36);
+  credSave({email:_norm(email),salt,hash:_h(pw,salt)});
+  return {ok:true};
+}
+function credCheck(email,pw){
+  const c=credGet();
+  if(!c)return {ok:false,setup:true,msg:'No account yet — create one below'};
+  if(_norm(email)!==c.email||_h(pw,c.salt)!==c.hash)return {ok:false,msg:'Wrong email or password'};
+  return {ok:true};
+}
+function credChange(curPw,newEmail,newPw){
+  const c=credGet();
+  if(!c)return {ok:false,msg:'No account yet'};
+  if(_h(curPw,c.salt)!==c.hash)return {ok:false,msg:'Current password is wrong'};
+  const email=newEmail?newEmail:c.email;
+  if(!validEmail(email))return {ok:false,msg:'Enter a valid email address'};
+  if(newPw&&!pwStrong(newPw))return {ok:false,msg:'Password needs 8+ characters with letters and numbers'};
+  const salt=Math.random().toString(36).slice(2)+Date.now().toString(36);
+  credSave({email:_norm(email),salt,hash:_h(newPw||curPw,salt)});
+  return {ok:true};
+}
+function renderAuthMode(){
+  const has=!!credGet(), setup=document.getElementById('setupBox'), form=document.getElementById('loginForm');
+  if(setup)setup.style.display=has?'none':'';
+  if(form)form.style.display=has?'':'none';
+  const ch=document.getElementById('changeCredBox'); if(ch)ch.style.display='none';
+}
 
 /* ---------- keep the page you're on across a refresh ---------- */
 const RT_KEY='medicore_route';
