@@ -849,6 +849,7 @@
         <button data-tab="reg" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>Registration</button>
         <button data-tab="con"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13l2 2 4-4"/></svg>Consultation</button>
         <button data-tab="bills"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Billing</button>
+        <button data-tab="record"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/><path d="M19 3v4M21 5h-4"/></svg>Patient record</button>
       </div>
 
       <!-- REGISTRATION TAB -->
@@ -906,12 +907,29 @@
             <div class="form-grid">
               <div class="fld full"><label>Chief complaint</label><textarea id="cComplaint"></textarea></div>
               <div class="fld full"><label>Diagnosis</label><textarea id="cDiag" placeholder="Provisional / final diagnosis…"></textarea></div>
-              <div class="fld full"><label>Prescription (Rx)</label><textarea id="cRx" placeholder="Medicine · dose · frequency · duration"></textarea></div>
+              <div class="fld full"><label>Prescription notes (Rx)</label><textarea id="cRx" placeholder="Free-text notes — or use the medicine builder below"></textarea></div>
+              <div class="fld full">
+                <label>Prescription — pick from pharmacy stock</label>
+                <div class="rxbuild" style="display:grid;grid-template-columns:2fr 1fr 1.1fr 0.7fr auto;gap:8px;align-items:end">
+                  <div class="fld" style="margin:0"><label style="font-size:11px">Medicine</label><input id="rxbMed" list="medStockDL" placeholder="Search stock" autocomplete="off"></div>
+                  <div class="fld" style="margin:0"><label style="font-size:11px">Dose</label><input id="rxbDose" placeholder="1 tab"></div>
+                  <div class="fld" style="margin:0"><label style="font-size:11px">Frequency</label><input id="rxbFreq" list="rxFreqDL" placeholder="1-0-1"></div>
+                  <div class="fld" style="margin:0"><label style="font-size:11px">Days</label><input id="rxbDays" type="number" min="1" placeholder="5"></div>
+                  <button class="btn ghost" id="rxbAdd" type="button" style="width:auto;padding:11px 16px">Add</button>
+                </div>
+                <div id="rxbHint" style="font-size:11.5px;color:var(--muted);margin:4px 2px 0"></div>
+                <div id="rxbList" style="margin-top:8px"></div>
+                <datalist id="medStockDL"></datalist>
+                <datalist id="rxFreqDL"><option>1-0-0</option><option>0-0-1</option><option>1-0-1</option><option>1-1-1</option><option>1-1-1-1</option><option>SOS</option><option>STAT</option><option>HS (bedtime)</option><option>BD</option><option>TDS</option><option>QID</option><option>OD</option></datalist>
+              </div>
               <div class="fld"><label>Follow-up date</label><input id="cFollow" type="date"></div>
               <div class="fld"><label>Advice</label><input id="cAdvice" placeholder="e.g. Rest, fluids, review in 5 days"></div>
             </div>
             <div class="form-actions" style="flex-wrap:wrap">
               <button type="button" class="btn" id="btnComplete">Complete consultation</button>
+              <button type="button" class="btn ghost" id="btnSendPharm" style="width:auto;padding:13px 22px;color:#0d9488;border-color:#a7d9d3">Send Rx to pharmacy</button>
+              <button type="button" class="btn ghost" id="btnPrintRx" style="width:auto;padding:13px 22px">Print Rx</button>
+              <button type="button" class="btn ghost" id="btnViewRecord" style="width:auto;padding:13px 22px;color:#1f6feb;border-color:#bcd6ff">View full record</button>
               <button type="button" class="btn ghost" id="btnHold" style="width:auto;padding:13px 22px">Save & keep in queue</button>
               <button type="button" class="btn ghost" id="btnNoShow" style="width:auto;padding:13px 22px;color:#b45309;border-color:#f0d5ad">Left / no-show</button>
               <button type="button" class="btn ghost" id="btnCancelTok" style="width:auto;padding:13px 22px;color:#dc2626;border-color:#f1cccc">Cancel token</button>
@@ -922,6 +940,24 @@
 
       <!-- BILLING TAB -->
       <div id="tabBills" class="hidden"><div id="opdBillsBody"></div></div>
+
+      <!-- PATIENT RECORD (360°) TAB -->
+      <div id="tabRecord" class="hidden">
+        <div class="panel" style="max-width:none;margin-bottom:14px">
+          <h3>Patient record — everything, everywhere</h3>
+          <p class="psub">Search a patient, or open one from the queue. This pulls together every report and every bill from every department — pathology, radiology, pharmacy, ward, procedures — with what was charged and what has been paid.</p>
+          <div class="addgrid">
+            <div class="fld full"><label>Patient</label><input id="recPat" list="recPatList" placeholder="Type or pick a name" autocomplete="off"></div>
+          </div>
+          <datalist id="recPatList"></datalist>
+          <div class="form-actions" style="flex-wrap:wrap">
+            <button class="btn" id="recShow" style="width:auto;padding:12px 22px">Open record</button>
+            <button class="btn ghost" id="recBill" style="width:auto;padding:12px 20px">Print bill</button>
+            <button class="btn ghost" id="recSummary" style="width:auto;padding:12px 20px">Print full record</button>
+          </div>
+        </div>
+        <div id="recOut"></div>
+      </div>
 
       <!-- DEPARTMENT TOOLS (admin features embedded) -->
       <div class="panel" style="max-width:none;margin-top:14px"><div style="font-weight:800;font-size:14px;margin-bottom:8px">Department tools</div><div id="opdToolBar" style="display:flex;flex-wrap:wrap;gap:8px"></div></div>
@@ -1922,7 +1958,9 @@ document.getElementById('opdSeg').addEventListener('click',e=>{
   document.getElementById('tabReg').classList.toggle('hidden',t!=='reg');
   document.getElementById('tabCon').classList.toggle('hidden',t!=='con');
   document.getElementById('tabBills').classList.toggle('hidden',t!=='bills');
+  document.getElementById('tabRecord').classList.toggle('hidden',t!=='record');
   if(t==='bills')renderOpdBills();
+  if(t==='record')renderOpdRecord();
 });
 function goTab(t){document.querySelector(`#opdSeg [data-tab="${t}"]`).click();}
 
@@ -1971,10 +2009,71 @@ function showConsult(){
   document.getElementById('cComplaint').value=p.complaint||'';
   document.getElementById('cDiag').value=p.diag||'';
   document.getElementById('cRx').value=p.rx||'';
+  RX_DRAFT=Array.isArray(p.rxItems)?p.rxItems.map(x=>Object.assign({},x)):[];
+  rxbFillStock(); renderRxDraft();
 }
+
+/* ---------- OPD structured prescription builder ---------- */
+let RX_DRAFT=[];
+function medByName(name){ const n=_norm(name); return (typeof PHARMACY!=='undefined'?PHARMACY:[]).find(m=>_norm(m.name)===n); }
+function rxbFillStock(){
+  const dl=document.getElementById('medStockDL'); if(!dl)return;
+  const meds=(typeof PHARMACY!=='undefined'?PHARMACY:[]).slice().sort((a,b)=>a.name.localeCompare(b.name));
+  dl.innerHTML=meds.map(m=>`<option value="${genAttr(m.name)}">${genEsc(m.salt||'')}${m.salt?' · ':''}${phStock(m)} in stock</option>`).join('');
+}
+/* doses per day parsed from a "1-0-1" style or common abbreviations */
+function dosesPerDay(freq){
+  const f=String(freq||'').trim().toUpperCase();
+  if(!f) return 1;
+  if(/^\d(-\d)+$/.test(f)) return f.split('-').reduce((a,d)=>a+(Number(d)||0),0)||1;
+  const map={OD:1,HS:1,BD:2,BID:2,TDS:3,TID:3,QID:4,QDS:4,STAT:1,SOS:1};
+  for(const k in map){ if(f.indexOf(k)>=0) return map[k]; }
+  return 1;
+}
+function rxbCalcQty(){
+  const freq=document.getElementById('rxbFreq').value, days=Number(document.getElementById('rxbDays').value)||0;
+  const dpd=dosesPerDay(freq);
+  return days>0 ? dpd*days : 0;
+}
+function rxbUpdateHint(){
+  const hint=document.getElementById('rxbHint'); if(!hint)return;
+  const med=medByName(document.getElementById('rxbMed').value);
+  const qty=rxbCalcQty();
+  let msg='';
+  if(qty) msg+=`Quantity to dispense: <b>${qty}</b>`;
+  if(med){ const st=phStock(med); msg+=`${msg?' · ':''}In stock: <b>${st}</b>`+(med.price?` · ₹${med.price}/unit`:''); if(qty>st) msg+=` · <span style="color:#b45309">short by ${qty-st}</span>`; }
+  else if(document.getElementById('rxbMed').value.trim()) msg+=`${msg?' · ':''}<span style="color:#b45309">not in pharmacy stock — will still be prescribed</span>`;
+  hint.innerHTML=msg;
+}
+function renderRxDraft(){
+  const box=document.getElementById('rxbList'); if(!box)return;
+  if(!RX_DRAFT.length){ box.innerHTML='<div class="tempty" style="padding:8px">No medicines added yet.</div>'; return; }
+  box.innerHTML=`<div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">#</th><th>Medicine</th><th>Dose</th><th>Freq</th><th>Days</th><th>Qty</th><th>Stock</th><th></th></tr></thead><tbody>${
+    RX_DRAFT.map((it,i)=>{ const med=medByName(it.name); const st=med?phStock(med):null;
+      const stTag=med?(it.qty>st?`<span class="pill r">${st}</span>`:`<span class="pill g">${st}</span>`):'<span class="pill">—</span>';
+      return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(it.name)}</b></td><td>${genEsc(it.dose||'—')}</td><td>${genEsc(it.freq||'—')}</td><td>${genEsc(String(it.days||'—'))}</td><td>${it.qty||'—'}</td><td>${stTag}</td><td><button class="btn ghost tiny" type="button" data-rxdel="${i}" style="width:auto;padding:5px 9px">✕</button></td></tr>`;
+    }).join('')}</tbody></table></div>`;
+  box.querySelectorAll('[data-rxdel]').forEach(b=>b.onclick=()=>{ RX_DRAFT.splice(Number(b.dataset.rxdel),1); renderRxDraft(); saveRxDraftToPatient(); });
+}
+function saveRxDraftToPatient(){ const p=QUEUE.find(x=>x.tok===activeTok); if(p){ p.rxItems=RX_DRAFT.map(x=>Object.assign({},x)); persist(); } }
+document.getElementById('rxbAdd').onclick=()=>{
+  const name=document.getElementById('rxbMed').value.trim();
+  if(!name){ document.getElementById('rxbMed').focus(); toast('Pick a medicine'); return; }
+  const med=medByName(name);
+  RX_DRAFT.push({ name, dose:document.getElementById('rxbDose').value.trim(),
+    freq:document.getElementById('rxbFreq').value.trim(), days:Number(document.getElementById('rxbDays').value)||0,
+    qty:rxbCalcQty(), medId:med?med.id:'', price:med?(Number(med.price)||0):0 });
+  document.getElementById('rxbMed').value=''; document.getElementById('rxbDose').value='';
+  document.getElementById('rxbFreq').value=''; document.getElementById('rxbDays').value='';
+  document.getElementById('rxbHint').innerHTML='';
+  renderRxDraft(); saveRxDraftToPatient();
+};
+['rxbMed','rxbFreq','rxbDays'].forEach(id=>{ const e=document.getElementById(id); if(e){ e.addEventListener('input',rxbUpdateHint); e.addEventListener('change',rxbUpdateHint); } });
+
 document.getElementById('btnComplete').onclick=()=>{
   const p=QUEUE.find(x=>x.tok===activeTok); if(!p)return;
   p.diag=document.getElementById('cDiag').value; p.rx=document.getElementById('cRx').value;
+  p.rxItems=RX_DRAFT.map(x=>Object.assign({},x));
   p.status='done';
   const next=QUEUE.find(x=>x.status==='wait');
   activeTok=next?next.tok:null;
@@ -1985,9 +2084,117 @@ document.getElementById('btnComplete').onclick=()=>{
 document.getElementById('btnHold').onclick=()=>{
   const p=QUEUE.find(x=>x.tok===activeTok); if(!p)return;
   p.diag=document.getElementById('cDiag').value; p.rx=document.getElementById('cRx').value;
+  p.rxItems=RX_DRAFT.map(x=>Object.assign({},x));
   persist();
   toast('Notes saved · patient kept in queue');
 };
+document.getElementById('btnSendPharm').onclick=()=>{
+  const p=QUEUE.find(x=>x.tok===activeTok); if(!p)return;
+  if(!RX_DRAFT.length){ toast('Add at least one medicine to the prescription'); return; }
+  p.rxItems=RX_DRAFT.map(x=>Object.assign({},x));
+  const items=RX_DRAFT.map(it=>({name:it.name,qty:it.qty||1,medId:it.medId||'',price:it.price||0,dose:it.dose,freq:it.freq,days:it.days}));
+  const rx=rxPush(p.name,p.doc||'',items);
+  if(typeof logAudit==='function')logAudit('OPD','Prescription sent to pharmacy · '+items.length+' item(s)',p.name);
+  if(typeof repoSave==='function'&&rx)repoSave('prescriptions',rx);
+  persist();
+  toast(`Sent ${items.length} medicine(s) to the pharmacy queue for ${p.name}`);
+};
+document.getElementById('btnPrintRx').onclick=()=>{
+  const p=QUEUE.find(x=>x.tok===activeTok); if(!p)return;
+  printRx(p);
+};
+function printRx(p){
+  const items=Array.isArray(p.rxItems)?p.rxItems:[];
+  const notes=(document.getElementById('cRx')&&document.getElementById('cRx').value.trim())||p.rx||'';
+  if(!items.length&&!notes){ toast('Nothing to print — add medicines or notes first'); return; }
+  const h=(typeof MD_HOSPITAL!=='undefined'&&MD_HOSPITAL)||{}; const hosp=h.name||'MediCore Hospital';
+  const w=window.open('','_blank','width=800,height=950'); if(!w){toast('Allow pop-ups to print');return;}
+  const td=v=>`<td style="padding:4px 6px;border-bottom:1px solid #eee">${genEsc(String(v==null||v===''?'—':v))}</td>`;
+  w.document.write(`<html><head><title>Prescription — ${genEsc(p.name)}</title></head>
+  <body style="font-family:system-ui,Arial;padding:26px;color:#111">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><h2 style="margin:0">${genEsc(hosp)}</h2><div style="font-size:11.5px;color:#555">${genEsc(h.address||'')}</div></div>
+      <div style="text-align:right;font-size:11.5px">${new Date().toLocaleString()}</div>
+    </div><hr>
+    <table style="width:100%;font-size:12px"><tr><td><b>Patient:</b> ${genEsc(p.name)}</td><td><b>Age/Sex:</b> ${genEsc(p.age||'—')} / ${genEsc(p.gender||'—')}</td></tr>
+      <tr><td><b>Doctor:</b> ${genEsc(p.doc||'—')}</td><td><b>Dept:</b> ${genEsc(p.dept||'—')}</td></tr></table>
+    ${p.diag?`<p style="font-size:12.5px"><b>Diagnosis:</b> ${genEsc(document.getElementById('cDiag').value||p.diag)}</p>`:''}
+    <h1 style="font-size:26px;margin:14px 0 6px">℞</h1>
+    ${items.length?`<table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr><th style="text-align:left;border-bottom:1.5px solid #000;padding:4px 6px">Medicine</th><th style="text-align:left;border-bottom:1.5px solid #000">Dose</th><th style="text-align:left;border-bottom:1.5px solid #000">Frequency</th><th style="text-align:left;border-bottom:1.5px solid #000">Days</th><th style="text-align:left;border-bottom:1.5px solid #000">Qty</th></tr></thead>
+      <tbody>${items.map(it=>`<tr>${td(it.name)}${td(it.dose)}${td(it.freq)}${td(it.days)}${td(it.qty)}</tr>`).join('')}</tbody></table>`:''}
+    ${notes?`<p style="font-size:12.5px;margin-top:12px"><b>Notes:</b><br>${genEsc(notes).replace(/\n/g,'<br>')}</p>`:''}
+    <p style="margin-top:40px"><b>${genEsc(p.doc||'Doctor')}</b><br><span style="font-size:11px;color:#777">Signature</span></p>
+  </body></html>`);
+  w.document.close(); w.focus(); setTimeout(()=>{try{w.print();}catch(e){}},350);
+}
+document.getElementById('btnViewRecord').onclick=()=>{
+  const p=QUEUE.find(x=>x.tok===activeTok); if(!p)return;
+  goTab('record');
+  const inp=document.getElementById('recPat'); if(inp)inp.value=p.name;
+  renderOpdRecord(p.name);
+};
+
+/* ---------- OPD Patient Record (360°): every report & every bill, all departments ---------- */
+function allPatientNames(){
+  const S=new Set();
+  const add=v=>{ if(v&&String(v).trim())S.add(String(v).trim()); };
+  (typeof QUEUE!=='undefined'?QUEUE:[]).forEach(p=>add(p.name));
+  (typeof CHARGES!=='undefined'?CHARGES:[]).forEach(c=>add(c.patient));
+  (typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).forEach(b=>add(b.patient));
+  (typeof LAB_SAMPLES!=='undefined'?LAB_SAMPLES:[]).forEach(s=>add(s.patient));
+  (typeof RAD_ORDERS!=='undefined'?RAD_ORDERS:[]).forEach(o=>add(o.patient));
+  (typeof PHARMA_MOVES!=='undefined'?PHARMA_MOVES:[]).forEach(m=>{ if(m.type==='out')add(m.who); });
+  (typeof BEDS!=='undefined'?BEDS:[]).forEach(b=>{ if(b.patient)add(b.patient.name); });
+  (typeof UHID_REG!=='undefined'?UHID_REG:[]).forEach(u=>add(u.name));
+  return [...S].sort((a,b)=>a.localeCompare(b));
+}
+function renderOpdRecord(name){
+  const list=document.getElementById('recPatList');
+  if(list)list.innerHTML=allPatientNames().map(n=>`<option value="${genAttr(n)}">`).join('');
+  const out=document.getElementById('recOut'); if(!out)return;
+  const p=(name!=null?name:(document.getElementById('recPat')||{}).value||'').trim();
+  if(!p){ out.innerHTML='<div class="panel" style="max-width:none"><div class="tempty">Type a patient name and press <b>Open record</b> — or open one straight from the queue with “View full record”.</div></div>'; return; }
+  const s=summaryFor(p), b=billFor(p);
+  const money0=v=>money(Number(v)||0);
+  const hasAny=s.bed.length||s.labs.length||s.imaging.length||s.meds.length||s.vitals.length||b.count;
+  const header=`<div class="panel" style="max-width:none;margin-bottom:12px">
+      <div class="pt-banner" style="margin:0">
+        <div class="pic">${genEsc(p.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase())}</div>
+        <div><b>${genEsc(p)}</b><div class="tag">UHID ${genEsc(s.uhid||'not registered')} · ABHA ${genEsc(s.abha||'not linked')}</div></div>
+        <div class="tok"><b>${money0(b.due)}</b><span>Balance due</span></div>
+      </div></div>`;
+  if(!hasAny){ out.innerHTML=header+'<div class="panel" style="max-width:none"><div class="tempty">Nothing on record for this patient yet across any department.</div></div>'; return; }
+  const sec=(t,inner)=>`<div class="panel" style="max-width:none;margin:0 0 12px"><h3 style="font-size:14px">${t}</h3>${inner}</div>`;
+  const tbl=(arr,cols,empty)=>arr.length
+    ? `<div class="tablewrap"><table class="dtable"><thead><tr>${cols.map(c=>`<th>${c[0]}</th>`).join('')}</tr></thead><tbody>${arr.map(x=>`<tr>${cols.map(c=>`<td>${genEsc(String(c[1](x)??'—'))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
+    : `<div class="tempty">${empty}</div>`;
+  /* REPORTS across departments */
+  const reports=sec('Reports — all departments',
+    '<div style="font-weight:700;font-size:12px;margin:2px 0 4px;color:var(--muted)">Pathology / laboratory</div>'+
+    tbl(s.labs,[['Sample',x=>x.id],['Test',x=>x.test],['Type',x=>x.type],['Status',x=>x.status],['Date',x=>x.date]],'No pathology reports.')+
+    '<div style="font-weight:700;font-size:12px;margin:12px 0 4px;color:var(--muted)">Radiology / imaging</div>'+
+    tbl(s.imaging,[['Order',x=>x.id],['Modality',x=>x.modality],['Study',x=>x.study],['Status',x=>x.status],['Report',x=>(x.report||'').slice(0,70)]],'No imaging reports.')+
+    '<div style="font-weight:700;font-size:12px;margin:12px 0 4px;color:var(--muted)">Medicines dispensed (pharmacy)</div>'+
+    tbl(s.meds,[['Medicine',x=>x.name],['Qty',x=>x.qty],['Amount',x=>money0(x.amount)],['Date',x=>x.date]],'No medicines dispensed.')+
+    '<div style="font-weight:700;font-size:12px;margin:12px 0 4px;color:var(--muted)">Admission &amp; bed</div>'+
+    tbl(s.bed,[['Bed',x=>x.bed],['Ward',x=>x.ward],['Admitted',x=>x.admitted],['Doctor',x=>x.doctor],['Diagnosis',x=>x.diagnosis]],'No inpatient admission.')+
+    '<div style="font-weight:700;font-size:12px;margin:12px 0 4px;color:var(--muted)">Vitals</div>'+
+    tbl(s.vitals,[['Temp',x=>x.temp],['BP',x=>x.bp],['Pulse',x=>x.pulse],['SpO₂',x=>x.spo2],['Date',x=>x.date]],'No vitals recorded.'));
+  /* BILLS — itemised across departments, with what was paid */
+  const bills=sec('Bills — all departments',
+    tbl(b.lines,[['Particulars',x=>x.item],['Department',x=>x.dept],['Date',x=>x.date||''],['Amount',x=>money0(x.amount)]],'No charges recorded.')+
+    (Object.keys(b.byDept).length?`<div style="margin-top:10px">${Object.keys(b.byDept).map(k=>`<div class="brow"><span class="bn"><i style="background:#1f6feb"></i>${genEsc(k)}</span><b>${money0(b.byDept[k])}</b></div>`).join('')}</div>`:'')+
+    `<div class="brow" style="margin-top:6px"><span class="bn"><b>Total charged</b></span><b>${money0(b.sub)}</b></div>
+     <div class="brow"><span class="bn">Paid</span><b style="color:#166534">${money0(b.paid)}</b></div>
+     <div class="brow"><span class="bn" style="color:#b91c1c"><b>Balance due</b></span><b style="color:#b91c1c">${money0(b.due)}</b></div>`);
+  out.innerHTML=header+reports+bills;
+}
+document.getElementById('recShow').onclick=()=>renderOpdRecord();
+document.getElementById('recPat').addEventListener('change',()=>renderOpdRecord());
+document.getElementById('recPat').addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();renderOpdRecord();} });
+document.getElementById('recBill').onclick=()=>{ const p=(document.getElementById('recPat').value||'').trim(); if(!p){toast('Pick a patient first');return;} printPatientBill(p); };
+document.getElementById('recSummary').onclick=()=>{ const p=(document.getElementById('recPat').value||'').trim(); if(!p){toast('Pick a patient first');return;} printFullSummary({patient:p,date:new Date().toISOString().slice(0,10)}); };
 function advanceQueueAfter(p,newStatus,msg){
   p.status=newStatus; p.closedAt=Date.now();
   const next=QUEUE.find(x=>x.status==='wait');
@@ -2048,20 +2255,27 @@ document.getElementById('rType').addEventListener('change',function(){
 
 /* ---------- OPD billing (Package D) ---------- */
 const OPD_BILL_TYPES=['Consultation','Bed charge','Procedure','Lab','Pharmacy','Other'];
-function opdCollectedToday(){ const s=sodMs(); return OPD_BILLS.filter(b=>b.status==='Paid'&&tsOf(b)>=s).reduce((a,b)=>a+(Number(b.amount)||0),0); }
-function opdOutstanding(){ return OPD_BILLS.filter(b=>b.status!=='Paid').reduce((a,b)=>a+(Number(b.amount)||0),0); }
+function opdCollectedToday(){ const s=sodMs(); return OPD_BILLS.filter(b=>(b.lastPayTs||tsOf(b))>=s).reduce((a,b)=>a+opdPaidOf(b),0); }
+/* amount actually paid on a bill — supports part-payments, with a fallback
+ * for older bills that only carried a Paid/Unpaid status */
+function opdPaidOf(b){ if(b.paid!=null)return Number(b.paid)||0; return b.status==='Paid'?(Number(b.amount)||0):0; }
+function opdBalanceOf(b){ return Math.max(0,(Number(b.amount)||0)-opdPaidOf(b)); }
+function opdStatusOf(b){ const bal=opdBalanceOf(b); if(bal<=0&&(Number(b.amount)||0)>0)return 'Paid'; if(opdPaidOf(b)>0)return 'Partial'; return 'Unpaid'; }
+function opdOutstanding(){ return OPD_BILLS.reduce((a,b)=>a+opdBalanceOf(b),0); }
 function renderOpdBills(){
   const body=document.getElementById('opdBillsBody'); if(!body)return;
   const rows = OPD_BILLS.length ? OPD_BILLS.slice().reverse().map((b,i)=>{
-    const stat = b.status==='Paid'?'<span class="pill g">Paid</span>':'<span class="pill r">Unpaid</span>';
+    const st=opdStatusOf(b);
+    const stat = st==='Paid'?'<span class="pill g">Paid</span>':st==='Partial'?'<span class="pill a">Partial</span>':'<span class="pill r">Unpaid</span>';
     const ins = b.insurance?'<span class="pill b">Insurance</span>':'<span class="pill">Normal</span>';
-    const act = `<button class="btn ghost tiny" data-bill-toggle="${b.id}" style="width:auto;padding:7px 10px">${b.status==='Paid'?'Mark unpaid':'Mark paid'}</button> <button class="btn ghost tiny" data-bill-rcpt="${b.id}" style="width:auto;padding:7px 10px">Receipt</button>`;
-    return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(b.patient||'—')}</b></td><td>${genEsc(b.type||'—')}</td><td>${money(b.amount||0)}</td><td>${ins}</td><td><span class="pay">${genEsc(b.pay||'—')}</span></td><td>${stat}</td><td>${act}</td></tr>`;
-  }).join('') : `<tr><td class="tempty" colspan="8">No bills yet. Add a bill for a patient (consultation, bed, procedure…).</td></tr>`;
+    const bal=opdBalanceOf(b);
+    const act = `${st!=='Paid'?`<button class="btn ghost tiny" data-bill-pay="${b.id}" style="width:auto;padding:7px 10px;color:#166534;border-color:#b5dcc0">Record payment</button> `:''}<button class="btn ghost tiny" data-bill-toggle="${b.id}" style="width:auto;padding:7px 10px">${st==='Paid'?'Mark unpaid':'Mark fully paid'}</button> <button class="btn ghost tiny" data-bill-rcpt="${b.id}" style="width:auto;padding:7px 10px">Receipt</button>`;
+    return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(b.patient||'—')}</b></td><td>${genEsc(b.type||'—')}</td><td>${money(b.amount||0)}</td><td>${money(opdPaidOf(b))}</td><td>${bal>0?`<b style="color:#b91c1c">${money(bal)}</b>`:'<span class="pill g">nil</span>'}</td><td>${ins}</td><td><span class="pay">${genEsc(b.pay||'—')}</span></td><td>${stat}</td><td>${act}</td></tr>`;
+  }).join('') : `<tr><td class="tempty" colspan="10">No bills yet. Add a bill for a patient (consultation, bed, procedure…).</td></tr>`;
   body.innerHTML=`
     <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
-      <div class="kbig"><div class="kt">Collected today</div><b>${money(opdCollectedToday())}</b><div class="ks up">paid bills</div></div>
-      <div class="kbig"><div class="kt">Outstanding</div><b>${money(opdOutstanding())}</b><div class="ks dn">unpaid</div></div>
+      <div class="kbig"><div class="kt">Collected today</div><b>${money(opdCollectedToday())}</b><div class="ks up">payments received</div></div>
+      <div class="kbig"><div class="kt">Outstanding</div><b>${money(opdOutstanding())}</b><div class="ks dn">balance due</div></div>
       <div class="kbig"><div class="kt">Total bills</div><b>${OPD_BILLS.length}</b><div class="ks">all</div></div>
     </div>
     <div class="panel" style="max-width:none;margin-bottom:16px">
@@ -2078,21 +2292,62 @@ function renderOpdBills(){
       </div>
       <div class="form-actions"><button class="btn" id="obSave" style="width:auto;padding:12px 22px">Save bill</button></div>
     </div>
-    <div class="sec-head"><div><h3>Patient bills</h3><p>${OPD_BILLS.length} bill${OPD_BILLS.length===1?'':'s'} · paid &amp; unpaid</p></div></div>
-    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Type</th><th>Amount</th><th>Payer</th><th>Mode</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    <div class="sec-head"><div><h3>Patient bills</h3><p>${OPD_BILLS.length} bill${OPD_BILLS.length===1?'':'s'} · full &amp; part payments</p></div>
+      <button class="btn ghost" id="obDayClose" style="width:auto;padding:9px 13px">Day-close summary</button></div>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th class="sno">S.No</th><th>Patient</th><th>Type</th><th>Amount</th><th>Paid</th><th>Balance</th><th>Payer</th><th>Mode</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div id="obDayCloseOut" style="margin-top:14px"></div>`;
   document.getElementById('obSave').onclick=addOpdBill;
   document.getElementById('obPayer').onchange=function(){ document.getElementById('obInsurerWrap').style.display=this.value==='Insurance'?'':'none'; };
+  document.getElementById('obDayClose').onclick=renderDayClose;
+  body.querySelectorAll('[data-bill-pay]').forEach(x=>x.onclick=()=>opdBillPay(x.dataset.billPay));
   body.querySelectorAll('[data-bill-toggle]').forEach(x=>x.onclick=()=>opdBillToggle(x.dataset.billToggle));
   body.querySelectorAll('[data-bill-rcpt]').forEach(x=>x.onclick=()=>printOpdReceipt(x.dataset.billRcpt));
+}
+/* Record a payment (full or part) against a bill */
+function opdBillPay(id){
+  const b=OPD_BILLS.find(x=>x.id===id); if(!b)return;
+  const bal=opdBalanceOf(b);
+  const raw=prompt(`Payment for ${b.patient} · balance ${money(bal)}\nEnter amount received:`, String(bal));
+  if(raw==null)return;
+  const amt=Number(String(raw).replace(/[^\d.]/g,''))||0;
+  if(amt<=0){toast('Enter a valid amount');return;}
+  b.paid=opdPaidOf(b)+Math.min(amt,bal);
+  b.status=opdStatusOf(b); b.lastPayTs=Date.now(); b._ts=Date.now();
+  logAudit('OPD billing',`Payment ${money(Math.min(amt,bal))} · balance ${money(opdBalanceOf(b))}`,b.patient);
+  persist(); renderOpdBills();
+  if(typeof repoSave==='function')repoSave('opd_bills',b);
+  toast(opdBalanceOf(b)<=0?`Bill cleared for ${b.patient}`:`${money(Math.min(amt,bal))} received · ${money(opdBalanceOf(b))} still due`);
+}
+/* End-of-day collections, grouped by department/source and payment mode */
+function renderDayClose(){
+  const out=document.getElementById('obDayCloseOut'); if(!out)return;
+  const s=sodMs(); const byMode={}, bySrc={}; let cash=0,total=0;
+  const add=(src,mode,amt)=>{ if(!amt)return; total+=amt; bySrc[src]=(bySrc[src]||0)+amt; byMode[mode||'—']=(byMode[mode||'—']||0)+amt; if(/cash/i.test(mode||''))cash+=amt; };
+  OPD_BILLS.forEach(b=>{ if((b.lastPayTs||b._ts||0)>=s) add('OPD',b.pay,opdPaidOf(b)); });
+  (typeof PHARMA_MOVES!=='undefined'?PHARMA_MOVES:[]).forEach(x=>{ if(x.type==='out'&&(x._ts||0)>=s) add('Pharmacy',x.pay,Number(x.amount)||0); });
+  (typeof CHARGES!=='undefined'?CHARGES:[]).forEach(c=>{ if((c._ts||0)>=s&&c.source!=='Pharmacy') add(c.source||'Other',c.pay||'—',Number(c.amount)||0); });
+  const row=(o)=>Object.keys(o).length?Object.keys(o).map(k=>`<div class="brow"><span class="bn"><i style="background:#1f6feb"></i>${genEsc(k)}</span><b>${money(o[k])}</b></div>`).join(''):'<div class="tempty">Nothing yet today.</div>';
+  out.innerHTML=`<div class="panel" style="max-width:none">
+    <h3>Day-close · ${new Date().toLocaleDateString()}</h3>
+    <p class="psub">Everything collected today across OPD, pharmacy and captured charges. Reconcile the cash drawer against the cash line.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <div><div style="font-weight:700;font-size:12px;margin-bottom:4px;color:var(--muted)">By department</div>${row(bySrc)}</div>
+      <div><div style="font-weight:700;font-size:12px;margin-bottom:4px;color:var(--muted)">By payment mode</div>${row(byMode)}</div>
+    </div>
+    <div class="brow" style="margin-top:10px"><span class="bn"><b>Cash to reconcile</b></span><b>${money(cash)}</b></div>
+    <div class="brow"><span class="bn"><b>Total collected today</b></span><b>${money(total)}</b></div>
+  </div>`;
 }
 async function addOpdBill(){
   const patient=document.getElementById('obName').value.trim();
   if(!patient){document.getElementById('obName').focus();toast('Enter patient name');return;}
   if(!repoCan('opd_bills','w')){toast('Your role cannot create bills');return;}
   const payer=document.getElementById('obPayer').value;
+  const _amt=Number(document.getElementById('obAmt').value)||0;
+  const _status=document.getElementById('obStatus').value;
   OPD_BILLS.push({ id:'OB'+Date.now().toString(36), patient, type:document.getElementById('obType').value,
-    amount:Number(document.getElementById('obAmt').value)||0, pay:document.getElementById('obPay').value,
-    status:document.getElementById('obStatus').value, insurance:payer==='Insurance',
+    amount:_amt, paid:_status==='Paid'?_amt:0, pay:document.getElementById('obPay').value,
+    status:_status, insurance:payer==='Insurance', lastPayTs:_status==='Paid'?Date.now():0,
     insurer:document.getElementById('obInsurer').value.trim(),
     date:new Date().toISOString().slice(0,10), _ts:Date.now() });
   logAudit('OPD billing',`Bill created · ${money(Number(document.getElementById('obAmt').value)||0)}`,patient);
@@ -2105,10 +2360,13 @@ async function addOpdBill(){
 }
 function opdBillToggle(id){
   const b=OPD_BILLS.find(x=>x.id===id); if(!b)return;
-  b.status = b.status==='Paid'?'Unpaid':'Paid';
-  if(b.status==='Paid') b._ts=Date.now();
-  logAudit('OPD billing',`Payment status changed to ${b.status} · ${money(b.amount||0)}`,b.patient);
-  persist(); renderOpdBills(); toast(`Bill marked ${b.status.toLowerCase()}`);
+  const nowPaid = opdStatusOf(b)!=='Paid';
+  if(nowPaid){ b.paid=Number(b.amount)||0; b.status='Paid'; b.lastPayTs=Date.now(); b._ts=Date.now(); }
+  else { b.paid=0; b.status='Unpaid'; }
+  logAudit('OPD billing',`Marked ${b.status.toLowerCase()} · ${money(b.amount||0)}`,b.patient);
+  persist(); renderOpdBills();
+  if(typeof repoSave==='function')repoSave('opd_bills',b);
+  toast(`Bill marked ${b.status.toLowerCase()}`);
 }
 function printOpdReceipt(id){
   const b=OPD_BILLS.find(x=>x.id===id); if(!b)return;
@@ -4013,7 +4271,8 @@ function summaryFor(patient){
   charges.forEach(c=>{ const k=c.source||'Other'; byHead[k]=(byHead[k]||0)+c.amount; });
   bills.forEach(b=>{ byHead['OPD']=(byHead['OPD']||0)+b.amount; });
   const total=Object.values(byHead).reduce((a,b)=>a+b,0);
-  const paid=bills.filter(b=>b.status==='Paid').reduce((a,b)=>a+b.amount,0);
+  const paid=(typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).filter(b=>_norm(b.patient)===p)
+    .reduce((a,b)=>a+(typeof opdPaidOf==='function'?opdPaidOf(b):(b.status==='Paid'?(Number(b.amount)||0):0)),0);
   return {patient,uhid:uh.id||'',abha:uh.abha||'',bed,labs,imaging,meds,vitals:vit,charges,bills,byHead,total,paid,due:Math.max(0,total-paid)};
 }
 function renderSummaryPreview(patient,el){
@@ -4079,8 +4338,8 @@ function billFor(patient){
   (typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).filter(b=>_norm(b.patient)===p)
     .forEach(b=>lines.push({dept:'OPD',item:b.type||'OPD bill',amount:Number(b.amount)||0,date:b.date,status:b.status}));
   const sub=lines.reduce((a,l)=>a+l.amount,0);
-  const paid=(typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).filter(b=>_norm(b.patient)===p&&b.status==='Paid')
-    .reduce((a,b)=>a+(Number(b.amount)||0),0);
+  const paid=(typeof OPD_BILLS!=='undefined'?OPD_BILLS:[]).filter(b=>_norm(b.patient)===p)
+    .reduce((a,b)=>a+(typeof opdPaidOf==='function'?opdPaidOf(b):(b.status==='Paid'?(Number(b.amount)||0):0)),0);
   const byDept={}; lines.forEach(l=>{byDept[l.dept]=(byDept[l.dept]||0)+l.amount;});
   return {patient,uhid:uh.id||'',abha:uh.abha||'',phone:uh.phone||'',lines,byDept,sub,paid,due:Math.max(0,sub-paid),count:lines.length};
 }
@@ -5049,7 +5308,36 @@ function auditRecord(medId,counted,by){
   if(typeof logAudit==='function')logAudit('Pharmacy',`Stock audit · ${m.name} ${diff>0?'+':''}${diff}`,by); return {ok:true,diff};
 }
 function auditVariance(){ return PH_AUDITS.reduce((a,x)=>a+Math.abs(x.diff),0); }
-function rxPush(patient,doctor,items){ PH_RX.push({id:'RX'+Date.now().toString(36),patient,doctor:doctor||'',items:items||[],status:'Pending',date:new Date().toISOString().slice(0,10),_ts:Date.now()}); }
+function rxPush(patient,doctor,items){ const rx={id:'RX'+Date.now().toString(36),patient,doctor:doctor||'',items:items||[],status:'Pending',date:new Date().toISOString().slice(0,10),_ts:Date.now()}; PH_RX.push(rx); return rx; }
+/* Dispense a whole prescription against live stock: decrement, record movement,
+ * capture the charge to the patient (so it lands in the OPD record), mark done.
+ * Items not stocked or short are skipped and reported (partial dispense). */
+function dispenseRx(rxId){
+  const rx=PH_RX.find(r=>r.id===rxId); if(!rx||rx.status==='Dispensed')return;
+  if(typeof repoCan==='function'&&!repoCan('pharma_moves','w')){ toast('Your role cannot dispense'); return; }
+  const done=[], skipped=[]; let totalCharge=0; const toSave=[];
+  (rx.items||[]).forEach(it=>{
+    const med=(it.medId&&PHARMACY.find(m=>m.id===it.medId))||medByName(it.name);
+    const need=Number(it.qty)||1;
+    if(!med){ skipped.push(it.name+' (not in stock list)'); return; }
+    if(typeof dispenseGuard==='function'){ const blk=dispenseGuard(med,need,rx.patient).filter(x=>x.block); if(blk.length){ skipped.push(it.name+' — '+blk[0].msg); return; } }
+    if(phStock(med)<need){ skipped.push(it.name+' (only '+phStock(med)+' of '+need+' in stock)'); return; }
+    const amount=need*(Number(med.price)||0);
+    med.stock=phStock(med)-need;
+    const mv={ id:'MV'+Date.now().toString(36)+Math.random().toString(36).slice(2,4), medId:med.id, medName:med.name, type:'out', qty:need, amount, pay:'Bill', who:rx.patient, date:new Date().toISOString().slice(0,10), _ts:Date.now() };
+    PHARMA_MOVES.push(mv);
+    let chg=null; if(rx.patient&&typeof captureCharge==='function')chg=captureCharge(rx.patient,'Pharmacy',need+'× '+med.name,amount);
+    totalCharge+=amount; done.push(need+'× '+med.name);
+    toSave.push(['pharma_moves',mv]); toSave.push(['pharmacy',med]); if(chg)toSave.push(['charges',chg]);
+  });
+  if(!done.length){ toast('Could not dispense: '+(skipped[0]||'no items in stock')); return; }
+  rx.status='Dispensed'; rx.dispensedOn=new Date().toISOString().slice(0,10); rx.charged=totalCharge;
+  if(typeof logAudit==='function')logAudit('Pharmacy','Rx dispensed · '+done.length+' item(s) · '+money(totalCharge),rx.patient);
+  persist(); renderPharma();
+  if(typeof repoSave==='function'){ toSave.forEach(([res,rec])=>repoSave(res,rec)); repoSave('prescriptions',rx); }
+  toast(`Dispensed ${done.length} item(s) · ${money(totalCharge)} billed to ${rx.patient}`+(skipped.length?` · ${skipped.length} skipped`:''));
+  if(skipped.length)setTimeout(()=>toast('Not dispensed: '+skipped.join('; ')),400);
+}
 function rxPending(){ return PH_RX.filter(r=>r.status==='Pending').length; }
 function movers(days){
   const cutoff=Date.now()-((days||30)*86400000), tally={};
@@ -5141,7 +5429,7 @@ function renderPharmaAudit(){
 }
 function renderPharmaRx(){
   const body=document.getElementById('pharmaBody');
-  const rows=PH_RX.length?PH_RX.slice().reverse().map((r,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(r.patient)}</b></td><td>${genEsc(r.doctor||'—')}</td><td>${(r.items||[]).map(x=>genEsc(x.name)+(x.qty?' ×'+x.qty:'')).join(', ')||'—'}</td><td><span class="pill ${r.status==='Dispensed'?'g':'b'}">${genEsc(r.status)}</span></td><td>${genEsc(r.date)}</td><td>${r.status==='Pending'?`<button class="btn ghost tiny" data-rxd="${r.id}" style="width:auto;padding:6px 10px">Mark dispensed</button>`:'—'}</td></tr>`).join(''):'<tr><td class="tempty" colspan="7">No prescriptions in the queue. Add one below or send from OPD.</td></tr>';
+  const rows=PH_RX.length?PH_RX.slice().reverse().map((r,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(r.patient)}</b></td><td>${genEsc(r.doctor||'—')}</td><td>${(r.items||[]).map(x=>genEsc(x.name)+(x.qty?' ×'+x.qty:'')).join(', ')||'—'}</td><td><span class="pill ${r.status==='Dispensed'?'g':'b'}">${genEsc(r.status)}</span>${r.status==='Dispensed'&&r.charged?` <span class="pill">${money(r.charged)}</span>`:''}</td><td>${genEsc(r.date)}</td><td>${r.status==='Pending'?`<button class="btn ghost tiny" data-rxdisp="${r.id}" style="width:auto;padding:6px 10px">Dispense &amp; bill</button>`:'—'}</td></tr>`).join(''):'<tr><td class="tempty" colspan="7">No prescriptions in the queue. Add one below or send from OPD.</td></tr>';
   body.innerHTML=`<div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
       <div class="kbig"><div class="kt">Pending</div><b>${rxPending()}</b><div class="ks">to dispense</div></div>
       <div class="kbig"><div class="kt">Dispensed</div><b>${PH_RX.filter(r=>r.status==='Dispensed').length}</b><div class="ks">completed</div></div>
@@ -5161,7 +5449,7 @@ function renderPharmaRx(){
   document.getElementById('rxAdd').onclick=()=>{ const p=document.getElementById('rxPat').value.trim(); if(!p){toast('Enter patient');return;}
     rxPush(p,document.getElementById('rxDoc').value.trim(),[{name:document.getElementById('rxItem').value.trim()||'Medicine',qty:Number(document.getElementById('rxQty').value)||1}]);
     persist(); renderPharma(); toast('Added to queue'); };
-  body.querySelectorAll('[data-rxd]').forEach(b=>b.onclick=()=>{ const r=PH_RX.find(x=>x.id===b.dataset.rxd); if(r){r.status='Dispensed'; logAudit('Pharmacy','Rx dispensed',r.patient); persist(); renderPharma();} });
+  body.querySelectorAll('[data-rxdisp]').forEach(b=>b.onclick=()=>dispenseRx(b.dataset.rxdisp));
   const cv=document.getElementById('rxCsv'); if(cv)cv.onclick=()=>exportCSV('prescriptions',['Patient','Doctor','Items','Status','Date'],PH_RX.map(r=>[r.patient,r.doctor,(r.items||[]).map(x=>x.name+'×'+x.qty).join('; '),r.status,r.date]));
 }
 function renderPharmaAnalytics(){
