@@ -674,6 +674,7 @@
         <div style="text-align:center;margin-top:10px"><a class="link" href="#" id="showChangeCred">Change email or password</a></div>
       </form>
 
+      <!-- FIRST RUN: create the one account that may sign in -->
       <div id="setupBox" style="display:none">
         <div class="field"><label>Your email address</label>
           <div class="inp"><input type="email" id="suEmail" placeholder="you@hospital.com"></div></div>
@@ -686,6 +687,7 @@
         <p class="auth-sub" style="font-size:11.5px;margin-top:8px">This is the only account that will be able to open MediCore on this device. You can change it later from this screen.</p>
       </div>
 
+      <!-- CHANGE CREDENTIALS (needs the current password) -->
       <div id="changeCredBox" style="display:none">
         <div class="field"><label>Current password</label>
           <div class="inp"><input type="password" id="ccCur" placeholder="Your current password"></div></div>
@@ -1639,6 +1641,7 @@ document.getElementById('loginForm').addEventListener('submit',async e=>{
   const err=document.getElementById('err');
   if(!uid||!pwd){err.textContent='Please enter your credentials.';return;}
   err.textContent='';
+  /* If a server is reachable, it — not the browser — decides who may sign in. */
   if(typeof SERVER!=='undefined'){
     if(!SERVER.online && typeof repoProbe==='function'){ try{ await repoProbe(); }catch(x){} }
     if(SERVER.online){
@@ -1654,6 +1657,8 @@ document.getElementById('loginForm').addEventListener('submit',async e=>{
       return;
     }
   }
+  /* No backend reachable (e.g. opened as a local file) — local demo mode. */
+  /* No backend: only the account created on this device may sign in. */
   const chk=credCheck(uid,pwd);
   if(!chk.ok){ err.textContent=chk.msg; if(chk.setup)renderAuthMode(); return; }
   userName = uid.includes('@')? uid.split('@')[0] : uid;
@@ -1662,6 +1667,7 @@ document.getElementById('loginForm').addEventListener('submit',async e=>{
   document.getElementById('auth').classList.add('hidden');
   document.getElementById('rolePage').classList.remove('hidden');
 });
+/* first-run account creation */
 (function initAuthUI(){
   const c=document.getElementById('suCreate');
   if(c)c.onclick=()=>{
@@ -2587,6 +2593,8 @@ document.getElementById('admForm').addEventListener('submit',async e=>{
   persist();
   document.getElementById('admForm').reset(); fillWardSelects();
   renderBoard(); renderAdmitted();
+  /* Bed allocation is the highest-contention action in a hospital — if another
+     terminal claimed this bed first the server refuses and we roll back. */
   const sv=await repoSave('beds',b);
   if(sv.conflict){
     b.status=_prev.status; b.patient=_prev.patient;
@@ -3726,6 +3734,7 @@ function renderApptTool(host){
 }
 function renderVitalsTool(host){
   const pats=[...new Set((typeof BEDS!=='undefined'?BEDS:[]).filter(b=>b.patient).map(b=>b.patient.name))];
+  const last={}; VITALS.forEach(v=>{ last[_norm(v.patient)]=v; });
   const rows=VITALS.length?VITALS.slice().reverse().slice(0,40).map((v,i)=>{const f=vitalFlags(v);return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(v.patient)}</b></td><td>${genEsc(String(v.temp||'—'))}</td><td>${genEsc(v.bp||'—')}</td><td>${genEsc(String(v.pulse||'—'))}</td><td>${genEsc(String(v.spo2||'—'))}</td><td>${f.length?f.map(x=>`<span class="pill r" style="margin:1px">${genEsc(x)}</span>`).join(' '):'<span class="pill g">Normal</span>'}</td><td>${genEsc(v.date)}</td></tr>`;}).join(''):'<tr><td class="tempty" colspan="8">No vitals recorded yet.</td></tr>';
   const nRows=NURSE_NOTES.length?NURSE_NOTES.slice().reverse().slice(0,25).map((n,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(n.patient)}</b></td><td>${genEsc(n.shift||'—')}</td><td>${genEsc(n.by||'—')}</td><td style="max-width:340px">${genEsc(n.text)}</td><td>${genEsc(n.date)}</td></tr>`).join(''):'<tr><td class="tempty" colspan="6">No nursing notes yet.</td></tr>';
   host.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>Record vitals</h3>
@@ -5776,6 +5785,7 @@ function addMove(){
   let _chg=null;
   if(type==='out' && mv.who && typeof captureCharge==='function') _chg=captureCharge(mv.who,'Pharmacy',qty+'× '+med.name,amount);
   persist(); renderPharma();
+  /* stock level and the movement are both server-owned; the charge too if one was raised */
   repoSave('pharma_moves',mv).then(sv=>{ repoSave('pharmacy',med); if(_chg)repoSave('charges',_chg);
     if(!sv.ok&&!sv.offline)toast(sv.msg||'Movement not saved to server'); });
   toast(type==='in'?`Stock added: ${med.name}`:`Dispensed ${qty} × ${med.name}`);
@@ -6088,6 +6098,7 @@ function sanitizePhone(v){
   document.addEventListener('change',e=>clean(e.target),true);
   document.addEventListener('blur',e=>clean(e.target),true);
   document.addEventListener('paste',e=>{ const el=e.target; if(isPhoneField(el))setTimeout(()=>clean(el),0); },true);
+  /* block letter keys outright so nothing ever appears in the box */
   document.addEventListener('keypress',e=>{
     const el=e.target;
     if(!isPhoneField(el))return;
@@ -6095,6 +6106,7 @@ function sanitizePhone(v){
     const ch=e.key;
     if(ch&&ch.length===1&&!/[0-9]/.test(ch)&&!(ch==='+'&&(el.selectionStart===0))) e.preventDefault();
   },true);
+  /* mobile keypads: ask for the numeric pad on every phone field we render */
   const hint=()=>document.querySelectorAll('input').forEach(el=>{
     if(isPhoneField(el)&&el.dataset.phoneReady!=='1'){
       /* type=tel stops the browser offering unrelated saved values (ward names etc.)
@@ -6209,6 +6221,7 @@ async function repoFlush(){
   if(sent&&typeof toast==='function')toast(`${sent} offline change${sent===1?'':'s'} synced to the server`);
   return {sent,left:left.length};
 }
+/* one place that reports the save outcome to the user */
 function repoReport(r,successMsg){
   if(!r)return false;
   if(r.ok){ toast(r.offline?(successMsg+' · saved locally, will sync'):successMsg); return true; }
@@ -6222,12 +6235,14 @@ function updateServerBadge(){
   else if(SERVER.online){ el.className='syncbadge on'; t.textContent='Server online — sign in for multi-user'; }
   else { el.className='syncbadge off'; t.textContent=`Local mode${q?` · ${q} queued`:' — this device only'}`; }
 }
+/* Pull server-owned resources into the in-page arrays the UI already renders. */
 async function repoHydrate(){
   if(!SERVER.online||!SERVER.user)return;
   await repoFlush();
   if(repoCan('patients','r')){
     const list=await repoList('patients');
     if(Array.isArray(list)&&list.length){
+      const seen={}; UHID_REG.forEach(u=>seen[u.id]=true);
       list.forEach(rec=>{ const i=UHID_REG.findIndex(u=>u.id===rec.id); if(i>=0)UHID_REG[i]=rec; else UHID_REG.push(rec); });
     }
   }
@@ -6247,6 +6262,7 @@ async function repoHydrate(){
     const bl=await repoList('beds');
     if(Array.isArray(bl))bl.forEach(rec=>{ const i=BEDS.findIndex(b=>b.id===rec.id); if(i>=0)BEDS[i]=rec; });
   }
+  /* keep the running token ahead of anything another terminal issued */
   try{ const maxTok=QUEUE.reduce((a,q)=>Math.max(a,Number(q.tok)||0),0); if(maxTok>TOKEN)TOKEN=maxTok; }catch(e){}
   try{ if(typeof refreshView==='function')refreshView(); }catch(e){}
   updateServerBadge();
@@ -6254,12 +6270,18 @@ async function repoHydrate(){
 repoProbe().then(()=>repoHydrate());
 setInterval(()=>{ if(!SERVER.online)repoProbe(); else { repoFlush(); repoHydrate(); } },60000);
 
-/* ===================== LOCAL ACCOUNT (used when no server is reachable) ===================== */
+/* ===================== LOCAL ACCOUNT (used when no server is reachable) =====================
+ * Only the account created here can sign in. The email and password are changeable by the
+ * owner, and the password is never stored in plain text.
+ * NOTE: when the server is online it is the real gate — this exists so the offline/desktop
+ * copy is not wide open.
+ * =========================================================================================== */
 const CRED_KEY='medicore_local_cred';
 const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 function validEmail(e){ return EMAIL_RE.test(String(e||'').trim()); }
 function pwStrong(p){ p=String(p||''); return p.length>=8 && /[A-Za-z]/.test(p) && /[0-9]/.test(p); }
 function _h(pw,salt){
+  /* fast, dependency-free digest; the server uses scrypt for the real thing */
   const s=salt+'|'+String(pw); let h1=0x811c9dc5,h2=0x01000193;
   for(let i=0;i<s.length;i++){ const c=s.charCodeAt(i); h1=(h1^c)>>>0; h1=(h1*0x01000193)>>>0; h2=(h2+c*(i+7))>>>0; h2=(h2^(h2<<5))>>>0; }
   let out=''; for(let r=0;r<4;r++){ h1=(h1*0x01000193+r)>>>0; h2=(h2^(h1>>>3))>>>0; out+=('00000000'+((h1^h2)>>>0).toString(16)).slice(-8); }
@@ -6291,6 +6313,7 @@ function credChange(curPw,newEmail,newPw){
   credSave({email:_norm(email),salt,hash:_h(newPw||curPw,salt)});
   return {ok:true};
 }
+/* Show "create account" the very first time, otherwise the normal sign-in. */
 function renderAuthMode(){
   const has=!!credGet(), setup=document.getElementById('setupBox'), form=document.getElementById('loginForm');
   if(setup)setup.style.display=has?'none':'';
