@@ -22,7 +22,14 @@ cd "/Users/dkarthikeyan/Desktop/untitled folder 2/medicore-server"
 Stop the app from uploading junk:
 
 ```bash
-printf 'node_modules/\n.DS_Store\n*.log\nreact-app/node_modules/\nreact-app/dist/\n' > .gitignore
+printf 'node_modules/\n.DS_Store\n*.log\nreact-app/node_modules/\nreact-app/dist/\nlocal_*/\n' > .gitignore
+```
+
+That `local_*/` line is important — it keeps a folder of private session data (which
+holds credentials) out of GitHub. Verify it worked before committing:
+
+```bash
+git status --short | grep local_ || echo "good — no private folder staged"
 ```
 
 Create the repository and make the first commit:
