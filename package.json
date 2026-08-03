@@ -1,0 +1,17 @@
+{
+  "name": "medicore-hms-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MediCore HMS — Express + PostgreSQL backend serving the app with durable cross-device state.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.12.0"
+  }
+}
