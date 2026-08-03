@@ -1,13 +1,14 @@
 {
-  "name": "medicore-hms",
+  "name": "medicore-hms-server",
   "version": "1.0.0",
-  "description": "MediCore Hospital Management System — Node/Express + PostgreSQL backend",
   "private": true,
-  "engines": {
-    "node": ">=18"
-  },
+  "description": "MediCore HMS — Express + PostgreSQL backend serving the app with durable cross-device state.",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "dependencies": {
     "express": "^4.19.2",
