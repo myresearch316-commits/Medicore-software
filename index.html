@@ -671,22 +671,32 @@
           </button>
         </div>
         <div class="err" id="err"></div>
+        <div style="display:flex;align-items:center;gap:10px;margin:14px 0 4px;color:#93a2b5;font-size:11.5px">
+          <span style="flex:1;height:1px;background:#e2e8f0"></span>Don't have an account?<span style="flex:1;height:1px;background:#e2e8f0"></span>
+        </div>
+        <button class="btn" type="button" id="showSignup" style="width:100%;background:#fff;color:#1f6feb;border:1.5px solid #bcd6ff">Create account</button>
         <div style="text-align:center;margin-top:10px"><a class="link" href="#" id="showChangeCred">Change email or password</a></div>
       </form>
 
+      <!-- CREATE ACCOUNT: sign up if you don't have a login yet -->
       <div id="setupBox" style="display:none">
+        <h2 style="margin-top:4px">Create your account</h2>
+        <p class="auth-sub">Set up a login you'll use to open MediCore.</p>
         <div class="field"><label>Your email address</label>
           <div class="inp"><input type="email" id="suEmail" placeholder="you@hospital.com"></div></div>
         <div class="field"><label>Create a password</label>
           <div class="inp"><input type="password" id="suPw" placeholder="8+ characters, letters and numbers"></div></div>
-        <div class="field"><label>Confirm password</label>
-          <div class="inp"><input type="password" id="suPw2" placeholder="Repeat the password"></div></div>
         <div class="signin-row"><button class="btn signin" type="button" id="suCreate">Create account</button></div>
         <div class="err" id="suErr"></div>
-        <p class="auth-sub" style="font-size:11.5px;margin-top:8px">This is the only account that will be able to open MediCore on this device. You can change it later from this screen.</p>
+        <div style="text-align:center;margin-top:12px">
+          <span class="auth-sub" style="font-size:12.5px">Already have an account? </span><a class="link" href="#" id="showSignin">Sign in</a>
+        </div>
       </div>
 
+      <!-- CHANGE CREDENTIALS (needs the current email + password) -->
       <div id="changeCredBox" style="display:none">
+        <div class="field"><label>Current email</label>
+          <div class="inp"><input type="email" id="ccCurEmail" placeholder="The email you sign in with"></div></div>
         <div class="field"><label>Current password</label>
           <div class="inp"><input type="password" id="ccCur" placeholder="Your current password"></div></div>
         <div class="field"><label>New email (leave blank to keep)</label>
@@ -1667,26 +1677,41 @@ document.getElementById('loginForm').addEventListener('submit',async e=>{
   if(c)c.onclick=()=>{
     const e=document.getElementById('suErr');
     const em=document.getElementById('suEmail').value.trim();
-    const p1=document.getElementById('suPw').value, p2=document.getElementById('suPw2').value;
-    if(p1!==p2){e.textContent='The two passwords do not match.';return;}
+    const p1=document.getElementById('suPw').value;
     const r=credSet(em,p1);
     if(!r.ok){e.textContent=r.msg;return;}
-    e.textContent=''; renderAuthMode();
+    e.textContent='';
+    ['suEmail','suPw','suPw2'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('setupBox').style.display='none';
+    document.getElementById('loginForm').style.display='';
     document.getElementById('uid').value=em;
     const errEl=document.getElementById('err'); if(errEl)errEl.textContent='Account created — sign in with it now.';
   };
+  /* switch: sign-in  ->  create account */
+  const su=document.getElementById('showSignup');
+  if(su)su.onclick=(ev)=>{ ev.preventDefault();
+    document.getElementById('loginForm').style.display='none';
+    document.getElementById('changeCredBox').style.display='none';
+    document.getElementById('setupBox').style.display='';
+    const e=document.getElementById('suErr'); if(e)e.textContent=''; };
+  /* switch: create account  ->  sign-in */
+  const si=document.getElementById('showSignin');
+  if(si)si.onclick=(ev)=>{ ev.preventDefault();
+    document.getElementById('setupBox').style.display='none';
+    document.getElementById('loginForm').style.display=''; };
   const sc=document.getElementById('showChangeCred');
   if(sc)sc.onclick=(ev)=>{ ev.preventDefault();
     document.getElementById('loginForm').style.display='none';
+    document.getElementById('setupBox').style.display='none';
     document.getElementById('changeCredBox').style.display=''; };
   const cc=document.getElementById('ccCancel');
   if(cc)cc.onclick=(ev)=>{ ev.preventDefault(); renderAuthMode(); };
   const cs=document.getElementById('ccSave');
   if(cs)cs.onclick=()=>{
     const e=document.getElementById('ccErr');
-    const r=credChange(document.getElementById('ccCur').value,document.getElementById('ccEmail').value.trim(),document.getElementById('ccPw').value);
+    const r=credChange(document.getElementById('ccCurEmail').value.trim(),document.getElementById('ccCur').value,document.getElementById('ccEmail').value.trim(),document.getElementById('ccPw').value);
     if(!r.ok){e.textContent=r.msg;return;}
-    e.textContent=''; ['ccCur','ccEmail','ccPw'].forEach(id=>document.getElementById(id).value='');
+    e.textContent=''; ['ccCurEmail','ccCur','ccEmail','ccPw'].forEach(id=>document.getElementById(id).value='');
     renderAuthMode();
     const errEl=document.getElementById('err'); if(errEl)errEl.textContent='Updated — sign in with your new details.';
   };
@@ -6265,36 +6290,48 @@ function _h(pw,salt){
   let out=''; for(let r=0;r<4;r++){ h1=(h1*0x01000193+r)>>>0; h2=(h2^(h1>>>3))>>>0; out+=('00000000'+((h1^h2)>>>0).toString(16)).slice(-8); }
   return out;
 }
-function credGet(){ try{ return JSON.parse(localStorage.getItem(CRED_KEY)||'null'); }catch(e){ return null; } }
-function credSave(c){ try{ localStorage.setItem(CRED_KEY,JSON.stringify(c)); }catch(e){} }
+/* Local accounts are stored as a list, so several people can each have their
+ * own login on the same device. Older single-account data is migrated on read. */
+function credList(){ try{ const raw=JSON.parse(localStorage.getItem(CRED_KEY)||'null'); if(!raw)return []; return Array.isArray(raw)?raw:[raw]; }catch(e){ return []; } }
+function credSaveList(a){ try{ localStorage.setItem(CRED_KEY,JSON.stringify(a)); }catch(e){} }
+function credGet(){ return credList()[0]||null; }   /* back-compat: "is there any account?" */
 function credSet(email,pw){
   if(!validEmail(email))return {ok:false,msg:'Enter a valid email address'};
   if(!pwStrong(pw))return {ok:false,msg:'Password needs 8+ characters with letters and numbers'};
+  const list=credList();
+  if(list.some(c=>c.email===_norm(email)))return {ok:false,msg:'An account with this email already exists — sign in instead'};
   const salt=Math.random().toString(36).slice(2)+Date.now().toString(36);
-  credSave({email:_norm(email),salt,hash:_h(pw,salt)});
+  list.push({email:_norm(email),salt,hash:_h(pw,salt)});
+  credSaveList(list);
   return {ok:true};
 }
 function credCheck(email,pw){
-  const c=credGet();
-  if(!c)return {ok:false,setup:true,msg:'No account yet — create one below'};
-  if(_norm(email)!==c.email||_h(pw,c.salt)!==c.hash)return {ok:false,msg:'Wrong email or password'};
+  const list=credList();
+  if(!list.length)return {ok:false,setup:true,msg:'No account yet — create one below'};
+  const c=list.find(x=>x.email===_norm(email));
+  if(!c||_h(pw,c.salt)!==c.hash)return {ok:false,msg:'Wrong email or password'};
   return {ok:true};
 }
-function credChange(curPw,newEmail,newPw){
-  const c=credGet();
-  if(!c)return {ok:false,msg:'No account yet'};
-  if(_h(curPw,c.salt)!==c.hash)return {ok:false,msg:'Current password is wrong'};
-  const email=newEmail?newEmail:c.email;
+function credChange(curEmail,curPw,newEmail,newPw){
+  const list=credList();
+  if(!list.length)return {ok:false,msg:'No account yet'};
+  const i=list.findIndex(x=>x.email===_norm(curEmail));
+  if(i<0||_h(curPw,list[i].salt)!==list[i].hash)return {ok:false,msg:'Current email or password is wrong'};
+  const email=newEmail?newEmail:list[i].email;
   if(!validEmail(email))return {ok:false,msg:'Enter a valid email address'};
   if(newPw&&!pwStrong(newPw))return {ok:false,msg:'Password needs 8+ characters with letters and numbers'};
+  if(_norm(email)!==list[i].email && list.some((x,j)=>j!==i&&x.email===_norm(email)))return {ok:false,msg:'That email is already used by another account'};
   const salt=Math.random().toString(36).slice(2)+Date.now().toString(36);
-  credSave({email:_norm(email),salt,hash:_h(newPw||curPw,salt)});
+  list[i]={email:_norm(email),salt,hash:_h(newPw||curPw,salt)};
+  credSaveList(list);
   return {ok:true};
 }
 function renderAuthMode(){
-  const has=!!credGet(), setup=document.getElementById('setupBox'), form=document.getElementById('loginForm');
-  if(setup)setup.style.display=has?'none':'';
-  if(form)form.style.display=has?'':'none';
+  /* The sign-in form is always the first thing on the page. People who don't
+   * have a login yet use the "Create account" button to switch to sign-up. */
+  const setup=document.getElementById('setupBox'), form=document.getElementById('loginForm');
+  if(setup)setup.style.display='none';
+  if(form)form.style.display='';
   const ch=document.getElementById('changeCredBox'); if(ch)ch.style.display='none';
 }
 
