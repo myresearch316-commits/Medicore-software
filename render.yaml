@@ -1,0 +1,30 @@
+# Render Blueprint — MediCore HMS with PostgreSQL, server-side sessions and RBAC.
+# In Render: New → Blueprint → connect this repo → Apply.
+services:
+  - type: web
+    name: medicore-hms
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: medicore-db
+          property: connectionString
+      # The first admin's sign-in email. Change this to your own address before
+      # you click Apply — it is created once, on the very first boot.
+      - key: ADMIN_EMAIL
+        value: admin@medicore.local
+      # First-admin password. Render generates a strong value — read it in the
+      # dashboard (Environment tab), sign in, then change it in-app.
+      - key: ADMIN_PASSWORD
+        generateValue: true
+
+databases:
+  - name: medicore-db
+    plan: free
