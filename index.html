@@ -661,7 +661,7 @@
 
         <div class="row-between">
           <label class="check"><input type="checkbox" id="remember" checked> Keep me signed in</label>
-          <a class="link" href="#" onclick="return false">Forgot password?</a>
+          <a class="link" href="#" id="forgotLink">Forgot password?</a>
         </div>
 
         <div class="signin-row">
@@ -682,10 +682,10 @@
       <div id="setupBox" style="display:none">
         <h2 style="margin-top:4px">Create your account</h2>
         <p class="auth-sub">Set up a login you'll use to open MediCore.</p>
-        <div class="field"><label>Your email address</label>
-          <div class="inp"><input type="email" id="suEmail" placeholder="you@hospital.com"></div></div>
+        <div class="field"><label>Email or username</label>
+          <div class="inp"><input type="text" id="suEmail" placeholder="you@hospital.com or a username" autocomplete="off"></div></div>
         <div class="field"><label>Create a password</label>
-          <div class="inp"><input type="password" id="suPw" placeholder="8+ characters, letters and numbers"></div></div>
+          <div class="inp"><input type="password" id="suPw" placeholder="At least 6 characters"></div></div>
         <div class="signin-row"><button class="btn signin" type="button" id="suCreate">Create account</button></div>
         <div class="err" id="suErr"></div>
         <div style="text-align:center;margin-top:12px">
@@ -693,16 +693,29 @@
         </div>
       </div>
 
-      <!-- CHANGE CREDENTIALS (needs the current email + password) -->
+      <!-- FORGOT PASSWORD: reset an existing account's password on this device -->
+      <div id="resetBox" style="display:none">
+        <h2 style="margin-top:4px">Reset your password</h2>
+        <p class="auth-sub">Enter your email or username and choose a new password.</p>
+        <div class="field"><label>Email or username</label>
+          <div class="inp"><input type="text" id="rsId" placeholder="The email or username you use" autocomplete="off"></div></div>
+        <div class="field"><label>New password</label>
+          <div class="inp"><input type="password" id="rsPw" placeholder="At least 6 characters"></div></div>
+        <div class="signin-row"><button class="btn signin" type="button" id="rsSave">Set new password</button></div>
+        <div class="err" id="rsErr"></div>
+        <div style="text-align:center;margin-top:10px"><a class="link" href="#" id="rsCancel">Back to sign in</a></div>
+      </div>
+
+      <!-- CHANGE CREDENTIALS (needs the current email/username + password) -->
       <div id="changeCredBox" style="display:none">
-        <div class="field"><label>Current email</label>
-          <div class="inp"><input type="email" id="ccCurEmail" placeholder="The email you sign in with"></div></div>
+        <div class="field"><label>Current email or username</label>
+          <div class="inp"><input type="text" id="ccCurEmail" placeholder="The email or username you sign in with" autocomplete="off"></div></div>
         <div class="field"><label>Current password</label>
           <div class="inp"><input type="password" id="ccCur" placeholder="Your current password"></div></div>
-        <div class="field"><label>New email (leave blank to keep)</label>
-          <div class="inp"><input type="email" id="ccEmail" placeholder="new@hospital.com"></div></div>
+        <div class="field"><label>New email or username (leave blank to keep)</label>
+          <div class="inp"><input type="text" id="ccEmail" placeholder="new email or username" autocomplete="off"></div></div>
         <div class="field"><label>New password (leave blank to keep)</label>
-          <div class="inp"><input type="password" id="ccPw" placeholder="8+ characters, letters and numbers"></div></div>
+          <div class="inp"><input type="password" id="ccPw" placeholder="At least 6 characters"></div></div>
         <div class="signin-row"><button class="btn signin" type="button" id="ccSave">Save changes</button></div>
         <div style="text-align:center;margin-top:8px"><a class="link" href="#" id="ccCancel">Back to sign in</a></div>
         <div class="err" id="ccErr"></div>
@@ -1649,6 +1662,7 @@ document.getElementById('loginForm').addEventListener('submit',async e=>{
   const err=document.getElementById('err');
   if(!uid||!pwd){err.textContent='Please enter your credentials.';return;}
   err.textContent='';
+  /* If a server is reachable, it — not the browser — decides who may sign in. */
   if(typeof SERVER!=='undefined'){
     if(!SERVER.online && typeof repoProbe==='function'){ try{ await repoProbe(); }catch(x){} }
     if(SERVER.online){
@@ -1664,6 +1678,8 @@ document.getElementById('loginForm').addEventListener('submit',async e=>{
       return;
     }
   }
+  /* No backend reachable (e.g. opened as a local file) — local demo mode. */
+  /* No backend: only the account created on this device may sign in. */
   const chk=credCheck(uid,pwd);
   if(!chk.ok){ err.textContent=chk.msg; if(chk.setup)renderAuthMode(); return; }
   userName = uid.includes('@')? uid.split('@')[0] : uid;
@@ -1672,6 +1688,7 @@ document.getElementById('loginForm').addEventListener('submit',async e=>{
   document.getElementById('auth').classList.add('hidden');
   document.getElementById('rolePage').classList.remove('hidden');
 });
+/* first-run account creation */
 (function initAuthUI(){
   const c=document.getElementById('suCreate');
   if(c)c.onclick=()=>{
@@ -1687,25 +1704,42 @@ document.getElementById('loginForm').addEventListener('submit',async e=>{
     document.getElementById('uid').value=em;
     const errEl=document.getElementById('err'); if(errEl)errEl.textContent='Account created — sign in with it now.';
   };
+  /* show exactly one panel on the auth card, hide the rest */
+  function authShow(which){
+    ['loginForm','setupBox','changeCredBox','resetBox'].forEach(id=>{
+      const el=document.getElementById(id); if(el)el.style.display=(id===which)?'':'none';
+    });
+  }
   /* switch: sign-in  ->  create account */
   const su=document.getElementById('showSignup');
-  if(su)su.onclick=(ev)=>{ ev.preventDefault();
-    document.getElementById('loginForm').style.display='none';
-    document.getElementById('changeCredBox').style.display='none';
-    document.getElementById('setupBox').style.display='';
+  if(su)su.onclick=(ev)=>{ ev.preventDefault(); authShow('setupBox');
     const e=document.getElementById('suErr'); if(e)e.textContent=''; };
   /* switch: create account  ->  sign-in */
   const si=document.getElementById('showSignin');
-  if(si)si.onclick=(ev)=>{ ev.preventDefault();
-    document.getElementById('setupBox').style.display='none';
-    document.getElementById('loginForm').style.display=''; };
+  if(si)si.onclick=(ev)=>{ ev.preventDefault(); authShow('loginForm'); };
   const sc=document.getElementById('showChangeCred');
-  if(sc)sc.onclick=(ev)=>{ ev.preventDefault();
-    document.getElementById('loginForm').style.display='none';
-    document.getElementById('setupBox').style.display='none';
-    document.getElementById('changeCredBox').style.display=''; };
+  if(sc)sc.onclick=(ev)=>{ ev.preventDefault(); authShow('changeCredBox');
+    const e=document.getElementById('ccErr'); if(e)e.textContent=''; };
   const cc=document.getElementById('ccCancel');
   if(cc)cc.onclick=(ev)=>{ ev.preventDefault(); renderAuthMode(); };
+  /* forgot password -> reset panel */
+  const fl=document.getElementById('forgotLink');
+  if(fl)fl.onclick=(ev)=>{ ev.preventDefault(); authShow('resetBox');
+    const e=document.getElementById('rsErr'); if(e)e.textContent='';
+    const idv=document.getElementById('uid').value.trim(); const rid=document.getElementById('rsId'); if(rid&&idv)rid.value=idv; };
+  const rcancel=document.getElementById('rsCancel');
+  if(rcancel)rcancel.onclick=(ev)=>{ ev.preventDefault(); renderAuthMode(); };
+  const rsave=document.getElementById('rsSave');
+  if(rsave)rsave.onclick=()=>{
+    const e=document.getElementById('rsErr');
+    const r=credReset(document.getElementById('rsId').value.trim(),document.getElementById('rsPw').value);
+    if(!r.ok){e.textContent=r.msg;return;}
+    e.textContent=''; const em=document.getElementById('rsId').value.trim();
+    ['rsId','rsPw'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    renderAuthMode();
+    document.getElementById('uid').value=em;
+    const errEl=document.getElementById('err'); if(errEl)errEl.textContent='Password reset — sign in with your new password.';
+  };
   const cs=document.getElementById('ccSave');
   if(cs)cs.onclick=()=>{
     const e=document.getElementById('ccErr');
@@ -2612,6 +2646,8 @@ document.getElementById('admForm').addEventListener('submit',async e=>{
   persist();
   document.getElementById('admForm').reset(); fillWardSelects();
   renderBoard(); renderAdmitted();
+  /* Bed allocation is the highest-contention action in a hospital — if another
+     terminal claimed this bed first the server refuses and we roll back. */
   const sv=await repoSave('beds',b);
   if(sv.conflict){
     b.status=_prev.status; b.patient=_prev.patient;
@@ -3751,6 +3787,7 @@ function renderApptTool(host){
 }
 function renderVitalsTool(host){
   const pats=[...new Set((typeof BEDS!=='undefined'?BEDS:[]).filter(b=>b.patient).map(b=>b.patient.name))];
+  const last={}; VITALS.forEach(v=>{ last[_norm(v.patient)]=v; });
   const rows=VITALS.length?VITALS.slice().reverse().slice(0,40).map((v,i)=>{const f=vitalFlags(v);return `<tr><td class="sno">${i+1}</td><td><b>${genEsc(v.patient)}</b></td><td>${genEsc(String(v.temp||'—'))}</td><td>${genEsc(v.bp||'—')}</td><td>${genEsc(String(v.pulse||'—'))}</td><td>${genEsc(String(v.spo2||'—'))}</td><td>${f.length?f.map(x=>`<span class="pill r" style="margin:1px">${genEsc(x)}</span>`).join(' '):'<span class="pill g">Normal</span>'}</td><td>${genEsc(v.date)}</td></tr>`;}).join(''):'<tr><td class="tempty" colspan="8">No vitals recorded yet.</td></tr>';
   const nRows=NURSE_NOTES.length?NURSE_NOTES.slice().reverse().slice(0,25).map((n,i)=>`<tr><td class="sno">${i+1}</td><td><b>${genEsc(n.patient)}</b></td><td>${genEsc(n.shift||'—')}</td><td>${genEsc(n.by||'—')}</td><td style="max-width:340px">${genEsc(n.text)}</td><td>${genEsc(n.date)}</td></tr>`).join(''):'<tr><td class="tempty" colspan="6">No nursing notes yet.</td></tr>';
   host.innerHTML=`<div class="panel" style="max-width:none;margin-bottom:16px"><h3>Record vitals</h3>
@@ -5801,6 +5838,7 @@ function addMove(){
   let _chg=null;
   if(type==='out' && mv.who && typeof captureCharge==='function') _chg=captureCharge(mv.who,'Pharmacy',qty+'× '+med.name,amount);
   persist(); renderPharma();
+  /* stock level and the movement are both server-owned; the charge too if one was raised */
   repoSave('pharma_moves',mv).then(sv=>{ repoSave('pharmacy',med); if(_chg)repoSave('charges',_chg);
     if(!sv.ok&&!sv.offline)toast(sv.msg||'Movement not saved to server'); });
   toast(type==='in'?`Stock added: ${med.name}`:`Dispensed ${qty} × ${med.name}`);
@@ -6113,6 +6151,7 @@ function sanitizePhone(v){
   document.addEventListener('change',e=>clean(e.target),true);
   document.addEventListener('blur',e=>clean(e.target),true);
   document.addEventListener('paste',e=>{ const el=e.target; if(isPhoneField(el))setTimeout(()=>clean(el),0); },true);
+  /* block letter keys outright so nothing ever appears in the box */
   document.addEventListener('keypress',e=>{
     const el=e.target;
     if(!isPhoneField(el))return;
@@ -6120,6 +6159,7 @@ function sanitizePhone(v){
     const ch=e.key;
     if(ch&&ch.length===1&&!/[0-9]/.test(ch)&&!(ch==='+'&&(el.selectionStart===0))) e.preventDefault();
   },true);
+  /* mobile keypads: ask for the numeric pad on every phone field we render */
   const hint=()=>document.querySelectorAll('input').forEach(el=>{
     if(isPhoneField(el)&&el.dataset.phoneReady!=='1'){
       /* type=tel stops the browser offering unrelated saved values (ward names etc.)
@@ -6234,6 +6274,7 @@ async function repoFlush(){
   if(sent&&typeof toast==='function')toast(`${sent} offline change${sent===1?'':'s'} synced to the server`);
   return {sent,left:left.length};
 }
+/* one place that reports the save outcome to the user */
 function repoReport(r,successMsg){
   if(!r)return false;
   if(r.ok){ toast(r.offline?(successMsg+' · saved locally, will sync'):successMsg); return true; }
@@ -6247,12 +6288,14 @@ function updateServerBadge(){
   else if(SERVER.online){ el.className='syncbadge on'; t.textContent='Server online — sign in for multi-user'; }
   else { el.className='syncbadge off'; t.textContent=`Local mode${q?` · ${q} queued`:' — this device only'}`; }
 }
+/* Pull server-owned resources into the in-page arrays the UI already renders. */
 async function repoHydrate(){
   if(!SERVER.online||!SERVER.user)return;
   await repoFlush();
   if(repoCan('patients','r')){
     const list=await repoList('patients');
     if(Array.isArray(list)&&list.length){
+      const seen={}; UHID_REG.forEach(u=>seen[u.id]=true);
       list.forEach(rec=>{ const i=UHID_REG.findIndex(u=>u.id===rec.id); if(i>=0)UHID_REG[i]=rec; else UHID_REG.push(rec); });
     }
   }
@@ -6272,6 +6315,7 @@ async function repoHydrate(){
     const bl=await repoList('beds');
     if(Array.isArray(bl))bl.forEach(rec=>{ const i=BEDS.findIndex(b=>b.id===rec.id); if(i>=0)BEDS[i]=rec; });
   }
+  /* keep the running token ahead of anything another terminal issued */
   try{ const maxTok=QUEUE.reduce((a,q)=>Math.max(a,Number(q.tok)||0),0); if(maxTok>TOKEN)TOKEN=maxTok; }catch(e){}
   try{ if(typeof refreshView==='function')refreshView(); }catch(e){}
   updateServerBadge();
@@ -6279,12 +6323,21 @@ async function repoHydrate(){
 repoProbe().then(()=>repoHydrate());
 setInterval(()=>{ if(!SERVER.online)repoProbe(); else { repoFlush(); repoHydrate(); } },60000);
 
-/* ===================== LOCAL ACCOUNT (used when no server is reachable) ===================== */
+/* ===================== LOCAL ACCOUNT (used when no server is reachable) =====================
+ * Only the account created here can sign in. The email and password are changeable by the
+ * owner, and the password is never stored in plain text.
+ * NOTE: when the server is online it is the real gate — this exists so the offline/desktop
+ * copy is not wide open.
+ * =========================================================================================== */
 const CRED_KEY='medicore_local_cred';
 const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 function validEmail(e){ return EMAIL_RE.test(String(e||'').trim()); }
-function pwStrong(p){ p=String(p||''); return p.length>=8 && /[A-Za-z]/.test(p) && /[0-9]/.test(p); }
+/* Sign-in ID may be a username OR an email — 3+ chars, no spaces. */
+function validId(x){ x=String(x||'').trim(); return EMAIL_RE.test(x) || /^[a-z0-9][a-z0-9._+-]{2,63}$/i.test(x); }
+/* Keep it simple: at least 6 characters. */
+function pwStrong(p){ return String(p||'').length>=6; }
 function _h(pw,salt){
+  /* fast, dependency-free digest; the server uses scrypt for the real thing */
   const s=salt+'|'+String(pw); let h1=0x811c9dc5,h2=0x01000193;
   for(let i=0;i<s.length;i++){ const c=s.charCodeAt(i); h1=(h1^c)>>>0; h1=(h1*0x01000193)>>>0; h2=(h2+c*(i+7))>>>0; h2=(h2^(h2<<5))>>>0; }
   let out=''; for(let r=0;r<4;r++){ h1=(h1*0x01000193+r)>>>0; h2=(h2^(h1>>>3))>>>0; out+=('00000000'+((h1^h2)>>>0).toString(16)).slice(-8); }
@@ -6296,10 +6349,10 @@ function credList(){ try{ const raw=JSON.parse(localStorage.getItem(CRED_KEY)||'
 function credSaveList(a){ try{ localStorage.setItem(CRED_KEY,JSON.stringify(a)); }catch(e){} }
 function credGet(){ return credList()[0]||null; }   /* back-compat: "is there any account?" */
 function credSet(email,pw){
-  if(!validEmail(email))return {ok:false,msg:'Enter a valid email address'};
-  if(!pwStrong(pw))return {ok:false,msg:'Password needs 8+ characters with letters and numbers'};
+  if(!validId(email))return {ok:false,msg:'Enter an email address or a username (3+ characters, no spaces)'};
+  if(!pwStrong(pw))return {ok:false,msg:'Password needs at least 6 characters'};
   const list=credList();
-  if(list.some(c=>c.email===_norm(email)))return {ok:false,msg:'An account with this email already exists — sign in instead'};
+  if(list.some(c=>c.email===_norm(email)))return {ok:false,msg:'This account already exists — sign in instead'};
   const salt=Math.random().toString(36).slice(2)+Date.now().toString(36);
   list.push({email:_norm(email),salt,hash:_h(pw,salt)});
   credSaveList(list);
@@ -6309,30 +6362,42 @@ function credCheck(email,pw){
   const list=credList();
   if(!list.length)return {ok:false,setup:true,msg:'No account yet — create one below'};
   const c=list.find(x=>x.email===_norm(email));
-  if(!c||_h(pw,c.salt)!==c.hash)return {ok:false,msg:'Wrong email or password'};
+  if(!c||_h(pw,c.salt)!==c.hash)return {ok:false,msg:'Wrong email/username or password'};
   return {ok:true};
 }
 function credChange(curEmail,curPw,newEmail,newPw){
   const list=credList();
   if(!list.length)return {ok:false,msg:'No account yet'};
   const i=list.findIndex(x=>x.email===_norm(curEmail));
-  if(i<0||_h(curPw,list[i].salt)!==list[i].hash)return {ok:false,msg:'Current email or password is wrong'};
+  if(i<0||_h(curPw,list[i].salt)!==list[i].hash)return {ok:false,msg:'Current email/username or password is wrong'};
   const email=newEmail?newEmail:list[i].email;
-  if(!validEmail(email))return {ok:false,msg:'Enter a valid email address'};
-  if(newPw&&!pwStrong(newPw))return {ok:false,msg:'Password needs 8+ characters with letters and numbers'};
-  if(_norm(email)!==list[i].email && list.some((x,j)=>j!==i&&x.email===_norm(email)))return {ok:false,msg:'That email is already used by another account'};
+  if(!validId(email))return {ok:false,msg:'Enter a valid email address or username'};
+  if(newPw&&!pwStrong(newPw))return {ok:false,msg:'New password needs at least 6 characters'};
+  if(_norm(email)!==list[i].email && list.some((x,j)=>j!==i&&x.email===_norm(email)))return {ok:false,msg:'That email/username is already used by another account'};
   const salt=Math.random().toString(36).slice(2)+Date.now().toString(36);
   list[i]={email:_norm(email),salt,hash:_h(newPw||curPw,salt)};
   credSaveList(list);
   return {ok:true};
 }
+/* Forgot password: set a new password for an existing account on this device.
+ * (No email delivery offline — a deployed server would email a reset link.) */
+function credReset(email,newPw){
+  const list=credList();
+  const i=list.findIndex(x=>x.email===_norm(email));
+  if(i<0)return {ok:false,msg:'No account found with that email or username'};
+  if(!pwStrong(newPw))return {ok:false,msg:'New password needs at least 6 characters'};
+  const salt=Math.random().toString(36).slice(2)+Date.now().toString(36);
+  list[i]={email:list[i].email,salt,hash:_h(newPw,salt)};
+  credSaveList(list);
+  return {ok:true};
+}
+/* Show "create account" the very first time, otherwise the normal sign-in. */
 function renderAuthMode(){
   /* The sign-in form is always the first thing on the page. People who don't
    * have a login yet use the "Create account" button to switch to sign-up. */
-  const setup=document.getElementById('setupBox'), form=document.getElementById('loginForm');
-  if(setup)setup.style.display='none';
+  const form=document.getElementById('loginForm');
+  ['setupBox','changeCredBox','resetBox'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   if(form)form.style.display='';
-  const ch=document.getElementById('changeCredBox'); if(ch)ch.style.display='none';
 }
 
 /* ---------- keep the page you're on across a refresh ---------- */
